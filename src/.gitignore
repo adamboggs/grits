@@ -6,7 +6,7 @@
 *.so
 .deps
 .libs
-gis-marshal.*
+gis-marshal.[ch]
 gis_test
 gmon.*
 wms_test
