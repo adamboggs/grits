@@ -1,11 +1,12 @@
 *.la
 *.lo
 *.o
-*.so
+*.pc
 *.prof
+*.so
 .deps
 .libs
+gis-marshal.*
+gis_test
 gmon.*
-aweather
-level2
-wsr88ddec
+wms_test
