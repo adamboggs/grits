@@ -39,7 +39,8 @@ pkgconfig_DATA = libgis.pc
 bin_PROGRAMS = gis_test wms_test
 
 gis_test_SOURCES  = gis_test.c gis.h
-gis_test_LDADD    = $(AM_LDADD) .libs/libgis.a
+gis_test_LDFLAGS  = -static
+gis_test_LDADD    = $(AM_LDADD) libgis.la
 
 wms_test_SOURCES  = wms_test.c gis-world.c gis-world.h wms.c wms.h
 wms_test_LDADD    = $(AM_LDADD)
