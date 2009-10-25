@@ -68,35 +68,49 @@ typedef struct {
 	GisPlugin *plugin;
 } GisPluginStore;
 
-GisPlugins *gis_plugins_new()
+GisPlugins *gis_plugins_new(gchar *dir)
 {
-	return g_ptr_array_new();
+	g_debug("GisPlugins: new - dir=%s", dir);
+	GisPlugins *plugins = g_new0(GisPlugins, 1);
+	if (dir)
+		plugins->dir = g_strdup(dir);
+	plugins->plugins = g_ptr_array_new();
+	return plugins;
 }
 
 void gis_plugins_free(GisPlugins *self)
 {
-	for (int i = 0; i < self->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self, i);
+	g_debug("GisPlugins: free");
+	for (int i = 0; i < self->plugins->len; i++) {
+		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
 		g_object_unref(store->plugin);
 		g_free(store->name);
 		g_free(store);
-		g_ptr_array_remove_index(self, i);
+		g_ptr_array_remove_index(self->plugins, i);
 	}
-	g_ptr_array_free(self, TRUE);
+	g_ptr_array_free(self->plugins, TRUE);
+	if (self->dir)
+		g_free(self->dir);
+	g_free(self);
 }
 
-GList *gis_plugins_available()
+GList *gis_plugins_available(GisPlugins *self)
 {
-	GDir *dir = g_dir_open(PLUGINDIR, 0, NULL);
-	if (dir == NULL)
-		return NULL;
+	g_debug("GisPlugins: available");
 	GList *list = NULL;
-	const gchar *name;
-	while ((name = g_dir_read_name(dir))) {
-		if (g_pattern_match_simple("*.so", name)) {
-			gchar **parts = g_strsplit(name, ".", 2);
-			list = g_list_prepend(list, g_strdup(parts[0]));
-			g_strfreev(parts);
+	gchar *dirs[] = {self->dir, PLUGINSDIR};
+	for (int i = 0; i<2; i++) {
+		GDir *dir = g_dir_open(dirs[i], 0, NULL);
+		if (dir == NULL)
+			continue;
+		g_debug("            checking %s", dirs[i]);
+		const gchar *name;
+		while ((name = g_dir_read_name(dir))) {
+			if (g_pattern_match_simple("*.so", name)) {
+				gchar **parts = g_strsplit(name, ".", 2);
+				list = g_list_prepend(list, g_strdup(parts[0]));
+				g_strfreev(parts);
+			}
 		}
 	}
 	return list;
@@ -105,7 +119,14 @@ GList *gis_plugins_available()
 GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 		GisWorld *world, GisView *view, GisOpenGL *opengl, GisPrefs *prefs)
 {
-	gchar *path = g_strdup_printf("%s/%s.%s", PLUGINDIR, name, G_MODULE_SUFFIX);
+	g_debug("GisPlugins: load %s", name);
+	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
+	if (!g_file_test(path, G_FILE_TEST_EXISTS))
+		path = g_strdup_printf("%s/%s.%s", PLUGINSDIR, name, G_MODULE_SUFFIX);
+	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+		g_warning("Module %s not found", name);
+		return NULL;
+	}
 	GModule *module = g_module_open(path, 0);
 	g_free(path);
 	if (module == NULL) {
@@ -128,29 +149,31 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 	GisPluginStore *store = g_malloc(sizeof(GisPluginStore));
 	store->name = g_strdup(name);
 	store->plugin = constructor(world, view, opengl, prefs);
-	g_ptr_array_add(self, store);
+	g_ptr_array_add(self->plugins, store);
 	return store->plugin;
 }
 
 gboolean gis_plugins_unload(GisPlugins *self, const char *name)
 {
-	for (int i = 0; i < self->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self, i);
+	g_debug("GisPlugins: unload %s", name);
+	for (int i = 0; i < self->plugins->len; i++) {
+		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
 		if (g_str_equal(store->name, name)) {
 			g_object_unref(store->plugin);
 			g_free(store->name);
 			g_free(store);
-			g_ptr_array_remove_index(self, i);
+			g_ptr_array_remove_index(self->plugins, i);
 		}
 	}
 	return FALSE;
 }
 void gis_plugins_foreach(GisPlugins *self, GCallback _callback, gpointer user_data)
 {
+	g_debug("GisPlugins: foreach");
 	typedef void (*CBFunc)(GisPlugin *, const gchar *, gpointer);
 	CBFunc callback = (CBFunc)_callback;
-	for (int i = 0; i < self->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self, i);
+	for (int i = 0; i < self->plugins->len; i++) {
+		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
 		callback(store->plugin, store->name, user_data);
 	}
 }

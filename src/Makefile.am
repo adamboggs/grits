@@ -29,7 +29,7 @@ libgis_la_SOURCES = \
 	wms.c         wms.h         \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DDATADIR="\"$(datadir)\"" -DPLUGINDIR="\"$(libdir)/gis\""
+	-DPKGDATADIR="\"$(datadir)/gis\"" -DPLUGINSDIR="\"$(libdir)/gis\""
 libgis_la_LIBADD = $(AM_LDADD)
 
 pkgconfigdir = $(libdir)/pkgconfig

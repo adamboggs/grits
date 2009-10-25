@@ -48,7 +48,7 @@ struct _GisPrefsClass {
 GType gis_prefs_get_type(void);
 
 /* Methods */
-GisPrefs *gis_prefs_new(const gchar *prog);
+GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults);
 
 gchar    *gis_prefs_get_string   (GisPrefs *prefs, const gchar *key);
 gboolean  gis_prefs_get_boolean  (GisPrefs *prefs, const gchar *key);

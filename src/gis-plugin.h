@@ -28,7 +28,7 @@
 
 typedef struct _GisPlugin          GisPlugin;
 typedef struct _GisPluginInterface GisPluginInterface;
-typedef GPtrArray                  GisPlugins;
+typedef struct _GisPlugins         GisPlugins;
 
 struct _GisPluginInterface
 {
@@ -51,14 +51,19 @@ GtkWidget *gis_plugin_get_config(GisPlugin *self);
 #include "gis-opengl.h"
 #include "gis-prefs.h"
 
+struct _GisPlugins {
+	gchar     *dir;
+	GPtrArray *plugins;
+};
+
 typedef GisPlugin *(*GisPluginConstructor)(GisWorld *world, GisView *view, GisOpenGL *opengl, GisPrefs *prefs);
 
-GisPlugins *gis_plugins_new();
+GisPlugins *gis_plugins_new(gchar *dir);
 void        gis_plugins_free();
-GList      *gis_plugins_available();
-GisPlugin  *gis_plugins_load(GisPlugins *self, const char *name,
+GList      *gis_plugins_available(GisPlugins *plugins);
+GisPlugin  *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisWorld *world, GisView *view, GisOpenGL *opengl, GisPrefs *prefs);
-gboolean    gis_plugins_unload(GisPlugins *self, const char *name);
-void        gis_plugins_foreach(GisPlugins *self, GCallback callback, gpointer user_data);
+gboolean    gis_plugins_unload(GisPlugins *plugins, const char *name);
+void        gis_plugins_foreach(GisPlugins *plugins, GCallback callback, gpointer user_data);
 
 #endif

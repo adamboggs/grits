@@ -30,27 +30,28 @@ static guint signals[NUM_SIGNALS];
 /***********
  * Methods *
  ***********/
-GisPrefs *gis_prefs_new(const gchar *prog)
+GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 {
-	g_debug("GisPrefs: new - %s", prog);
+	g_debug("GisPrefs: new - %s, %s", config, defaults);
 	GisPrefs *self = g_object_new(GIS_TYPE_PREFS, NULL);
-	self->key_path = g_build_filename(g_get_user_config_dir(),
-			prog, "config.ini", NULL);
+	if (config)
+		self->key_path = g_strdup(config);
+	else
+		self->key_path = g_build_filename(g_get_user_config_dir(),
+				"gis", "config.ini", NULL);
 	GError *error = NULL;
 	g_key_file_load_from_file(self->key_file, self->key_path,
 			G_KEY_FILE_KEEP_COMMENTS, &error);
-	if (error) {
-		g_debug("GisPrefs: new - Trying %s defaults", prog);
+	if (error && defaults) {
+		g_debug("GisPrefs: new - Trying %s defaults", defaults);
 		g_clear_error(&error);
-		gchar *tmp = g_build_filename(DATADIR, prog, "defaults.ini", NULL);
-		g_key_file_load_from_file(self->key_file, tmp,
+		g_key_file_load_from_file(self->key_file, defaults,
 				G_KEY_FILE_KEEP_COMMENTS, &error);
-		g_free(tmp);
 	}
 	if (error) {
 		g_debug("GisPrefs: new - Trying GIS defaults");
 		g_clear_error(&error);
-		gchar *tmp = g_build_filename(DATADIR, "gis", "defaults.ini", NULL);
+		gchar *tmp = g_build_filename(PKGDATADIR, "defaults.ini", NULL);
 		g_key_file_load_from_file(self->key_file, tmp,
 				G_KEY_FILE_KEEP_COMMENTS, &error);
 		g_free(tmp);
@@ -116,7 +117,7 @@ static void gis_prefs_init(GisPrefs *self)
 static GObject *gis_prefs_constructor(GType gtype, guint n_properties,
 		GObjectConstructParam *properties)
 {
-	g_debug("gis_prefs: constructor");
+	g_debug("GisPrefs: constructor");
 	GObjectClass *parent_class = G_OBJECT_CLASS(gis_prefs_parent_class);
 	return  parent_class->constructor(gtype, n_properties, properties);
 }

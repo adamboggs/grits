@@ -24,12 +24,12 @@ depscan:
 		--book=atk         \
 		--book=gdk         \
 		--book=gdk-pixbuf  \
-		--book=glib        \
 		--book=gio         \
+		--book=glib        \
 		--book=gobject     \
 		--book=gtk         \
-		--book=pango       \
 		--book=libsoup-2.4 \
+		--book=pango       \
 		--list-unknown     \
 		"$@"               \
 		src/*.c

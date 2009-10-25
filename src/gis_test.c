@@ -44,8 +44,8 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 	g_thread_init(NULL);
 
-	GisPrefs   *prefs   = gis_prefs_new("aweather");
-	GisPlugins *plugins = gis_plugins_new();
+	GisPrefs   *prefs   = gis_prefs_new(NULL, NULL);
+	GisPlugins *plugins = gis_plugins_new(NULL);
 	GisWorld   *world   = gis_world_new();
 	GisView    *view    = gis_view_new();
 	GisOpenGL  *opengl  = gis_opengl_new(world, view, plugins);
