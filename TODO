@@ -5,3 +5,42 @@ Road plan
   DisplayLists/
   glInterleavedArrays
 * States/cities/roads overlays
+
+Roam update
+-----------
+
+  x # Gis:
+  x gis_update_tiles(tiles);
+  x   for (tile in tiles)
+  x     if (need_split(tiles))
+  x       tiles << split(tile)
+  x gis_render_surface(Image *img)
+  x   polys = roam_get_intersecting_polies(img)
+  x   for (poly in plies)
+  x     render(img, poly)
+
+    # Roam:
+    on_view_change:
+      roam_update_errors(roam)
+    on_timeout:
+      split_merge:
+        if (height_func())
+           vertex_heght = roam->height_func()
+        else
+           vertex_heght = 0
+
+  x # GisPluginSrtm:
+  x on_view_change:
+  x   roam->height_func = srtm_height_func
+  x   gis_update_tiles(tiles)
+  x   for (new_tiles in tiles)
+  x     points = roam_get_intersecting_points(tile)
+  x     for (poly in plies)
+  x       render(img, poly)
+
+  x # GisPluginBmng:
+  x on_view_change:
+  x   gis_update_tiles(tiles)
+  x on_render:
+  x   for tile in tiles:
+  x     gis_render_surface(gis, tile)

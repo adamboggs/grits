@@ -5,7 +5,7 @@
  * SECTION:priority_queues
  * @short_description: a collection of data entries with associated priority
  * values that returns entries one by one in order of priority
- * 
+ *
  * <para>
  * The #GPQueue structure and its associated functions provide a sorted
  * collection of objects. Entries can be inserted in any order and at any time,
@@ -58,11 +58,11 @@ struct _GPQueue {
  *   they are equal, a negative value if the first comes before the second, and
  *   a positive value if the second comes before the first.
  * @compare_userdata: user data passed to @compare_func
- * 
+ *
  * Creates a new #GPQueue.
- * 
+ *
  * Returns: a new #GPQueue.
- * 
+ *
  * Since: 2.x
  **/
 GPQueue*
@@ -81,11 +81,11 @@ g_pqueue_new (GCompareDataFunc compare_func,
 /**
  * g_pqueue_is_empty:
  * @pqueue: a #GPQueue.
- * 
+ *
  * Returns %TRUE if the queue is empty.
- * 
+ *
  * Returns: %TRUE if the queue is empty.
- * 
+ *
  * Since: 2.x
  **/
 gboolean
@@ -114,7 +114,7 @@ g_pqueue_node_foreach (GPQueueNode *node,
  * @user_data: user data to pass to func
  *
  * Calls func for each element in the pqueue passing user_data to the function.
- * 
+ *
  * Since: 2.x
  */
 void
@@ -138,7 +138,7 @@ g_pqueue_add_ptr_cb (gpointer obj, GPtrArray *ptrs)
  * updating the priorities of all the elements in pqueue.
  *
  * Returns: A GPtrArray containing a pointer to each item in pqueue
- * 
+ *
  * Since: 2.x
  */
 GPtrArray *
@@ -196,18 +196,18 @@ g_pqueue_node_insert_after (GPQueueNode *dest,
  * g_pqueue_push:
  * @pqueue: a #GPQueue.
  * @data: the object to insert into the priority queue.
- * 
+ *
  * Inserts a new entry into a #GPQueue.
- * 
+ *
  * The returned handle can be used in calls to g_pqueue_remove() and
  * g_pqueue_priority_changed(). Never make such calls for entries that have
  * already been removed from the queue. The same @data can be inserted into
  * a #GPQueue more than once, but remember that in this case,
  * g_pqueue_priority_changed() needs to be called for
  * <emphasis>every</emphasis> handle for that object if its priority changes.
- * 
+ *
  * Returns: a handle for the freshly inserted entry.
- * 
+ *
  * Since: 2.x
  **/
 GPQueueHandle
@@ -239,15 +239,15 @@ g_pqueue_push (GPQueue *pqueue,
 /**
  * g_pqueue_peek:
  * @pqueue: a #GPQueue.
- * 
+ *
  * Returns the topmost entry's data pointer, or %NULL if the queue is empty.
- * 
+ *
  * If you need to tell the difference between an empty queue and a queue
  * that happens to have a %NULL pointer at the top, check if the queue is
  * empty first.
- * 
+ *
  * Returns: the topmost entry's data pointer, or %NULL if the queue is empty.
- * 
+ *
  * Since: 2.x
  **/
 gpointer
@@ -382,17 +382,17 @@ g_pqueue_remove_root (GPQueue *pqueue,
 /**
  * g_pqueue_pop:
  * @pqueue: a #GPQueue.
- * 
+ *
  * Removes the topmost entry from a #GPQueue and returns its data pointer.
  * Calling this on an empty #GPQueue is not an error, but removes nothing
  * and returns %NULL.
- * 
+ *
  * If you need to tell the difference between an empty queue and a queue
  * that happens to have a %NULL pointer at the top, check if the queue is
  * empty first.
- * 
+ *
  * Returns: the topmost entry's data pointer, or %NULL if the queue was empty.
- * 
+ *
  * Since: 2.x
  **/
 gpointer
@@ -468,13 +468,13 @@ g_pqueue_cut_tree (GPQueue *pqueue,
  * g_pqueue_remove:
  * @pqueue: a #GPQueue.
  * @entry: a #GPQueueHandle for an entry in @pqueue.
- * 
+ *
  * Removes one entry from a #GPQueue.
- * 
+ *
  * Make sure that @entry refers to an entry that is actually part of
  * @pqueue at the time, otherwise the behavior of this function is
  * undefined (expect crashes).
- * 
+ *
  * Since: 2.x
  **/
 void
@@ -489,18 +489,18 @@ g_pqueue_remove (GPQueue* pqueue,
  * g_pqueue_priority_changed:
  * @pqueue: a #GPQueue.
  * @entry: a #GPQueueHandle for an entry in @pqueue.
- * 
+ *
  * Notifies the #GPQueue that the priority of one entry has changed.
  * The internal representation is updated accordingly.
- * 
+ *
  * Make sure that @entry refers to an entry that is actually part of
  * @pqueue at the time, otherwise the behavior of this function is
  * undefined (expect crashes).
- * 
+ *
  * Do not attempt to change the priorities of several entries at once.
  * Every time a single object is changed, the #GPQueue needs to be updated
  * by calling g_pqueue_priority_changed() for that object.
- * 
+ *
  * Since: 2.x
  **/
 void
@@ -522,14 +522,14 @@ g_pqueue_priority_changed (GPQueue* pqueue,
  * g_pqueue_priority_decreased:
  * @pqueue: a #GPQueue.
  * @entry: a #GPQueueHandle for an entry in @pqueue.
- * 
+ *
  * Notifies the #GPQueue that the priority of one entry has
  * <emphasis>decreased</emphasis>.
- * 
+ *
  * This is a special case of g_pqueue_priority_changed(). If you are absolutely
  * sure that the new priority of @entry is lower than it was before, you
  * may call this function instead of g_pqueue_priority_changed().
- * 
+ *
  * <note>
  *   <para>
  *     In the current implementation, an expensive step in
@@ -539,7 +539,7 @@ g_pqueue_priority_changed (GPQueue* pqueue,
  *     is undefined.
  *   </para>
  * </note>
- * 
+ *
  * Since: 2.x
  **/
 void
@@ -562,9 +562,9 @@ g_pqueue_node_free_all (GPQueueNode *node)
 /**
  * g_pqueue_clear:
  * @pqueue: a #GPQueue.
- * 
+ *
  * Removes all entries from a @pqueue.
- * 
+ *
  * Since: 2.x
  **/
 void
@@ -577,10 +577,10 @@ g_pqueue_clear (GPQueue* pqueue)
 /**
  * g_pqueue_free:
  * @pqueue: a #GPQueue.
- * 
+ *
  * Deallocates the memory used by @pqueue itself, but not any memory pointed
  * to by the data pointers of its entries.
- * 
+ *
  * Since: 2.x
  **/
 void

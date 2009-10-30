@@ -20,14 +20,14 @@
 
 #include <gis.h>
 
-#include "teapot.h"
+#include "srtm.h"
 
 /***********
  * Helpers *
  ***********/
 static gboolean rotate(gpointer _self)
 {
-	GisPluginTeapot *self = _self;
+	GisPluginSrtm *self = _self;
 	if (gtk_toggle_button_get_active(self->button)) {
 		self->rotation += 1.0;
 		gis_opengl_redraw(self->opengl);
@@ -39,25 +39,25 @@ static gboolean rotate(gpointer _self)
 /***********
  * Methods *
  ***********/
-GisPluginTeapot *gis_plugin_teapot_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
+GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
 {
-	g_debug("GisPluginTeapot: new");
-	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
+	g_debug("GisPluginSrtm: new");
+	GisPluginSrtm *self = g_object_new(GIS_TYPE_PLUGIN_SRTM, NULL);
 	self->opengl = opengl;
 
 	return self;
 }
 
-static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_self)
+static GtkWidget *gis_plugin_srtm_get_config(GisPlugin *_self)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
+	GisPluginSrtm *self = GIS_PLUGIN_SRTM(_self);
 	return GTK_WIDGET(self->button);
 }
 
-static void gis_plugin_teapot_expose(GisPlugin *_self)
+static void gis_plugin_srtm_expose(GisPlugin *_self)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
-	g_debug("GisPluginTeapot: expose");
+	GisPluginSrtm *self = GIS_PLUGIN_SRTM(_self);
+	g_debug("GisPluginSrtm: expose");
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -74,7 +74,7 @@ static void gis_plugin_teapot_expose(GisPlugin *_self)
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	glEnable(GL_COLOR_MATERIAL);
 
-	glTranslatef(-0.5, -0.5, -2);
+	glTranslatef(0.5, -0.5, -2);
 	glRotatef(self->rotation, 1, 1, 0);
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
@@ -86,47 +86,47 @@ static void gis_plugin_teapot_expose(GisPlugin *_self)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginTeapot, gis_plugin_teapot, G_TYPE_OBJECT,
+static void gis_plugin_srtm_plugin_init(GisPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GisPluginSrtm, gis_plugin_srtm, G_TYPE_OBJECT,
 		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_teapot_plugin_init));
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface)
+			gis_plugin_srtm_plugin_init));
+static void gis_plugin_srtm_plugin_init(GisPluginInterface *iface)
 {
-	g_debug("GisPluginTeapot: plugin_init");
+	g_debug("GisPluginSrtm: plugin_init");
 	/* Add methods to the interface */
-	iface->expose     = gis_plugin_teapot_expose;
-	iface->get_config = gis_plugin_teapot_get_config;
+	iface->expose     = gis_plugin_srtm_expose;
+	iface->get_config = gis_plugin_srtm_get_config;
 }
 /* Class/Object init */
-static void gis_plugin_teapot_init(GisPluginTeapot *self)
+static void gis_plugin_srtm_init(GisPluginSrtm *self)
 {
-	g_debug("GisPluginTeapot: init");
+	g_debug("GisPluginSrtm: init");
 	/* Set defaults */
 	self->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
 	self->rotate_id = g_timeout_add(1000/60, rotate, self);
 	self->rotation  = 30.0;
 	self->opengl    = NULL;
 }
-static void gis_plugin_teapot_dispose(GObject *gobject)
+static void gis_plugin_srtm_dispose(GObject *gobject)
 {
-	g_debug("GisPluginTeapot: dispose");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
+	g_debug("GisPluginSrtm: dispose");
+	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
 	g_source_remove(self->rotate_id);
 	/* Drop references */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);
 }
-static void gis_plugin_teapot_finalize(GObject *gobject)
+static void gis_plugin_srtm_finalize(GObject *gobject)
 {
-	g_debug("GisPluginTeapot: finalize");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
+	g_debug("GisPluginSrtm: finalize");
+	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
 	/* Free data */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_teapot_class_init(GisPluginTeapotClass *klass)
+static void gis_plugin_srtm_class_init(GisPluginSrtmClass *klass)
 {
-	g_debug("GisPluginTeapot: class_init");
+	g_debug("GisPluginSrtm: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_teapot_dispose;
-	gobject_class->finalize = gis_plugin_teapot_finalize;
+	gobject_class->dispose  = gis_plugin_srtm_dispose;
+	gobject_class->finalize = gis_plugin_srtm_finalize;
 }

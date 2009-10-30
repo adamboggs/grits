@@ -11,18 +11,18 @@ typedef struct _GPQueueNode GPQueueNode;
 
 /**
  * GPQueue:
- * 
+ *
  * An opaque structure representing a priority queue.
- * 
+ *
  * Since: 2.x
  **/
 typedef struct _GPQueue GPQueue;
 
 /**
  * GPQueueHandle:
- * 
+ *
  * An opaque value representing one entry in a #GPQueue.
- * 
+ *
  * Since: 2.x
  **/
 typedef GPQueueNode* GPQueueHandle;

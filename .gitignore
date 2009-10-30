@@ -1,6 +1,7 @@
 *.bz2
 *.gz
 *~
+.*.swp
 Makefile
 Makefile.in
 aclocal.m4

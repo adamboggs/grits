@@ -1,3 +1,5 @@
+SUBDIRS = plugins
+
 AM_CFLAGS   = -Wall --std=gnu99 
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
 AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(SOUP_LIBS)
@@ -56,10 +58,10 @@ test: all
 	./gis_test
 
 gdb: all
-	LD_LIBRARY_PATH=.libs gdb .libs/gis_test
+	gdb ./gis_test
 
 ddd: all
-	LD_LIBRARY_PATH=.libs ddd .libs/gis_test
+	ddd ./gis_test
 
 memcheck: all
 	LD_LIBRARY_PATH=.libs                      \

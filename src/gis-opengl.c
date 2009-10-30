@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2009 Andy Spencer <spenceal@rose-hulman.edu>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -34,7 +34,7 @@
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)
 
-// #define ROAM_DEBUG
+//#define ROAM_DEBUG
 
 /*************
  * ROAM Code *
@@ -42,191 +42,6 @@
 void roam_queue_draw(WmsCacheNode *node, gpointer _self)
 {
 	gtk_widget_queue_draw(GTK_WIDGET(_self));
-}
-
-void roam_height_func(RoamPoint *point, gpointer _self)
-{
-	GisOpenGL *self = _self;
-
-	gdouble lat, lon, elev;
-	xyz2lle(point->x, point->y, point->z, &lat, &lon, &elev);
-
-#ifdef ROAM_DEBUG
-	lle2xyz(lat, lon, 0, &point->x, &point->y, &point->z);
-	return;
-#endif
-
-	gdouble cam_lle[3], cam_xyz[3];
-	gis_view_get_location(self->view, &cam_lle[0], &cam_lle[1], &cam_lle[2]);
-	lle2xyz(cam_lle[0], cam_lle[1], cam_lle[2], &cam_xyz[0], &cam_xyz[1], &cam_xyz[2]);
-
-	gdouble res = MPPX(distd(cam_xyz, (double*)point));
-	//g_message("lat=%f, lon=%f, res=%f", lat, lon, res);
-
-	point->node = wms_info_fetch_cache(self->srtm, point->node,
-			res, lat, lon, NULL, roam_queue_draw, self);
-
-	if (point->node) {
-		WmsBil *bil = point->node->data;
-
-		gint w = bil->width;
-		gint h = bil->height;
-
-		gdouble xmin  = point->node->latlon[0];
-		gdouble ymin  = point->node->latlon[1];
-		gdouble xmax  = point->node->latlon[2];
-		gdouble ymax  = point->node->latlon[3];
-
-		gdouble xdist = xmax - xmin;
-		gdouble ydist = ymax - ymin;
-
-		gdouble x =    (lon-xmin)/xdist  * w;
-		gdouble y = (1-(lat-ymin)/ydist) * h;
-
-		gdouble x_rem = x - (int)x;
-		gdouble y_rem = y - (int)y;
-		guint x_flr = (int)x;
-		guint y_flr = (int)y;
-
-		/* TODO: Fix interpolation at edges:
-		 *   - Pad these at the edges instead of wrapping/truncating
-		 *   - Figure out which pixels to index (is 0,0 edge, center, etc) */
-		gint16 px00 = bil->data[MIN((y_flr  ),h-1)*w + MIN((x_flr  ),w-1)];
-                gint16 px10 = bil->data[MIN((y_flr  ),h-1)*w + MIN((x_flr+1),w-1)];
-                gint16 px01 = bil->data[MIN((y_flr+1),h-1)*w + MIN((x_flr  ),w-1)];
-                gint16 px11 = bil->data[MIN((y_flr+1),h-1)*w + MIN((x_flr+1),w-1)];
-
-		elev =  px00 * (1-x_rem) * (1-y_rem) +
-		        px10 * (  x_rem) * (1-y_rem) +
-		        px01 * (1-x_rem) * (  y_rem) +
-		        px11 * (  x_rem) * (  y_rem);
-		//g_message("elev=%f -- %hd %hd %hd %hd",
-		//	elev, px00, px10, px01, px11);
-	} else {
-		elev = 0;
-	}
-
-	lle2xyz(lat, lon, elev, &point->x, &point->y, &point->z);
-}
-
-void roam_tri_func(RoamTriangle *tri, gpointer _self)
-{
-#ifdef ROAM_DEBUG
-	glBegin(GL_TRIANGLES);
-	glNormal3dv(tri->p.r->norm); glVertex3dv((double*)tri->p.r); 
-	glNormal3dv(tri->p.m->norm); glVertex3dv((double*)tri->p.m); 
-	glNormal3dv(tri->p.l->norm); glVertex3dv((double*)tri->p.l); 
-	glEnd();
-	return;
-#endif
-
-	GisOpenGL *self = _self;
-	if (tri->error < 0) return;
-
-	/* Get lat-lon min and maxes for the triangle */
-	gdouble lat[3], lon[3], elev[3];
-	xyz2lle(tri->p.r->x, tri->p.r->y, tri->p.r->z, &lat[0], &lon[0], &elev[0]);
-	xyz2lle(tri->p.m->x, tri->p.m->y, tri->p.m->z, &lat[1], &lon[1], &elev[1]);
-	xyz2lle(tri->p.l->x, tri->p.l->y, tri->p.l->z, &lat[2], &lon[2], &elev[2]);
-	gdouble lat_max = MAX(MAX(lat[0], lat[1]), lat[2]);
-	gdouble lat_min = MIN(MIN(lat[0], lat[1]), lat[2]);
-	gdouble lat_avg = (lat_min+lat_max)/2;
-	gdouble lon_max = MAX(MAX(lon[0], lon[1]), lon[2]);
-	gdouble lon_min = MIN(MIN(lon[0], lon[1]), lon[2]);
-	gdouble lon_avg = (lon_min+lon_max)/2;
-
-	/* Get target resolution */
-	gdouble cam_lle[3], cam_xyz[3];
-	gis_view_get_location(self->view, &cam_lle[0], &cam_lle[1], &cam_lle[2]);
-	lle2xyz(cam_lle[0], cam_lle[1], cam_lle[2], &cam_xyz[0], &cam_xyz[1], &cam_xyz[2]);
-	gdouble distr = distd(cam_xyz, (double*)tri->p.r);
-	gdouble distm = distd(cam_xyz, (double*)tri->p.m);
-	gdouble distl = distd(cam_xyz, (double*)tri->p.l);
-	double res = MPPX(MIN(MIN(distr, distm), distl));
-
-	/* TODO: 
-	 *   - Fetch needed textures, not all corners
-	 *   - Also fetch center textures that aren't touched by a corner
-	 *   - Idea: send {lat,lon}{min,max} to fetch_cache and handle it in the recursion */
-	/* Fetch textures */
-	tri->nodes[0] = wms_info_fetch_cache(self->bmng, tri->nodes[0], res, lat_min, lon_min, NULL, roam_queue_draw, self);
-	tri->nodes[1] = wms_info_fetch_cache(self->bmng, tri->nodes[1], res, lat_max, lon_min, NULL, roam_queue_draw, self);
-	tri->nodes[2] = wms_info_fetch_cache(self->bmng, tri->nodes[2], res, lat_min, lon_max, NULL, roam_queue_draw, self);
-	tri->nodes[3] = wms_info_fetch_cache(self->bmng, tri->nodes[3], res, lat_max, lon_max, NULL, roam_queue_draw, self);
-	tri->nodes[4] = wms_info_fetch_cache(self->bmng, tri->nodes[4], res, lat_avg, lon_avg, NULL, roam_queue_draw, self);
-	/* Hopefully get all textures at the same resolution to prevent overlaps */
-	//gdouble maxres = 0;
-	//for (int i = 0; i < 5; i++)
-	//	if (tri->nodes[i] && tri->nodes[i]->res > maxres)
-	//		maxres = tri->nodes[i]->res;
-	//if (maxres != 0) {
-	//	tri->nodes[0] = wms_info_fetch_cache(self->bmng, tri->nodes[0], maxres, lat_min, lon_min, NULL, roam_queue_draw, self);
-	//	tri->nodes[1] = wms_info_fetch_cache(self->bmng, tri->nodes[1], maxres, lat_max, lon_min, NULL, roam_queue_draw, self);
-	//	tri->nodes[2] = wms_info_fetch_cache(self->bmng, tri->nodes[2], maxres, lat_min, lon_max, NULL, roam_queue_draw, self);
-	//	tri->nodes[3] = wms_info_fetch_cache(self->bmng, tri->nodes[3], maxres, lat_max, lon_max, NULL, roam_queue_draw, self);
-	//	tri->nodes[4] = wms_info_fetch_cache(self->bmng, tri->nodes[4], maxres, lat_avg, lon_avg, NULL, roam_queue_draw, self);
-	//}
-
-	/* Vertex color for hieght map viewing, 8848m == Everest */
-	gfloat colors[] = {
-		(elev[0]-EARTH_R)/8848,
-		(elev[1]-EARTH_R)/8848,
-		(elev[2]-EARTH_R)/8848,
-	};
-
-	/* Draw each texture */
-	/* TODO: Prevent double exposure when of hi-res textures on top of
-	 * low-res textures when some high-res textures are not yet loaded. */
-	glBlendFunc(GL_ONE, GL_ZERO);
-	for (int i = 0; i < 5; i++) {
-		/* Skip missing textures */
-		if (tri->nodes[i] == NULL)
-			continue;
-		/* Skip already drawn textures */
-		switch (i) {
-		case 4: if (tri->nodes[i] == tri->nodes[3]) continue;
-		case 3: if (tri->nodes[i] == tri->nodes[2]) continue;
-		case 2: if (tri->nodes[i] == tri->nodes[1]) continue;
-		case 1: if (tri->nodes[i] == tri->nodes[0]) continue;
-		}
-
-		WmsCacheNode *node = tri->nodes[i];
-
-		if (node->latlon[0] == -180) {
-			if (lon[0] < -90 || lon[1] < -90 || lon[2] < -90) {
-				if (lon[0] > 90) lon[0] -= 360;
-				if (lon[1] > 90) lon[1] -= 360;
-				if (lon[2] > 90) lon[2] -= 360;
-			}
-		} else if (node->latlon[2] == 180.0) {
-			if (lon[0] < -90) lon[0] += 360;
-			if (lon[1] < -90) lon[1] += 360;
-			if (lon[2] < -90) lon[2] += 360;
-		}
-
-		gdouble xmin  = node->latlon[0];
-		gdouble ymin  = node->latlon[1];
-		gdouble xmax  = node->latlon[2];
-		gdouble ymax  = node->latlon[3];
-
-		gdouble xdist = xmax - xmin;
-		gdouble ydist = ymax - ymin;
-
-		gdouble xy[][3] = {
-			{(lon[0]-xmin)/xdist, 1-(lat[0]-ymin)/ydist},
-			{(lon[1]-xmin)/xdist, 1-(lat[1]-ymin)/ydist},
-			{(lon[2]-xmin)/xdist, 1-(lat[2]-ymin)/ydist},
-		};
-
-		glBindTexture(GL_TEXTURE_2D, *(guint*)node->data);
-
-		glBegin(GL_TRIANGLES);
-		glColor3fv(colors); glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r); 
-		glColor3fv(colors); glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m); 
-		glColor3fv(colors); glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l); 
-		glEnd();
-		glBlendFunc(GL_ONE, GL_ONE);
-	}
 }
 
 static void set_camera(GisOpenGL *self)
@@ -310,6 +125,7 @@ static void set_visuals(GisOpenGL *self)
 static void on_realize(GisOpenGL *self, gpointer _)
 {
 	set_visuals(self);
+	roam_sphere_update_errors(self->sphere);
 }
 static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer _)
 {
@@ -326,7 +142,7 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	gluPerspective(rad2deg(ang)*2, width/height, 1, 20*EARTH_R);
 
 #ifndef ROAM_DEBUG
-	roam_sphere_update(self->sphere);
+	roam_sphere_update_errors(self->sphere);
 #endif
 
 	gis_opengl_end(self);
@@ -352,21 +168,17 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 #ifndef ROAM_DEBUG
 	set_visuals(self);
 	glEnable(GL_TEXTURE_2D);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	roam_sphere_draw(self->sphere);
-#endif
-
-#ifdef  ROAM_DEBUG
+#else
 	set_visuals(self);
 	glColor4f(0.0, 0.0, 9.0, 0.6);
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	roam_sphere_draw(self->sphere);
-#endif
 
-	//glDisable(GL_TEXTURE_2D);
-	//glEnable(GL_COLOR_MATERIAL);
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//roam_sphere_draw(self->sphere);
+	//roam_sphere_draw_normals(self->sphere);
+#endif
 
 	gis_plugins_foreach(self->plugins, G_CALLBACK(on_expose_plugin), self);
 
@@ -409,7 +221,7 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_n) roam_sphere_split_one(self->sphere);
 	else if (kv == GDK_p) roam_sphere_merge_one(self->sphere);
 	else if (kv == GDK_r) roam_sphere_split_merge(self->sphere);
-	else if (kv == GDK_u) roam_sphere_update(self->sphere);
+	else if (kv == GDK_u) roam_sphere_update_errors(self->sphere);
 	gtk_widget_queue_draw(GTK_WIDGET(self));
 #endif
 
@@ -422,7 +234,7 @@ static void on_view_changed(GisView *view,
 	gis_opengl_begin(self);
 	set_visuals(self);
 #ifndef ROAM_DEBUG
-	roam_sphere_update(self->sphere);
+	roam_sphere_update_errors(self->sphere);
 #endif
 	gis_opengl_redraw(self);
 	gis_opengl_end(self);
@@ -455,7 +267,7 @@ GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins)
 	g_signal_connect(self->view, "rotation-changed", G_CALLBACK(on_view_changed), self);
 
 	/* TODO: update point eights sometime later so we have heigh-res heights for them */
-	self->sphere = roam_sphere_new(roam_tri_func, roam_height_func, self);
+	self->sphere = roam_sphere_new(self);
 
 	return g_object_ref(self);
 }

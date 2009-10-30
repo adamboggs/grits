@@ -20,14 +20,14 @@
 
 #include <gis.h>
 
-#include "teapot.h"
+#include "bmng.h"
 
 /***********
  * Helpers *
  ***********/
 static gboolean rotate(gpointer _self)
 {
-	GisPluginTeapot *self = _self;
+	GisPluginBmng *self = _self;
 	if (gtk_toggle_button_get_active(self->button)) {
 		self->rotation += 1.0;
 		gis_opengl_redraw(self->opengl);
@@ -39,25 +39,25 @@ static gboolean rotate(gpointer _self)
 /***********
  * Methods *
  ***********/
-GisPluginTeapot *gis_plugin_teapot_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
+GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
 {
-	g_debug("GisPluginTeapot: new");
-	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
+	g_debug("GisPluginBmng: new");
+	GisPluginBmng *self = g_object_new(GIS_TYPE_PLUGIN_BMNG, NULL);
 	self->opengl = opengl;
 
 	return self;
 }
 
-static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_self)
+static GtkWidget *gis_plugin_bmng_get_config(GisPlugin *_self)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
+	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
 	return GTK_WIDGET(self->button);
 }
 
-static void gis_plugin_teapot_expose(GisPlugin *_self)
+static void gis_plugin_bmng_expose(GisPlugin *_self)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
-	g_debug("GisPluginTeapot: expose");
+	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
+	g_debug("GisPluginBmng: expose");
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -86,47 +86,47 @@ static void gis_plugin_teapot_expose(GisPlugin *_self)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginTeapot, gis_plugin_teapot, G_TYPE_OBJECT,
+static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GisPluginBmng, gis_plugin_bmng, G_TYPE_OBJECT,
 		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_teapot_plugin_init));
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface)
+			gis_plugin_bmng_plugin_init));
+static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface)
 {
-	g_debug("GisPluginTeapot: plugin_init");
+	g_debug("GisPluginBmng: plugin_init");
 	/* Add methods to the interface */
-	iface->expose     = gis_plugin_teapot_expose;
-	iface->get_config = gis_plugin_teapot_get_config;
+	iface->expose     = gis_plugin_bmng_expose;
+	iface->get_config = gis_plugin_bmng_get_config;
 }
 /* Class/Object init */
-static void gis_plugin_teapot_init(GisPluginTeapot *self)
+static void gis_plugin_bmng_init(GisPluginBmng *self)
 {
-	g_debug("GisPluginTeapot: init");
+	g_debug("GisPluginBmng: init");
 	/* Set defaults */
 	self->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
 	self->rotate_id = g_timeout_add(1000/60, rotate, self);
 	self->rotation  = 30.0;
 	self->opengl    = NULL;
 }
-static void gis_plugin_teapot_dispose(GObject *gobject)
+static void gis_plugin_bmng_dispose(GObject *gobject)
 {
-	g_debug("GisPluginTeapot: dispose");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
+	g_debug("GisPluginBmng: dispose");
+	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
 	g_source_remove(self->rotate_id);
 	/* Drop references */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->dispose(gobject);
 }
-static void gis_plugin_teapot_finalize(GObject *gobject)
+static void gis_plugin_bmng_finalize(GObject *gobject)
 {
-	g_debug("GisPluginTeapot: finalize");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
+	g_debug("GisPluginBmng: finalize");
+	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
 	/* Free data */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_teapot_class_init(GisPluginTeapotClass *klass)
+static void gis_plugin_bmng_class_init(GisPluginBmngClass *klass)
 {
-	g_debug("GisPluginTeapot: class_init");
+	g_debug("GisPluginBmng: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_teapot_dispose;
-	gobject_class->finalize = gis_plugin_teapot_finalize;
+	gobject_class->dispose  = gis_plugin_bmng_dispose;
+	gobject_class->finalize = gis_plugin_bmng_finalize;
 }

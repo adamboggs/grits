@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2009 Andy Spencer <spenceal@rose-hulman.edu>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -40,14 +40,14 @@ static guint signals[NUM_SIGNALS];
 /* Signal helpers */
 static void _gis_view_emit_location_changed(GisView *view)
 {
-	g_signal_emit(view, signals[SIG_LOCATION_CHANGED], 0, 
+	g_signal_emit(view, signals[SIG_LOCATION_CHANGED], 0,
 			view->location[0],
 			view->location[1],
 			view->location[2]);
 }
 static void _gis_view_emit_rotation_changed(GisView *view)
 {
-	g_signal_emit(view, signals[SIG_ROTATION_CHANGED], 0, 
+	g_signal_emit(view, signals[SIG_ROTATION_CHANGED], 0,
 			view->rotation[0],
 			view->rotation[1],
 			view->rotation[2]);
@@ -238,13 +238,13 @@ static void gis_view_class_init(GisViewClass *klass)
 		g_param_spec_pointer(
 			"time",
 			"time of the current frame",
-			"(format unknown)", 
+			"(format unknown)",
 			G_PARAM_READWRITE));
 	g_object_class_install_property(gobject_class, PROP_SITE,
 		g_param_spec_pointer(
 			"site",
 			"site seen by the viewport",
-			"Site of the viewport. Currently this is the name of the radar site.", 
+			"Site of the viewport. Currently this is the name of the radar site.",
 			G_PARAM_READWRITE));
 	signals[SIG_TIME_CHANGED] = g_signal_new(
 			"time-changed",

@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2009 Andy Spencer <spenceal@rose-hulman.edu>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -27,7 +27,7 @@
  * FORMAT=image/jpeg&
  * WIDTH=600&
  * HEIGHT=300
- * 
+ *
  * http://www.nasa.network.com/elev?
  * SERVICE=WMS&
  * VERSION=1.1.0&
@@ -245,7 +245,7 @@ void wms_info_cache(WmsInfo *info, gdouble resolution, gdouble lat, gdouble lon,
 		xmin = xmin + xdist*(xpos+0);
 		ymin = ymin + ydist*(ypos+0);
 		xmax = xmin + xdist;
-		ymax = ymin + ydist; 
+		ymax = ymin + ydist;
 		cur_lat = MIN(ABS(ymin), ABS(ymax));
 
 		/* Update target for correct sub-tile */
@@ -267,7 +267,7 @@ void wms_info_cache(WmsInfo *info, gdouble resolution, gdouble lat, gdouble lon,
 		state->user_done_cb  = done_callback;
 		state->user_data     = user_data;
 		g_idle_add(wms_info_cache_loader_cb, state);
-	} else { 
+	} else {
 		g_free(approx_path);
 	}
 
@@ -398,7 +398,7 @@ static WmsCacheNode *wms_info_gc_cb(WmsInfo *self, WmsCacheNode *node)
 			}
 	if (empty) {
 		g_debug("WmsInfo: gc - empty branch %p", node);
-		/* 
+		/*
 		 * TODO: Don't prune nodes while we're caching WmsCacheNodes in the Roam triangles
 		 * and points
 		g_free(node);
@@ -507,8 +507,8 @@ void srtm_pixbuf_loader(WmsCacheNode *node, const gchar *path, gint width, gint 
 	guchar    *pixels = gdk_pixbuf_get_pixels(pixbuf);
 	gint       stride = gdk_pixbuf_get_rowstride(pixbuf);
 
-	gint16 *data; 
-	gchar **char_data = (gchar**)&data; 
+	gint16 *data;
+	gchar **char_data = (gchar**)&data;
 	g_file_get_contents(path, char_data, NULL, NULL);
 	for (int r = 0; r < height; r++) {
 		for (int c = 0; c < width; c++) {

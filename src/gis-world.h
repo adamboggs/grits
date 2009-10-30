@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2009 Andy Spencer <spenceal@rose-hulman.edu>
- * 
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -36,7 +36,7 @@
  * px     - Pixels, for screen-based distances
  *
  * height - Height, the distance above the geoid (ground)
- * elev   - Elevation, the distance above the spheroid 
+ * elev   - Elevation, the distance above the spheroid
  * rad    - Radius, the distance from the center of the earth
  *
  * lat    - Latitude, amount north-south, -90 (S) .. 90 (N)
@@ -60,8 +60,8 @@
  * lle2xyz:    0.0,   0.0,   0.0 ->    0.0,   0.0,  10.0
  * lle2xyz:   90.0,   0.0,   0.0 ->    0.0,  10.0,   0.0
  * lle2xyz:    0.0,  90.0,   0.0 ->   10.0,   0.0,   0.0
- * 
- *               x      y      z ->    lat    lon   elev 
+ *
+ *               x      y      z ->    lat    lon   elev
  * xyz2lle:   10.0,   0.0,   0.0 ->    0.0,  90.0,   0.0
  * xyz2lle:    0.0,  10.0,   0.0 ->   90.0,   0.0,   0.0
  * xyz2lle:    0.0,   0.0,  10.0 ->    0.0,   0.0,   0.0
