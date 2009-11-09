@@ -15,21 +15,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_H__
-#define __GIS_H__
+#ifndef __GIS_WMS_H__
+#define __GIS_WMS_H__
 
-/* GIS Core */
-#include "gis-world.h"
-#include "gis-view.h"
-#include "gis-opengl.h"
-#include "gis-prefs.h"
+#include <config.h>
+#include <glib.h>
+#include <libsoup/soup.h>
 
-/* GIS helprs */
-#include "gis-data.h"
 #include "gis-tile.h"
-#include "gis-wms.h"
 
-/* Plugins */
-#include "gis-plugin.h"
+typedef struct _GisWms GisWms;
+
+struct _GisWms {
+	gchar *uri_prefix;
+	gchar *uri_layer;
+	gchar *uri_format;
+	gchar *cache_prefix;
+	gchar *cache_ext;
+	gint   width;
+	gint   height;
+	SoupSession  *soup;
+};
+
+char *gis_wms_make_local(GisWms *wms, GisTile *tile);
+
+GisWms *gis_wms_new(
+	gchar *uri_prefix, gchar *uri_layer, gchar *uri_format,
+	gchar *cache_prefix, gchar *cache_ext,
+	gint width, gint height);
+
+void gis_wms_free(GisWms *self);
 
 #endif

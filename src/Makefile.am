@@ -16,6 +16,8 @@ gis_include_HEADERS = \
 	gis-opengl.h  \
 	gis-plugin.h  \
 	gis-data.h    \
+	gis-tile.h    \
+	gis-wms.h     \
 	gpqueue.h     \
 	roam.h
 libgis_la_SOURCES = \
@@ -26,6 +28,8 @@ libgis_la_SOURCES = \
 	gis-plugin.c  gis-plugin.h  \
 	gis-marshal.c gis-marshal.h \
 	gis-data.c    gis-data.h    \
+	gis-tile.c    gis-tile.h    \
+	gis-wms.c     gis-wms.h     \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
@@ -36,14 +40,14 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgis.pc
 
 # Test programs
-bin_PROGRAMS = gis_test # wms_test
+bin_PROGRAMS = gis_test wms_test
 
 gis_test_SOURCES  = gis_test.c gis.h
 gis_test_LDFLAGS  = -static
 gis_test_LDADD    = $(AM_LDADD) libgis.la
 
-# wms_test_SOURCES  = wms_test.c gis-world.c gis-world.h
-# wms_test_LDADD    = $(AM_LDADD)
+wms_test_SOURCES  = wms_test.c gis-world.c gis-world.h gis-wms.c gis-wms.h gis-tile.c gis-tile.h
+wms_test_LDADD    = $(AM_LDADD)
 
 MAINTAINERCLEANFILES = Makefile.in
 

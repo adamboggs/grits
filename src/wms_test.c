@@ -1,7 +1,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "wms.h"
+#include "gis-world.h"
+#include "gis-tile.h"
+#include "gis-wms.h"
 
 struct CacheState {
 	GtkWidget *image;
@@ -9,12 +11,6 @@ struct CacheState {
 	GtkWidget *progress;
 };
 
-void done_callback(WmsCacheNode *node, gpointer _state)
-{
-	struct CacheState *state = _state;
-	g_message("done_callback: %p->%p", node, node->data);
-	gtk_image_set_from_pixbuf(GTK_IMAGE(state->image), node->data);
-}
 
 void chunk_callback(gsize cur, gsize total, gpointer _state)
 {
@@ -31,6 +27,32 @@ void chunk_callback(gsize cur, gsize total, gpointer _state)
 		gtk_widget_destroy(state->progress);
 	else
 		gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(state->progress), (gdouble)cur/total);
+}
+
+gpointer do_cache(gpointer _image)
+{
+	GtkImage *image = _image;
+	g_message("Creating tile");
+	GisTile *tile = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	tile->children[0][1] = gis_tile_new(tile, NORTH, 0, 0, WEST);
+	tile = tile->children[0][1];
+
+	g_message("Fetching image");
+	GisWms *bmng_wms = gis_wms_new(
+		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
+		"bmng", ".jpg", 512, 256);
+	const char *path = gis_wms_make_local(bmng_wms, tile);
+
+	g_message("Loading image: [%s]", path);
+	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
+	gdk_threads_enter();
+	gtk_image_set_from_pixbuf(GTK_IMAGE(image), pixbuf);
+	gdk_threads_leave();
+
+	g_message("Cleaning up");
+	gis_wms_free(bmng_wms);
+	gis_tile_free(tile, NULL, NULL);
+	return NULL;
 }
 
 gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
@@ -64,22 +86,10 @@ int main(int argc, char **argv)
 	gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
 			GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-	struct CacheState bmng_state = {bmng_image, status, NULL};
-	struct CacheState srtm_state = {srtm_image, status, NULL};
-
-	gdouble res = 200, lon = -101.76, lat = 46.85;
-
-	WmsInfo *bmng_info = wms_info_new_for_bmng(bmng_pixbuf_loader, bmng_pixbuf_freeer);
-	wms_info_fetch_cache(bmng_info, NULL, res, lat, lon, chunk_callback, done_callback, &bmng_state);
-
-	WmsInfo *srtm_info = wms_info_new_for_srtm(srtm_pixbuf_loader, srtm_pixbuf_freeer);
-	wms_info_fetch_cache(srtm_info, NULL, res, lat, lon, chunk_callback, done_callback, &srtm_state);
+	g_thread_create(do_cache, bmng_image, FALSE, NULL);
 
 	gtk_widget_show_all(win);
 	gtk_main();
-
-	wms_info_free(bmng_info);
-	wms_info_free(srtm_info);
 
 	return 0;
 }

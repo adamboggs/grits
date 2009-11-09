@@ -26,6 +26,10 @@
 
 #define EARTH_R (6371000)
 #define EARTH_C (2*M_PI*EARTH_R)
+#define NORTH  90
+#define SOUTH -90
+#define EAST  180
+#define WEST -180
 
 /**
  * Terms
