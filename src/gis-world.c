@@ -151,6 +151,13 @@ void xyz2lle(gdouble x, gdouble y, gdouble z,
 	*elev = rad2elev(rad);
 }
 
+void xyz2ll(gdouble x, gdouble y, gdouble z,
+		gdouble *lat, gdouble *lon)
+{
+	gdouble rad = sqrt(x*x + y*y + z*z);
+	*lat = incl2lat(acos(y / rad));
+	*lon = azim2lon(atan2(x,z));
+}
 
 gdouble ll2m(gdouble lon_dist, gdouble lat)
 {

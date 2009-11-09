@@ -86,6 +86,9 @@ void lle2xyz(gdouble lat, gdouble lon, gdouble elev,
 void xyz2lle(gdouble x, gdouble y, gdouble z,
 		gdouble *lat, gdouble *lon, gdouble *elev);
 
+void xyz2ll(gdouble x, gdouble y, gdouble z,
+		gdouble *lat, gdouble *lon);
+
 gdouble ll2m(gdouble lon_dist, gdouble lat);
 
 gdouble distd(gdouble *a, gdouble *b);

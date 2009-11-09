@@ -70,6 +70,8 @@ RoamPoint *roam_point_new(gdouble x, gdouble y, gdouble z)
 	self->x = x;
 	self->y = y;
 	self->z = z;
+	/* For get_intersect */
+	xyz2ll(x, y, z, &self->lat, &self->lon);
 	return self;
 }
 RoamPoint *roam_point_dup(RoamPoint *self)
@@ -99,10 +101,13 @@ void roam_point_remove_triangle(RoamPoint *self, RoamTriangle *triangle)
 		for (int i = 0; i < 3; i++)
 			self->norm[i] /= self->tris;
 }
-void roam_point_update_height(RoamPoint *self, RoamSphere *sphere)
+void roam_point_update_height(RoamPoint *self)
 {
-	if (sphere->height_func) {
-		sphere->height_func(self, sphere->user_data);
+	if (self->height_func) {
+		gdouble elev = self->height_func(
+				self->lat, self->lon, self->height_data);
+		lle2xyz(self->lat, self->lon, elev,
+				&self->x, &self->y, &self->z);
 	} else {
 		gdouble dist = sqrt(self->x * self->x +
 				    self->y * self->y +
@@ -147,7 +152,10 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 		(l->x + r->x)/2,
 		(l->y + r->y)/2,
 		(l->z + r->z)/2);
-
+	/* TODO: Move this back to sphere, or actually use the nesting */
+	self->split->height_func = m->height_func;
+	self->split->height_data = m->height_data;
+	roam_point_update_height(self->split);
 
 	/* Update normal */
 	double pa[3];
@@ -285,11 +293,6 @@ void roam_triangle_split(RoamTriangle *self, RoamSphere *sphere)
 	RoamTriangle *sr = roam_triangle_new(self->p.r, mid, self->p.m); // Self Right
 	RoamTriangle *bl = roam_triangle_new(base->p.m, mid, base->p.l); // Base Left
 	RoamTriangle *br = roam_triangle_new(base->p.r, mid, base->p.m); // Base Right
-
-	roam_point_update_height(sl->split, sphere);
-	roam_point_update_height(sr->split, sphere);
-	roam_point_update_height(bl->split, sphere);
-	roam_point_update_height(br->split, sphere);
 
 	/*                tri,l,  base,      r,  sphere */
 	roam_triangle_add(sl, sr, self->t.l, br, sphere);
@@ -442,10 +445,9 @@ void roam_diamond_update_errors(RoamDiamond *self, RoamSphere *sphere)
 /**************
  * RoamSphere *
  **************/
-RoamSphere *roam_sphere_new(gpointer user_data)
+RoamSphere *roam_sphere_new()
 {
 	RoamSphere *self = g_new0(RoamSphere, 1);
-	self->user_data   = user_data;
 	self->polys       = 8;
 	self->triangles   = g_pqueue_new((GCompareDataFunc)tri_cmp, NULL);
 	self->diamonds    = g_pqueue_new((GCompareDataFunc)dia_cmp, NULL);
@@ -471,7 +473,7 @@ RoamSphere *roam_sphere_new(gpointer user_data)
 	};
 
 	for (int i = 0; i < 6; i++)
-		roam_point_update_height(vertexes[i], self);
+		roam_point_update_height(vertexes[i]);
 	for (int i = 0; i < 8; i++)
 		self->roots[i] = roam_triangle_new(
 			vertexes[_triangles[i][0][0]],

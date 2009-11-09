@@ -19,7 +19,6 @@
 #define __ROAM_H__
 
 #include "gpqueue.h"
-#include "wms.h"
 
 /* Roam */
 typedef struct _RoamView     RoamView;
@@ -27,7 +26,7 @@ typedef struct _RoamPoint    RoamPoint;
 typedef struct _RoamTriangle RoamTriangle;
 typedef struct _RoamDiamond  RoamDiamond;
 typedef struct _RoamSphere   RoamSphere;
-typedef void (*RoamHeightFunc)(RoamPoint *point, gpointer user_data);
+typedef gdouble (*RoamHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
 /* Misc */
 struct _RoamView {
@@ -48,12 +47,17 @@ struct _RoamPoint {
 	gint     tris;      // Associated triangles
 	gdouble  norm[3];   // Vertex normal
 
-	WmsCacheNode *node; // TODO: don't depend on wms
+	/* For get_intersect */
+	gdouble  lat, lon;
+
+	/* For terrain */
+	RoamHeightFunc height_func;
+	gpointer       height_data;
 };
 RoamPoint *roam_point_new(double x, double y, double z);
 void roam_point_add_triangle(RoamPoint *point, RoamTriangle *triangle);
 void roam_point_remove_triangle(RoamPoint *point, RoamTriangle *triangle);
-void roam_point_update_height(RoamPoint *point, RoamSphere *sphere);
+void roam_point_update_height(RoamPoint *point);
 void roam_point_update_projection(RoamPoint *point, RoamSphere *sphere);
 
 /****************
@@ -67,8 +71,6 @@ struct _RoamTriangle {
 	double norm[3];
 	double error;
 	GPQueueHandle handle;
-
-	WmsCacheNode *nodes[5]; // TODO: don't depend on wms
 };
 RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r);
 void roam_triangle_add(RoamTriangle *triangle,
@@ -105,14 +107,12 @@ struct _RoamSphere {
 	GPQueue *triangles;
 	GPQueue *diamonds;
 	RoamView *view;
-	RoamHeightFunc height_func;
-	gpointer user_data;
 	gint polys;
 
 	/* For get_intersect */
 	RoamTriangle *roots[8];
 };
-RoamSphere *roam_sphere_new(gpointer user_data);
+RoamSphere *roam_sphere_new();
 void roam_sphere_update_errors(RoamSphere *sphere);
 void roam_sphere_split_one(RoamSphere *sphere);
 void roam_sphere_merge_one(RoamSphere *sphere);
