@@ -39,30 +39,19 @@
 /*************
  * ROAM Code *
  *************/
-void roam_queue_draw(WmsCacheNode *node, gpointer _self)
-{
-	gtk_widget_queue_draw(GTK_WIDGET(_self));
-}
-
-static void set_camera(GisOpenGL *self)
+static void set_visuals(GisOpenGL *self)
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+
+	/* Camera 1 */
 	double lat, lon, elev, rx, ry, rz;
 	gis_view_get_location(self->view, &lat, &lon, &elev);
 	gis_view_get_rotation(self->view, &rx, &ry, &rz);
 	glRotatef(rx, 1, 0, 0);
 	glRotatef(rz, 0, 0, 1);
-	glTranslatef(0, 0, -elev2rad(elev));
-	glRotatef(lat, 1, 0, 0);
-	glRotatef(-lon, 0, 1, 0);
-}
 
-static void set_visuals(GisOpenGL *self)
-{
 	/* Lighting */
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 #ifdef ROAM_DEBUG
 	float light_ambient[]  = {0.7f, 0.7f, 0.7f, 1.0f};
 	float light_diffuse[]  = {2.0f, 2.0f, 2.0f, 1.0f};
@@ -88,12 +77,12 @@ static void set_visuals(GisOpenGL *self)
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_COLOR_MATERIAL);
 
-	/* Camera */
-	set_camera(self);
+	/* Camera 2 */
+	glTranslatef(0, 0, -elev2rad(elev));
+	glRotatef(lat, 1, 0, 0);
+	glRotatef(-lon, 0, 1, 0);
 
 	/* Misc */
-	gdouble lat, lon, elev;
-	gis_view_get_location(self->view, &lat, &lon, &elev);
 	gdouble rg   = MAX(0, 1-(elev/20000));
 	gdouble blue = MAX(0, 1-(elev/50000));
 	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
@@ -167,10 +156,13 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifndef ROAM_DEBUG
-	set_visuals(self);
-	glEnable(GL_TEXTURE_2D);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	roam_sphere_draw(self->sphere);
+	gis_plugins_foreach(self->plugins, G_CALLBACK(on_expose_plugin), self);
+
+	if (self->wireframe) {
+		set_visuals(self);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		roam_sphere_draw(self->sphere);
+	}
 #else
 	set_visuals(self);
 	glColor4f(0.0, 0.0, 9.0, 0.6);
@@ -180,8 +172,6 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 
 	//roam_sphere_draw_normals(self->sphere);
 #endif
-
-	gis_plugins_foreach(self->plugins, G_CALLBACK(on_expose_plugin), self);
 
 	set_visuals(self);
 	gis_opengl_end(self);
@@ -218,6 +208,7 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_L) gis_view_rotate(self->view,  0, 0,  2);
 
 	/* Testing */
+	else if (kv == GDK_w) {self->wireframe = !self->wireframe; gtk_widget_queue_draw(GTK_WIDGET(self));}
 #ifdef ROAM_DEBUG
 	else if (kv == GDK_n) roam_sphere_split_one(self->sphere);
 	else if (kv == GDK_p) roam_sphere_merge_one(self->sphere);

@@ -139,6 +139,7 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 {
 	RoamTriangle *self = g_new0(RoamTriangle, 1);
 
+	self->error = 0;
 	self->p.l = l;
 	self->p.m = m;
 	self->p.r = r;
@@ -147,7 +148,6 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 		(l->y + r->y)/2,
 		(l->z + r->z)/2);
 
-	self->error = 0;
 
 	/* Update normal */
 	double pa[3];
@@ -239,12 +239,12 @@ void roam_triangle_update_errors(RoamTriangle *self, RoamSphere *sphere)
 	roam_point_update_projection(self->p.l, sphere);
 	roam_point_update_projection(self->p.m, sphere);
 	roam_point_update_projection(self->p.r, sphere);
-	roam_point_update_projection(self->split, sphere);
 
 	/* Not exactly correct, could be out on both sides (middle in) */
 	if (!roam_triangle_visible(self, sphere)) {
 		self->error = -1;
 	} else {
+		roam_point_update_projection(self->split, sphere);
 		RoamPoint *l = self->p.l;
 		RoamPoint *m = self->p.m;
 		RoamPoint *r = self->p.r;
@@ -262,6 +262,8 @@ void roam_triangle_update_errors(RoamTriangle *self, RoamSphere *sphere)
 		                 r->px * (l->py - m->py) ) / 2.0;
 
 		/* Size < 0 == backface */
+		//if (size < 0)
+		//	self->error *= -1;
 		self->error *= size;
 	}
 }
@@ -444,51 +446,42 @@ RoamSphere *roam_sphere_new(gpointer user_data)
 {
 	RoamSphere *self = g_new0(RoamSphere, 1);
 	self->user_data   = user_data;
-	self->polys       = 12;
+	self->polys       = 8;
 	self->triangles   = g_pqueue_new((GCompareDataFunc)tri_cmp, NULL);
 	self->diamonds    = g_pqueue_new((GCompareDataFunc)dia_cmp, NULL);
 
 	RoamPoint *vertexes[] = {
-		roam_point_new( 1, 1, 1), // 0
-		roam_point_new( 1, 1,-1), // 1
-		roam_point_new( 1,-1, 1), // 2
-		roam_point_new( 1,-1,-1), // 3
-		roam_point_new(-1, 1, 1), // 4
-		roam_point_new(-1, 1,-1), // 5
-		roam_point_new(-1,-1, 1), // 6
-		roam_point_new(-1,-1,-1), // 7
+		roam_point_new( 0, 1, 0), // 0
+		roam_point_new( 0,-1, 0), // 1
+		roam_point_new( 0, 0, 1), // 2
+		roam_point_new( 1, 0, 0), // 3
+		roam_point_new( 0, 0,-1), // 4
+		roam_point_new(-1, 0, 0), // 5
 	};
 	int _triangles[][2][3] = {
 		/*lv mv rv   ln, bn, rn */
-		{{3,2,0}, {10, 1, 7}}, // 0
-		{{0,1,3}, { 9, 0, 2}}, // 1
-		{{7,3,1}, {11, 3, 1}}, // 2
-		{{1,5,7}, { 8, 2, 4}}, // 3
-		{{6,7,5}, {11, 5, 3}}, // 4
-		{{5,4,6}, { 8, 4, 6}}, // 5
-		{{2,6,4}, {10, 7, 5}}, // 6
-		{{4,0,2}, { 9, 6, 0}}, // 7
-		{{4,5,1}, { 5, 9, 3}}, // 8
-		{{1,0,4}, { 1, 8, 7}}, // 9
-		{{6,2,3}, { 6,11, 0}}, // 10
-		{{3,7,6}, { 2,10, 4}}, // 11
+		{{2,0,3}, {3, 4, 1}}, // 0
+		{{3,0,4}, {0, 5, 2}}, // 1
+		{{4,0,5}, {1, 6, 3}}, // 2
+		{{5,0,2}, {2, 7, 0}}, // 3
+		{{3,1,2}, {5, 0, 7}}, // 4
+		{{4,1,3}, {6, 1, 4}}, // 5
+		{{5,1,4}, {7, 2, 5}}, // 6
+		{{2,1,5}, {4, 3, 6}}, // 7
 	};
-	RoamTriangle *triangles[12];
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 6; i++)
 		roam_point_update_height(vertexes[i], self);
-	for (int i = 0; i < 12; i++)
-		triangles[i] = roam_triangle_new(
+	for (int i = 0; i < 8; i++)
+		self->roots[i] = roam_triangle_new(
 			vertexes[_triangles[i][0][0]],
 			vertexes[_triangles[i][0][1]],
 			vertexes[_triangles[i][0][2]]);
-	for (int i = 0; i < 12; i++)
-		roam_point_update_height(triangles[i]->split, self);
-	for (int i = 0; i < 12; i++)
-		roam_triangle_add(triangles[i],
-			triangles[_triangles[i][1][0]],
-			triangles[_triangles[i][1][1]],
-			triangles[_triangles[i][1][2]],
+	for (int i = 0; i < 8; i++)
+		roam_triangle_add(self->roots[i],
+			self->roots[_triangles[i][1][0]],
+			self->roots[_triangles[i][1][1]],
+			self->roots[_triangles[i][1][2]],
 			self);
 
 	return self;
@@ -586,7 +579,7 @@ void roam_sphere_free_tri(RoamTriangle *tri)
 void roam_sphere_free(RoamSphere *self)
 {
 	/* Slow method, but it should work */
-	while (self->polys > 12)
+	while (self->polys > 8)
 		roam_sphere_merge_one(self);
 	/* TODO: free points */
 	g_pqueue_foreach(self->triangles, (GFunc)roam_sphere_free_tri, NULL);

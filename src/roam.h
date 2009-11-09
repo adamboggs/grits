@@ -108,6 +108,9 @@ struct _RoamSphere {
 	RoamHeightFunc height_func;
 	gpointer user_data;
 	gint polys;
+
+	/* For get_intersect */
+	RoamTriangle *roots[8];
 };
 RoamSphere *roam_sphere_new(gpointer user_data);
 void roam_sphere_update_errors(RoamSphere *sphere);
