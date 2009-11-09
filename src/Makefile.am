@@ -54,23 +54,25 @@ MAINTAINERCLEANFILES = Makefile.in
 .list.h:
 	glib-genmarshal --prefix=gis_cclosure_marshal --header $< > $@
 
-test: all
+test: all .libs/gis
 	./gis_test
 
-gdb: all
+gdb: all .libs/gis
 	gdb ./gis_test
 
-ddd: all
+ddd: all .libs/gis
 	ddd ./gis_test
 
+.libs/gis: plugins/.libs
+	ln -sf ../plugins/.libs .libs/gis
+
 memcheck: all
-	LD_LIBRARY_PATH=.libs                      \
-	G_SLICE=always-malloc                      \
-	G_DEBUG=gc-friendly,resident-modules       \
-	valgrind --track-origins=yes               \
-	         --leak-check=full                 \
-	         --leak-resolution=high            \
-	         --num-callers=100                 \
-	         --suppressions=../gtk.suppression \
-	         .libs/gis_test                    \
+	G_SLICE=always-malloc                   \
+	G_DEBUG=gc-friendly,resident-modules    \
+	valgrind --track-origins=yes            \
+	         --leak-check=full              \
+	         --leak-resolution=high         \
+	         --num-callers=50               \
+	         --suppressions=gtk.suppression \
+	         ./gis_test                     \
 	2> valgrind.out
