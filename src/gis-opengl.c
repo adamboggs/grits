@@ -29,7 +29,6 @@
 
 #include "gis-opengl.h"
 #include "roam.h"
-#include "wms.h"
 
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)

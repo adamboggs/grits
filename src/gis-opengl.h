@@ -37,7 +37,6 @@ typedef struct _GisOpenGLClass GisOpenGLClass;
 #include "gis-world.h"
 #include "gis-plugin.h"
 #include "roam.h"
-#include "wms.h"
 
 struct _GisOpenGL {
 	GtkDrawingArea parent_instance;
