@@ -195,6 +195,7 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	gis_view_get_location(self->view, &lat, &lon, &elev);
 	pan = MIN(elev/(EARTH_R/2), 30);
 	guint kv = event->keyval;
+	gdk_threads_leave();
 	if      (kv == GDK_Left  || kv == GDK_h) gis_view_pan(self->view,  0,  -pan, 0);
 	else if (kv == GDK_Down  || kv == GDK_j) gis_view_pan(self->view, -pan, 0,   0);
 	else if (kv == GDK_Up    || kv == GDK_k) gis_view_pan(self->view,  pan, 0,   0);
@@ -213,32 +214,45 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_p) roam_sphere_merge_one(self->sphere);
 	else if (kv == GDK_r) roam_sphere_split_merge(self->sphere);
 	else if (kv == GDK_u) roam_sphere_update_errors(self->sphere);
+	gdk_threads_enter();
 	gtk_widget_queue_draw(GTK_WIDGET(self));
+#else
+	gdk_threads_enter();
 #endif
 
 	return TRUE;
 }
 
+static gboolean _update_errors_cb(gpointer sphere)
+{
+	roam_sphere_update_errors(sphere);
+	return FALSE;
+}
 static void on_view_changed(GisView *view,
 		gdouble _1, gdouble _2, gdouble _3, GisOpenGL *self)
 {
 	g_debug("GisOpenGL: on_view_changed");
+	gdk_threads_enter();
 	gis_opengl_begin(self);
 	set_visuals(self);
 #ifndef ROAM_DEBUG
-	roam_sphere_update_errors(self->sphere);
+	g_idle_add_full(G_PRIORITY_HIGH_IDLE+30, _update_errors_cb, self->sphere, NULL);
+	//roam_sphere_update_errors(self->sphere);
 #endif
 	gis_opengl_redraw(self);
 	gis_opengl_end(self);
+	gdk_threads_leave();
 }
 
 static gboolean on_idle(GisOpenGL *self)
 {
 	//g_debug("GisOpenGL: on_idle");
+	gdk_threads_enter();
 	gis_opengl_begin(self);
 	if (roam_sphere_split_merge(self->sphere))
 		gis_opengl_redraw(self);
 	gis_opengl_end(self);
+	gdk_threads_leave();
 	return TRUE;
 }
 
@@ -376,6 +390,7 @@ void gis_opengl_end(GisOpenGL *self)
 	g_assert(GIS_IS_OPENGL(self));
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
 	gdk_gl_drawable_gl_end(gldrawable);
+	gdk_threads_leave();
 }
 void gis_opengl_flush(GisOpenGL *self)
 {
@@ -415,7 +430,7 @@ static void gis_opengl_init(GisOpenGL *self)
 	g_object_set(self, "can-focus", TRUE, NULL);
 
 #ifndef ROAM_DEBUG
-	self->sm_source = g_timeout_add(10, (GSourceFunc)on_idle, self);
+	self->sm_source = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, self, NULL);
 #endif
 
 	g_signal_connect(self, "realize",            G_CALLBACK(on_realize),      NULL);

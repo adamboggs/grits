@@ -85,7 +85,13 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
  * Loader and Freeers *
  **********************/
 #define LOAD_BIL    TRUE
-#define LOAD_OPENGL TRUE
+#define LOAD_OPENGL FALSE
+struct _LoadTileData {
+	GisPluginSrtm    *self;
+	GisTile          *tile;
+	GdkPixbuf        *pixbuf;
+	struct _TileData *data;
+};
 static guint16 *_load_bil(gchar *path)
 {
 	gchar *data;
@@ -141,23 +147,20 @@ static guint _load_opengl(GdkPixbuf *pixbuf)
 	g_debug("GisPluginSrtm: load_opengl %d", opengl);
 	return opengl;
 }
-static void _load_tile(GisTile *tile, gpointer _self)
+static gboolean _load_tile_cb(gpointer _load)
 {
-	GisPluginSrtm *self = _self;
-	g_debug("GisPluginSrtm: _load_tile");
+	struct _LoadTileData *load = _load;
+	GisPluginSrtm    *self   = load->self;
+	GisTile          *tile   = load->tile;
+	GdkPixbuf        *pixbuf = load->pixbuf;
+	struct _TileData *data   = load->data;
+	g_free(load);
 
-	struct _TileData *data = g_new0(struct _TileData, 1);
-	gchar *path = gis_wms_make_local(self->wms, tile);
-	if (LOAD_BIL || LOAD_OPENGL)
-		data->bil = _load_bil(path);
-	g_free(path);
-	if (LOAD_OPENGL) {
-		GdkPixbuf *pixbuf = _load_pixbuf(data->bil);
+	if (LOAD_OPENGL)
 		data->opengl = _load_opengl(pixbuf);
-		g_object_unref(pixbuf);
-	}
 
 	/* Do necessasairy processing */
+	/* TODO: Lock this and move to thread, can remove self from _load then */
 	if (LOAD_BIL)
 		gis_opengl_set_height_func(self->opengl, tile,
 			_height_func, self, TRUE);
@@ -165,25 +168,52 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)
 		g_free(data->bil);
+	if (LOAD_OPENGL)
+		g_object_unref(pixbuf);
 
 	tile->data = data;
+	return FALSE;
 }
-
-static void _free_tile(GisTile *tile, gpointer _self)
+static void _load_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginSrtm *self = _self;
-	struct _TileData *data = tile->data;
-	g_debug("GisPluginSrtm: _free_tile: %p=%d", data, data->opengl);
+
+	g_debug("GisPluginSrtm: _load_tile");
+	gchar *path = gis_wms_make_local(self->wms, tile);
+	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
+	load->self = self;
+	load->tile = tile;
+	load->data = g_new0(struct _TileData, 1);
+	if (LOAD_BIL || LOAD_OPENGL)
+		load->data->bil = _load_bil(path);
+	if (LOAD_OPENGL)
+		load->pixbuf = _load_pixbuf(load->data->bil);
+
+	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, load, NULL);
+	g_free(path);
+}
+
+static gboolean _free_tile_cb(gpointer _data)
+{
+	struct _TileData *data = _data;
 	if (LOAD_BIL)
 		g_free(data->bil);
 	if (LOAD_OPENGL)
 		glDeleteTextures(1, &data->opengl);
 	g_free(data);
+	return FALSE;
+}
+static void _free_tile(GisTile *tile, gpointer _self)
+{
+	GisPluginSrtm *self = _self;
+	g_debug("GisPluginSrtm: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
+	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _self)
 {
 	GisPluginSrtm *self = _self;
+	g_mutex_lock(self->mutex);
 	gdouble lat, lon, elev;
 	gis_view_get_location(self->view, &lat, &lon, &elev);
 	gis_tile_update(self->tiles,
@@ -192,6 +222,7 @@ static gpointer _update_tiles(gpointer _self)
 			_load_tile, self);
 	gis_tile_gc(self->tiles, time(NULL)-10,
 			_free_tile, self);
+	g_mutex_unlock(self->mutex);
 	return NULL;
 }
 
@@ -201,7 +232,7 @@ static gpointer _update_tiles(gpointer _self)
 static void _on_location_changed(GisView *view, gdouble lat, gdouble lon, gdouble elev,
 		GisPluginSrtm *self)
 {
-	_update_tiles(self);
+	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
 /***********
@@ -216,7 +247,7 @@ GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *op
 
 	/* Load initial tiles */
 	_load_tile(self->tiles, self);
-	_update_tiles(self);
+	g_thread_create(_update_tiles, self, FALSE, NULL);
 
 	/* Connect signals */
 	g_signal_connect(view, "location-changed", G_CALLBACK(_on_location_changed), self);
@@ -253,6 +284,7 @@ static void gis_plugin_srtm_init(GisPluginSrtm *self)
 {
 	g_debug("GisPluginSrtm: init");
 	/* Set defaults */
+	self->mutex = g_mutex_new();
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
 		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
@@ -272,6 +304,7 @@ static void gis_plugin_srtm_finalize(GObject *gobject)
 	/* Free data */
 	gis_tile_free(self->tiles, _free_tile, self);
 	gis_wms_free(self->wms);
+	g_mutex_free(self->mutex);
 	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->finalize(gobject);
 
 }

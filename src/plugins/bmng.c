@@ -26,15 +26,21 @@
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 
-static void _load_tile(GisTile *tile, gpointer _self)
+struct _LoadTileData {
+	GisPluginBmng *self;
+	GisTile       *tile;
+	GdkPixbuf     *pixbuf;
+};
+static gboolean _load_tile_cb(gpointer _data)
 {
-	GisPluginBmng *self = _self;
-	g_debug("GisPluginBmng: _load_tile start");
+	struct _LoadTileData *data = _data;
+	GisPluginBmng *self   = data->self;
+	GisTile       *tile   = data->tile;
+	GdkPixbuf     *pixbuf = data->pixbuf;
+	g_free(data);
 
-	char *path = gis_wms_make_local(self->wms, tile);
-	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
-	g_free(path);
-
+	/* Create Texture */
+	g_debug("GisPluginBmng: _load_tile_cb start");
 	guchar   *pixels = gdk_pixbuf_get_pixels(pixbuf);
 	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
 	gint      width  = gdk_pixbuf_get_width(pixbuf);
@@ -59,21 +65,41 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	tile->data = tex;
 	gis_opengl_redraw(self->opengl);
 	g_object_unref(pixbuf);
+	return FALSE;
 }
 
+static void _load_tile(GisTile *tile, gpointer _self)
+{
+	GisPluginBmng *self = _self;
+	g_debug("GisPluginBmng: _load_tile start %p", g_thread_self());
+	char *path = gis_wms_make_local(self->wms, tile);
+	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
+	data->self   = self;
+	data->tile   = tile;
+	data->pixbuf = gdk_pixbuf_new_from_file(path, NULL);
+	g_free(path);
+	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
+	g_debug("GisPluginBmng: _load_tile end %p", g_thread_self());
+}
+
+static gboolean _free_tile_cb(gpointer data)
+{
+	glDeleteTextures(1, data);
+	g_free(data);
+	return FALSE;
+}
 static void _free_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginBmng *self = _self;
 	g_debug("GisPluginBmng: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
-	guint *data = tile->data;
-	glDeleteTextures(1, data);
-	g_free(data);
+	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _self)
 {
 	g_debug("GisPluginBmng: _update_tiles");
 	GisPluginBmng *self = _self;
+	g_mutex_lock(self->mutex);
 	gdouble lat, lon, elev;
 	gis_view_get_location(self->view, &lat, &lon, &elev);
 	gis_tile_update(self->tiles,
@@ -82,6 +108,7 @@ static gpointer _update_tiles(gpointer _self)
 			_load_tile, self);
 	gis_tile_gc(self->tiles, time(NULL)-10,
 			_free_tile, self);
+	g_mutex_unlock(self->mutex);
 	return NULL;
 }
 
@@ -91,7 +118,7 @@ static gpointer _update_tiles(gpointer _self)
 static void _on_location_changed(GisView *view, gdouble lat, gdouble lon, gdouble elev,
 		GisPluginBmng *self)
 {
-	_update_tiles(self);
+	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
 /***********
@@ -106,7 +133,7 @@ GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *op
 
 	/* Load initial tiles */
 	_load_tile(self->tiles, self);
-	_update_tiles(self);
+	g_thread_create(_update_tiles, self, FALSE, NULL);
 
 	/* Connect signals */
 	g_signal_connect(self->view, "location-changed", G_CALLBACK(_on_location_changed), self);
@@ -141,6 +168,7 @@ static void gis_plugin_bmng_init(GisPluginBmng *self)
 {
 	g_debug("GisPluginBmng: init");
 	/* Set defaults */
+	self->mutex = g_mutex_new();
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
@@ -160,6 +188,7 @@ static void gis_plugin_bmng_finalize(GObject *gobject)
 	/* Free data */
 	gis_tile_free(self->tiles, _free_tile, self);
 	gis_wms_free(self->wms);
+	g_mutex_free(self->mutex);
 	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->finalize(gobject);
 
 }

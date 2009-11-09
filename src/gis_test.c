@@ -51,16 +51,20 @@ int main(int argc, char **argv)
 	GisView    *view    = gis_view_new();
 	GisOpenGL  *opengl  = gis_opengl_new(world, view, plugins);
 
+	gdk_threads_enter();
 	GtkWidget  *window  = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(window,  "destroy",         G_CALLBACK(gtk_main_quit), NULL);
 	g_signal_connect(window,  "key-press-event", G_CALLBACK(on_key_press),  NULL);
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(opengl));
 	gtk_widget_show_all(window);
-	//gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
+	gdk_threads_leave();
+
+	gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
 	gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
 
 	gis_view_set_site(view, "KLSX");
 
+	gdk_threads_enter();
 	gtk_main();
 
 	g_object_unref(prefs);
@@ -68,5 +72,6 @@ int main(int argc, char **argv)
 	g_object_unref(view);
 	g_object_unref(opengl);
 	gis_plugins_free(plugins);
+	gdk_threads_leave();
 	return 0;
 }

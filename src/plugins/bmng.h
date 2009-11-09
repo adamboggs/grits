@@ -38,6 +38,7 @@ struct _GisPluginBmng {
 	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
+	GMutex    *mutex;
 };
 
 struct _GisPluginBmngClass {

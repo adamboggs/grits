@@ -38,6 +38,7 @@ struct _GisPluginSrtm {
 	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
+	GMutex    *mutex;
 };
 
 struct _GisPluginSrtmClass {
