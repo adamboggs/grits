@@ -136,7 +136,8 @@ GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *op
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 
 	/* Connect signals */
-	g_signal_connect(self->view, "location-changed", G_CALLBACK(_on_location_changed), self);
+	self->sigid = g_signal_connect(self->view, "location-changed",
+			G_CALLBACK(_on_location_changed), self);
 
 	return self;
 }
@@ -144,7 +145,8 @@ GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *op
 static void gis_plugin_bmng_expose(GisPlugin *_self)
 {
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
-	g_debug("GisPluginBmng: expose");
+	g_debug("GisPluginBmng: expose opengl=%p tiles=%p,%p",
+			self->opengl, self->tiles, self->tiles->data);
 	gis_opengl_render_tiles(self->opengl, self->tiles);
 }
 
@@ -172,13 +174,14 @@ static void gis_plugin_bmng_init(GisPluginBmng *self)
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
-		"bmng", ".jpg", TILE_WIDTH, TILE_HEIGHT);
+		"bmng/", "jpg", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_bmng_dispose(GObject *gobject)
 {
 	g_debug("GisPluginBmng: dispose");
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
 	/* Drop references */
+	g_signal_handler_disconnect(self->view, self->sigid);
 	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->dispose(gobject);
 }
 static void gis_plugin_bmng_finalize(GObject *gobject)

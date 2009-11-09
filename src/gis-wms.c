@@ -86,11 +86,9 @@ char *gis_wms_make_local(GisWms *self, GisTile *tile)
 {
 	/* Get file path */
 	gchar *tile_path = gis_tile_get_path(tile);
-	gchar *path = g_strdup_printf("%s/wms/%s%s%s",
-		g_get_user_cache_dir(),
-		self->cache_prefix,
-		tile_path,
-		self->cache_ext);
+	gchar *path = g_strdup_printf("%s/%s/%s%s%s",
+		g_get_user_cache_dir(), PACKAGE,
+		self->cache_prefix, tile_path, self->cache_ext);
 	g_free(tile_path);
 
 	/* Return if it already exists */

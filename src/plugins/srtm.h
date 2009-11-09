@@ -39,6 +39,7 @@ struct _GisPluginSrtm {
 	GisTile   *tiles;
 	GisWms    *wms;
 	GMutex    *mutex;
+	gulong     sigid;
 };
 
 struct _GisPluginSrtmClass {

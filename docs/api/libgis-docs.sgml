@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<book id="index" xmlns:xi="http://www.w3.org/2001/XInclude">
+	<bookinfo>
+		<title>libgis Reference Manual</title>
+	</bookinfo>
+
+	<chapter>
+		<title>Core API</title>
+		<xi:include href="xml/gis-world.xml"/>
+		<xi:include href="xml/gis-view.xml"/>
+		<xi:include href="xml/gis-opengl.xml"/>
+		<xi:include href="xml/gis-prefs.xml"/>
+	</chapter>
+
+	<chapter>
+		<title>Support</title>
+		<xi:include href="xml/gis-wms.xml"/>
+		<xi:include href="xml/gis-tile.xml"/>
+		<xi:include href="xml/gis-data.xml"/>
+		<xi:include href="xml/gpqueue.xml"/>
+		<xi:include href="xml/roam.xml"/>
+	</chapter>
+
+	<chapter>
+		<title>Plugins</title>
+		<xi:include href="xml/gis-plugin.xml"/>
+		<xi:include href="xml/bmng.xml"/>
+		<xi:include href="xml/srtm.xml"/>
+	</chapter>
+
+	<index>
+		<title>Index</title>
+	</index>
+
+</book>

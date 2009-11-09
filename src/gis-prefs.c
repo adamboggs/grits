@@ -15,17 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <config.h>
+
 #include <glib.h>
 #include "gis-marshal.h"
 #include "gis-prefs.h"
-
 
 enum {
 	SIG_PREF_CHANGED,
 	NUM_SIGNALS,
 };
 static guint signals[NUM_SIGNALS];
-
 
 /***********
  * Methods *
@@ -38,7 +38,7 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 		self->key_path = g_strdup(config);
 	else
 		self->key_path = g_build_filename(g_get_user_config_dir(),
-				"gis", "config.ini", NULL);
+				PACKAGE, "config.ini", NULL);
 	GError *error = NULL;
 	g_key_file_load_from_file(self->key_file, self->key_path,
 			G_KEY_FILE_KEEP_COMMENTS, &error);
@@ -57,7 +57,6 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 		g_free(tmp);
 	}
 	if (error) {
-		g_clear_error(&error);
 		g_warning("GisPrefs: new - Unable to load key file `%s': %s",
 			self->key_path, error->message);
 	}

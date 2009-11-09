@@ -39,6 +39,7 @@ struct _GisPluginBmng {
 	GisTile   *tiles;
 	GisWms    *wms;
 	GMutex    *mutex;
+	gulong     sigid;
 };
 
 struct _GisPluginBmngClass {

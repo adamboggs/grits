@@ -56,7 +56,8 @@ void gis_plugin_expose(GisPlugin *self)
 GtkWidget *gis_plugin_get_config(GisPlugin *self)
 {
 	g_return_val_if_fail(GIS_IS_PLUGIN(self), NULL);
-	return GIS_PLUGIN_GET_INTERFACE(self)->get_config(self);
+	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
+	return iface->get_config ? iface->get_config (self) : NULL;
 }
 
 

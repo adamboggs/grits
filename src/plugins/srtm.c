@@ -162,8 +162,7 @@ static gboolean _load_tile_cb(gpointer _load)
 	/* Do necessasairy processing */
 	/* TODO: Lock this and move to thread, can remove self from _load then */
 	if (LOAD_BIL)
-		gis_opengl_set_height_func(self->opengl, tile,
-			_height_func, self, TRUE);
+		gis_opengl_set_height_func(self->opengl, tile, _height_func, self, TRUE);
 
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)
@@ -250,7 +249,8 @@ GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *op
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 
 	/* Connect signals */
-	g_signal_connect(view, "location-changed", G_CALLBACK(_on_location_changed), self);
+	self->sigid = g_signal_connect(self->view, "location-changed",
+			G_CALLBACK(_on_location_changed), self);
 
 	return self;
 }
@@ -288,13 +288,16 @@ static void gis_plugin_srtm_init(GisPluginSrtm *self)
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
 		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
-		"srtm", ".bil", TILE_WIDTH, TILE_HEIGHT);
+		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_srtm_dispose(GObject *gobject)
 {
 	g_debug("GisPluginSrtm: dispose");
 	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
 	/* Drop references */
+	g_signal_handler_disconnect(self->view, self->sigid);
+	if (LOAD_BIL)
+		gis_opengl_clear_height_func(self->opengl);
 	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);
 }
 static void gis_plugin_srtm_finalize(GObject *gobject)

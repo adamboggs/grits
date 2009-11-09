@@ -672,7 +672,8 @@ GList *roam_sphere_get_intersect(RoamSphere *self,
 	 * time = 30      * 2*333           * i_cost = 20000 * i_cost */
 	GList *list = NULL;
 	for (int i = 0; i < G_N_ELEMENTS(self->roots); i++)
-		list = _roam_sphere_get_intersect_rec(self->roots[i], list, n, s, e, w);
+		list = _roam_sphere_get_intersect_rec(self->roots[i],
+				list, n, s, e, w);
 	return list;
 }
 void roam_sphere_free_tri(RoamTriangle *tri)

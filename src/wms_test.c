@@ -40,7 +40,7 @@ gpointer do_cache(gpointer _image)
 	g_message("Fetching image");
 	GisWms *bmng_wms = gis_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
-		"bmng", ".jpg", 512, 256);
+		"bmng_test/", "jpg", 512, 256);
 	const char *path = gis_wms_make_local(bmng_wms, tile);
 
 	g_message("Loading image: [%s]", path);

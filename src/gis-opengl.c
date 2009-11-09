@@ -370,6 +370,25 @@ void gis_opengl_set_height_func(GisOpenGL *self, GisTile *tile,
 	g_list_free(triangles);
 }
 
+static void _gis_opengl_clear_height_func_rec(RoamTriangle *root)
+{
+	if (!root)
+		return;
+	RoamPoint *points[] = {root->p.l, root->p.m, root->p.r, root->split};
+	for (int i = 0; i < G_N_ELEMENTS(points); i++) {
+		points[i]->height_func = NULL;
+		points[i]->height_data = NULL;
+		roam_point_update_height(points[i]);
+	}
+	_gis_opengl_clear_height_func_rec(root->kids[0]);
+	_gis_opengl_clear_height_func_rec(root->kids[1]);
+}
+void gis_opengl_clear_height_func(GisOpenGL *self)
+{
+	for (int i = 0; i < G_N_ELEMENTS(self->sphere->roots); i++)
+		_gis_opengl_clear_height_func_rec(self->sphere->roots[i]);
+}
+
 void gis_opengl_redraw(GisOpenGL *self)
 {
 	g_debug("GisOpenGL: redraw");

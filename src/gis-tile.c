@@ -22,8 +22,8 @@
 #include "gis-tile.h"
 
 gchar *gis_tile_path_table[2][2] = {
-	{".00", ".01"},
-	{".10", ".11"},
+	{"00.", "01."},
+	{"10.", "11."},
 };
 
 GisTile *gis_tile_new(GisTile *parent,

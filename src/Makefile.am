@@ -1,4 +1,4 @@
-SUBDIRS = plugins
+SUBDIRS = . plugins
 
 AM_CFLAGS   = -Wall --std=gnu99 
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
