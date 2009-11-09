@@ -22,7 +22,10 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "gis-world.h"
+
 #include "roam.h"
+
 
 /**
  * TODO:
@@ -61,7 +64,7 @@ static gint dia_cmp(RoamDiamond *a, RoamDiamond *b, gpointer data)
 /*************
  * RoamPoint *
  *************/
-RoamPoint *roam_point_new(double x, double y, double z)
+RoamPoint *roam_point_new(gdouble x, gdouble y, gdouble z)
 {
 	RoamPoint *self = g_new0(RoamPoint, 1);
 	self->x = x;
@@ -104,9 +107,9 @@ void roam_point_update_height(RoamPoint *self, RoamSphere *sphere)
 		gdouble dist = sqrt(self->x * self->x +
 				    self->y * self->y +
 				    self->z * self->z);
-		self->x = self->x/dist * 6371000;
-		self->y = self->y/dist * 6371000;
-		self->z = self->z/dist * 6371000;
+		self->x = self->x/dist * EARTH_R;
+		self->y = self->y/dist * EARTH_R;
+		self->z = self->z/dist * EARTH_R;
 	}
 }
 void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
@@ -221,14 +224,6 @@ gboolean roam_point_visible(RoamPoint *self, RoamSphere *sphere)
 	return self->px > view[0] && self->px < view[2] &&
 	       self->py > view[1] && self->py < view[3] &&
 	       self->pz > 0       && self->pz < 1;
-	//double x, y, z;
-	//int view[4] = {0,0,1,1};
-	//gluProject(self->x, self->y, self->z,
-	//		sphere->view->model, sphere->view->proj, view,
-	//		&x, &y, &z);
-	//return !(x < 0 || x > 1 ||
-	//         y < 0 || y > 1 ||
-	//         z < 0 || z > 1);
 }
 gboolean roam_triangle_visible(RoamTriangle *self, RoamSphere *sphere)
 {
@@ -281,7 +276,6 @@ void roam_triangle_split(RoamTriangle *self, RoamSphere *sphere)
 		roam_triangle_split(self->t.b, sphere);
 
 	RoamTriangle *base = self->t.b;
-
 
 	/* Add new triangles */
 	RoamPoint *mid = self->split;
@@ -501,7 +495,7 @@ RoamSphere *roam_sphere_new(gpointer user_data)
 }
 void roam_sphere_update_errors(RoamSphere *self)
 {
-	g_debug("RoamSphere: update - polys=%d", self->polys);
+	g_debug("RoamSphere: update_errors - polys=%d", self->polys);
 	if (!self->view)
 		self->view = roam_view_new();
 	roam_view_update(self->view);
@@ -540,22 +534,32 @@ void roam_sphere_merge_one(RoamSphere *self)
 gint roam_sphere_split_merge(RoamSphere *self)
 {
 	gint iters = 0, max_iters = 500;
-	gint target = 4000;
+	//gint target = 4000;
+	gint target = 2000;
+	//gint target = 500;
 
 	if (!self->view)
 		return 0;
 
-	if (target - self->polys > 100)
+	if (target - self->polys > 100) {
+		//g_debug("RoamSphere: split_merge - Splitting %d - %d > 100", target, self->polys);
 		while (self->polys < target && iters++ < max_iters)
 			roam_sphere_split_one(self);
+	}
 
-	if (self->polys - target > 100)
+	if (self->polys - target > 100) {
+		//g_debug("RoamSphere: split_merge - Merging %d - %d > 100", self->polys, target);
 		while (self->polys > target && iters++ < max_iters)
 			roam_sphere_merge_one(self);
+	}
 
 	while (((RoamTriangle*)g_pqueue_peek(self->triangles))->error >
 	       ((RoamDiamond *)g_pqueue_peek(self->diamonds ))->error &&
 	       iters++ < max_iters) {
+		//g_debug("RoamSphere: split_merge - Fixing 1 %f > %f && %d < %d",
+		//		((RoamTriangle*)g_pqueue_peek(self->triangles))->error,
+		//		((RoamDiamond *)g_pqueue_peek(self->diamonds ))->error,
+		//		iters-1, max_iters);
 		roam_sphere_merge_one(self);
 		roam_sphere_split_one(self);
 	}
@@ -564,12 +568,12 @@ gint roam_sphere_split_merge(RoamSphere *self)
 }
 void roam_sphere_draw(RoamSphere *self)
 {
-	g_message("RoamSphere: draw");
+	g_debug("RoamSphere: draw");
 	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw, NULL);
 }
 void roam_sphere_draw_normals(RoamSphere *self)
 {
-	g_message("RoamSphere: draw_normal");
+	g_debug("RoamSphere: draw_normal");
 	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw_normal, NULL);
 }
 void roam_sphere_free_tri(RoamTriangle *tri)
@@ -588,5 +592,6 @@ void roam_sphere_free(RoamSphere *self)
 	g_pqueue_foreach(self->triangles, (GFunc)roam_sphere_free_tri, NULL);
 	g_pqueue_free(self->triangles);
 	g_pqueue_free(self->diamonds);
+	g_free(self->view);
 	g_free(self);
 }

@@ -47,14 +47,12 @@ struct _GisOpenGL {
 	GisView    *view;
 	GisPlugins *plugins;
 	RoamSphere *sphere;
-	WmsInfo    *bmng;
-	WmsInfo    *srtm;
 	guint       sm_source;
 };
 
 struct _GisOpenGLClass {
 	GtkDrawingAreaClass parent_class;
-	
+
 	/* class members */
 };
 
@@ -63,12 +61,13 @@ GType gis_opengl_get_type(void);
 /* Methods */
 GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins);
 
-void gis_opengl_center_position(GisOpenGL *gis, gdouble lat, gdouble lon, gdouble elev);
+void gis_opengl_center_position(GisOpenGL *opengl,
+		gdouble lat, gdouble lon, gdouble elev);
 
-void gis_opengl_redraw(GisOpenGL *gis);
+void gis_opengl_redraw(GisOpenGL *opengl);
 
-void gis_opengl_begin(GisOpenGL *gis);
-void gis_opengl_end(GisOpenGL *gis);
-void gis_opengl_flush(GisOpenGL *gis);
+void gis_opengl_begin(GisOpenGL *opengl);
+void gis_opengl_end(GisOpenGL *opengl);
+void gis_opengl_flush(GisOpenGL *opengl);
 
 #endif

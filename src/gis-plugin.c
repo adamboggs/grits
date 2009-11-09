@@ -122,10 +122,13 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 {
 	g_debug("GisPlugins: load %s", name);
 	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
-	if (!g_file_test(path, G_FILE_TEST_EXISTS))
+	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
+		g_free(path);
 		path = g_strdup_printf("%s/%s.%s", PLUGINSDIR, name, G_MODULE_SUFFIX);
+	}
 	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
 		g_warning("Module %s not found", name);
+		g_free(path);
 		return NULL;
 	}
 	GModule *module = g_module_open(path, 0);
@@ -147,7 +150,7 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 	g_free(constructor_str);
 	GisPluginConstructor constructor = constructor_ptr;
 
-	GisPluginStore *store = g_malloc(sizeof(GisPluginStore));
+	GisPluginStore *store = g_new0(GisPluginStore, 1);
 	store->name = g_strdup(name);
 	store->plugin = constructor(world, view, opengl, prefs);
 	g_ptr_array_add(self->plugins, store);

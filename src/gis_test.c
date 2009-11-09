@@ -26,7 +26,7 @@
  *************/
 static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer _)
 {
-	g_debug("gis: on_key_press - key=%x, state=%x",
+	g_debug("GisTest: on_key_press - key=%x, state=%x",
 			event->keyval, event->state);
 	switch (event->keyval) {
 	case GDK_q:
@@ -41,8 +41,9 @@ static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer _)
  ***********/
 int main(int argc, char **argv)
 {
-	gtk_init(&argc, &argv);
 	g_thread_init(NULL);
+	gdk_threads_init();
+	gtk_init(&argc, &argv);
 
 	GisPrefs   *prefs   = gis_prefs_new(NULL, NULL);
 	GisPlugins *plugins = gis_plugins_new(NULL);

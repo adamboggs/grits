@@ -34,7 +34,7 @@
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)
 
-//#define ROAM_DEBUG
+// #define ROAM_DEBUG
 
 /*************
  * ROAM Code *
@@ -124,12 +124,13 @@ static void set_visuals(GisOpenGL *self)
  *************/
 static void on_realize(GisOpenGL *self, gpointer _)
 {
+	g_debug("GisOpenGL: on_realize");
 	set_visuals(self);
 	roam_sphere_update_errors(self->sphere);
 }
 static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer _)
 {
-	g_debug("GisOpenGL: on_confiure");
+	g_debug("GisOpenGL: on_configure");
 	gis_opengl_begin(self);
 
 	double width  = GTK_WIDGET(self)->allocation.width;
@@ -211,10 +212,10 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_Right || kv == GDK_l) gis_view_pan(self->view,  0,   pan, 0);
 	else if (kv == GDK_minus || kv == GDK_o) gis_view_zoom(self->view, 10./9);
 	else if (kv == GDK_plus  || kv == GDK_i) gis_view_zoom(self->view, 9./10);
-	else if (kv == GDK_H) gis_view_rotate(self->view,  0,  0, -10);
-	else if (kv == GDK_J) gis_view_rotate(self->view,  10, 0,  0);
-	else if (kv == GDK_K) gis_view_rotate(self->view, -10, 0,  0);
-	else if (kv == GDK_L) gis_view_rotate(self->view,  0,  0,  10);
+	else if (kv == GDK_H) gis_view_rotate(self->view,  0, 0, -2);
+	else if (kv == GDK_J) gis_view_rotate(self->view,  2, 0,  0);
+	else if (kv == GDK_K) gis_view_rotate(self->view, -2, 0,  0);
+	else if (kv == GDK_L) gis_view_rotate(self->view,  0, 0,  2);
 
 	/* Testing */
 #ifdef ROAM_DEBUG
@@ -231,6 +232,7 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 static void on_view_changed(GisView *view,
 		gdouble _1, gdouble _2, gdouble _3, GisOpenGL *self)
 {
+	g_debug("GisOpenGL: on_view_changed");
 	gis_opengl_begin(self);
 	set_visuals(self);
 #ifndef ROAM_DEBUG
@@ -242,6 +244,7 @@ static void on_view_changed(GisView *view,
 
 static gboolean on_idle(GisOpenGL *self)
 {
+	//g_debug("GisOpenGL: on_idle");
 	gis_opengl_begin(self);
 	if (roam_sphere_split_merge(self->sphere))
 		gis_opengl_redraw(self);
@@ -266,7 +269,6 @@ GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins)
 	g_signal_connect(self->view, "location-changed", G_CALLBACK(on_view_changed), self);
 	g_signal_connect(self->view, "rotation-changed", G_CALLBACK(on_view_changed), self);
 
-	/* TODO: update point eights sometime later so we have heigh-res heights for them */
 	self->sphere = roam_sphere_new(self);
 
 	return g_object_ref(self);
@@ -274,7 +276,6 @@ GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins)
 
 void gis_opengl_center_position(GisOpenGL *self, gdouble lat, gdouble lon, gdouble elev)
 {
-	set_camera(self);
 	glRotatef(lon, 0, 1, 0);
 	glRotatef(-lat, 1, 0, 0);
 	glTranslatef(0, 0, elev2rad(elev));
@@ -282,7 +283,7 @@ void gis_opengl_center_position(GisOpenGL *self, gdouble lat, gdouble lon, gdoub
 
 void gis_opengl_redraw(GisOpenGL *self)
 {
-	g_debug("GisOpenGL: gl_redraw");
+	g_debug("GisOpenGL: redraw");
 	gtk_widget_queue_draw(GTK_WIDGET(self));
 }
 void gis_opengl_begin(GisOpenGL *self)
@@ -320,9 +321,6 @@ G_DEFINE_TYPE(GisOpenGL, gis_opengl, GTK_TYPE_DRAWING_AREA);
 static void gis_opengl_init(GisOpenGL *self)
 {
 	g_debug("GisOpenGL: init");
-	self->bmng = wms_info_new_for_bmng(NULL, NULL);
-	self->srtm = wms_info_new_for_srtm(NULL, NULL);
-
 	/* OpenGL setup */
 	GdkGLConfig *glconfig = gdk_gl_config_new_by_mode(
 			GDK_GL_MODE_RGBA   | GDK_GL_MODE_DEPTH |
@@ -386,8 +384,6 @@ static void gis_opengl_finalize(GObject *_self)
 {
 	g_debug("GisOpenGL: finalize");
 	GisOpenGL *self = GIS_OPENGL(_self);
-	wms_info_free(self->bmng);
-	wms_info_free(self->srtm);
 	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
 static void gis_opengl_class_init(GisOpenGLClass *klass)

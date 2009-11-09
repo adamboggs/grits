@@ -42,8 +42,9 @@ gboolean key_press_cb(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 
 int main(int argc, char **argv)
 {
-	gtk_init(&argc, &argv);
 	g_thread_init(NULL);
+	gdk_threads_init();
+	gtk_init(&argc, &argv);
 
 	GtkWidget *win        = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	GtkWidget *vbox1      = gtk_vbox_new(FALSE, 0);
