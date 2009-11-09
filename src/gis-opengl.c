@@ -271,6 +271,70 @@ void gis_opengl_center_position(GisOpenGL *self, gdouble lat, gdouble lon, gdoub
 	glTranslatef(0, 0, elev2rad(elev));
 }
 
+void gis_opengl_render_tile(GisOpenGL *self, GisTile *tile)
+{
+	if (!tile || !tile->data)
+		return;
+	GList *triangles = roam_sphere_get_intersect(self->sphere,
+			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	if (!triangles)
+		g_warning("GisOpenGL: render_tiles - No triangles to draw: edges=%f,%f,%f,%f",
+			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	//g_message("rendering %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
+	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	for (GList *cur = triangles; cur; cur = cur->next) {
+		RoamTriangle *tri = cur->data;
+
+		gdouble lat[3] = {tri->p.r->lat, tri->p.m->lat, tri->p.l->lat};
+		gdouble lon[3] = {tri->p.r->lon, tri->p.m->lon, tri->p.l->lon};
+
+		if (lon[0] < -90 || lon[1] < -90 || lon[2] < -90) {
+			if (lon[0] > 90) lon[0] -= 360;
+			if (lon[1] > 90) lon[1] -= 360;
+			if (lon[2] > 90) lon[2] -= 360;
+		}
+
+		gdouble n = tile->edge.n;
+		gdouble s = tile->edge.s;
+		gdouble e = tile->edge.e;
+		gdouble w = tile->edge.w;
+
+		gdouble londist = e - w;
+		gdouble latdist = n - s;
+
+		gdouble xy[][3] = {
+			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
+			{(lon[1]-w)/londist, 1-(lat[1]-s)/latdist},
+			{(lon[2]-w)/londist, 1-(lat[2]-s)/latdist},
+		};
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);
+		glBegin(GL_TRIANGLES);
+		glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r);
+		glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m);
+		glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l);
+		glEnd();
+	}
+	g_list_free(triangles);
+}
+
+void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *tile)
+{
+	/* Only render children if possible */
+	gboolean has_children = TRUE;
+	GisTile *child;
+	gis_tile_foreach(tile, child)
+		if (!child || !child->data)
+			has_children = FALSE;
+	if (has_children)
+		/* Only render children */
+		gis_tile_foreach(tile, child)
+			gis_opengl_render_tiles(opengl, child);
+	else
+		/* No children, render this tile */
+		gis_opengl_render_tile(opengl, tile);
+}
 void gis_opengl_redraw(GisOpenGL *self)
 {
 	g_debug("GisOpenGL: redraw");

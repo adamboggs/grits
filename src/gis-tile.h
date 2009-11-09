@@ -47,6 +47,9 @@ struct _GisTile {
 	/* Pointers to parent/child nodes */
 	GisTile *parent;
 	GisTile *children[2][2];
+
+	/* Last access time (for garbage collection) */
+	time_t atime;
 };
 
 /* Path to string table, keep in sync with tile->children */ 
@@ -58,6 +61,17 @@ GisTile *gis_tile_new(GisTile *parent,
 
 /* Return a string representation of the tile's path */
 gchar *gis_tile_get_path(GisTile *child);
+
+/* Update a root tile */
+/* Based on eye distance (lat,lon,elev) */
+void gis_tile_update(GisTile *root,
+		gdouble res, gint width, gint height,
+		gdouble lat, gdouble lon, gdouble elev,
+		GisTileLoadFunc load_func, gpointer user_data);
+
+/* Delete nodes that haven't been accessed since atime */
+GisTile *gis_tile_gc(GisTile *root, time_t atime,
+		GisTileFreeFunc free_func, gpointer user_data);
 
 /* Free a tile and all it's children */
 void gis_tile_free(GisTile *root,

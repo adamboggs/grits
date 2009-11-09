@@ -15,26 +15,84 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtkgl.h>
+#include <time.h>
 #include <GL/gl.h>
 
 #include <gis.h>
 
 #include "bmng.h"
 
-/***********
- * Helpers *
- ***********/
-static gboolean rotate(gpointer _self)
+#define MAX_RESOLUTION 500
+#define TILE_WIDTH     1024
+#define TILE_HEIGHT    512
+
+static void _load_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginBmng *self = _self;
-	if (gtk_toggle_button_get_active(self->button)) {
-		self->rotation += 1.0;
-		gis_opengl_redraw(self->opengl);
-	}
-	return TRUE;
+	g_debug("GisPluginBmng: _load_tile start");
+
+	char *path = gis_wms_make_local(self->wms, tile);
+	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
+	g_free(path);
+
+	guchar   *pixels = gdk_pixbuf_get_pixels(pixbuf);
+	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
+	gint      width  = gdk_pixbuf_get_width(pixbuf);
+	gint      height = gdk_pixbuf_get_height(pixbuf);
+
+	guint *tex = g_new0(guint, 1);
+	gis_opengl_begin(self->opengl);
+	glGenTextures(1, tex);
+	glBindTexture(GL_TEXTURE_2D, *tex);
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0,
+			(alpha ? GL_RGBA : GL_RGB), GL_UNSIGNED_BYTE, pixels);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glFlush();
+	gis_opengl_end(self->opengl);
+
+	tile->data = tex;
+	gis_opengl_redraw(self->opengl);
+	g_object_unref(pixbuf);
 }
 
+static void _free_tile(GisTile *tile, gpointer _self)
+{
+	GisPluginBmng *self = _self;
+	g_debug("GisPluginBmng: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
+	guint *data = tile->data;
+	glDeleteTextures(1, data);
+	g_free(data);
+}
+
+static gpointer _update_tiles(gpointer _self)
+{
+	g_debug("GisPluginBmng: _update_tiles");
+	GisPluginBmng *self = _self;
+	gdouble lat, lon, elev;
+	gis_view_get_location(self->view, &lat, &lon, &elev);
+	gis_tile_update(self->tiles,
+			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
+			lat, lon, elev,
+			_load_tile, self);
+	gis_tile_gc(self->tiles, time(NULL)-10,
+			_free_tile, self);
+	return NULL;
+}
+
+/*************
+ * Callbacks *
+ *************/
+static void _on_location_changed(GisView *view, gdouble lat, gdouble lon, gdouble elev,
+		GisPluginBmng *self)
+{
+	_update_tiles(self);
+}
 
 /***********
  * Methods *
@@ -43,42 +101,24 @@ GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *op
 {
 	g_debug("GisPluginBmng: new");
 	GisPluginBmng *self = g_object_new(GIS_TYPE_PLUGIN_BMNG, NULL);
+	self->view   = view;
 	self->opengl = opengl;
 
-	return self;
-}
+	/* Load initial tiles */
+	_load_tile(self->tiles, self);
+	_update_tiles(self);
 
-static GtkWidget *gis_plugin_bmng_get_config(GisPlugin *_self)
-{
-	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
-	return GTK_WIDGET(self->button);
+	/* Connect signals */
+	g_signal_connect(self->view, "location-changed", G_CALLBACK(_on_location_changed), self);
+
+	return self;
 }
 
 static void gis_plugin_bmng_expose(GisPlugin *_self)
 {
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
 	g_debug("GisPluginBmng: expose");
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(1,-1, -1,1, -10,10);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	float light_ambient[]  = {0.1f, 0.1f, 0.0f, 1.0f};
-	float light_diffuse[]  = {0.9f, 0.9f, 0.9f, 1.0f};
-	float light_position[] = {-30.0f, 50.0f, 40.0f, 1.0f};
-	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_COLOR_MATERIAL);
-
-	glTranslatef(-0.5, -0.5, -2);
-	glRotatef(self->rotation, 1, 1, 0);
-	glColor4f(0.9, 0.9, 0.7, 1.0);
-	glDisable(GL_CULL_FACE);
-	gdk_gl_draw_teapot(TRUE, 0.25);
+	gis_opengl_render_tiles(self->opengl, self->tiles);
 }
 
 
@@ -94,24 +134,22 @@ static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginBmng: plugin_init");
 	/* Add methods to the interface */
-	iface->expose     = gis_plugin_bmng_expose;
-	iface->get_config = gis_plugin_bmng_get_config;
+	iface->expose = gis_plugin_bmng_expose;
 }
 /* Class/Object init */
 static void gis_plugin_bmng_init(GisPluginBmng *self)
 {
 	g_debug("GisPluginBmng: init");
 	/* Set defaults */
-	self->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
-	self->rotate_id = g_timeout_add(1000/60, rotate, self);
-	self->rotation  = 30.0;
-	self->opengl    = NULL;
+	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	self->wms   = gis_wms_new(
+		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
+		"bmng", ".jpg", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_bmng_dispose(GObject *gobject)
 {
 	g_debug("GisPluginBmng: dispose");
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
-	g_source_remove(self->rotate_id);
 	/* Drop references */
 	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->dispose(gobject);
 }
@@ -120,6 +158,8 @@ static void gis_plugin_bmng_finalize(GObject *gobject)
 	g_debug("GisPluginBmng: finalize");
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
 	/* Free data */
+	gis_tile_free(self->tiles, _free_tile, self);
+	gis_wms_free(self->wms);
 	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->finalize(gobject);
 
 }

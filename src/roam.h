@@ -71,6 +71,10 @@ struct _RoamTriangle {
 	double norm[3];
 	double error;
 	GPQueueHandle handle;
+
+	/* For get_intersect */
+	struct { gdouble n,s,e,w; } edge;
+	RoamTriangle *kids[2];
 };
 RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r);
 void roam_triangle_add(RoamTriangle *triangle,
@@ -119,6 +123,8 @@ void roam_sphere_merge_one(RoamSphere *sphere);
 gint roam_sphere_split_merge(RoamSphere *sphere);
 void roam_sphere_draw(RoamSphere *sphere);
 void roam_sphere_draw_normals(RoamSphere *sphere);
+GList *roam_sphere_get_intersect(RoamSphere *sphere,
+		gdouble n, gdouble s, gdouble e, gdouble w);
 void roam_sphere_free(RoamSphere *sphere);
 
 #endif

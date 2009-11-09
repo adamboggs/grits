@@ -36,6 +36,7 @@ typedef struct _GisOpenGLClass GisOpenGLClass;
 #include "gis-view.h"
 #include "gis-world.h"
 #include "gis-plugin.h"
+#include "gis-tile.h"
 #include "roam.h"
 
 struct _GisOpenGL {
@@ -65,6 +66,10 @@ GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins);
 
 void gis_opengl_center_position(GisOpenGL *opengl,
 		gdouble lat, gdouble lon, gdouble elev);
+
+void gis_opengl_render_tile(GisOpenGL *opengl, GisTile *tile);
+
+void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *root);
 
 void gis_opengl_redraw(GisOpenGL *opengl);
 
