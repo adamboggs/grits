@@ -34,10 +34,10 @@ struct _GisPluginSrtm {
 	GObject parent_instance;
 
 	/* instance members */
-	GtkToggleButton *button;
-	guint            rotate_id;
-	float            rotation;
-	GisOpenGL       *opengl;
+	GisView   *view;
+	GisOpenGL *opengl;
+	GisTile   *tiles;
+	GisWms    *wms;
 };
 
 struct _GisPluginSrtmClass {

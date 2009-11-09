@@ -71,6 +71,9 @@ void gis_opengl_render_tile(GisOpenGL *opengl, GisTile *tile);
 
 void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *root);
 
+void gis_opengl_set_height_func(GisOpenGL *self, GisTile *tile,
+		RoamHeightFunc height_func, gpointer user_data, gboolean update);
+
 void gis_opengl_redraw(GisOpenGL *opengl);
 
 void gis_opengl_begin(GisOpenGL *opengl);

@@ -128,6 +128,28 @@ void gis_tile_update(GisTile *self,
 	}
 }
 
+GisTile *gis_tile_find(GisTile *self, gdouble lat, gdouble lon)
+{
+	gint    rows = G_N_ELEMENTS(self->children);
+	gint    cols = G_N_ELEMENTS(self->children[0]);
+
+	gdouble lat_step = (self->edge.n - self->edge.s) / rows;
+	gdouble lon_step = (self->edge.e - self->edge.w) / cols;
+
+	gdouble lat_offset = self->edge.n - lat;;
+	gdouble lon_offset = lon - self->edge.w;
+
+	gint    row = lat_offset / lat_step;
+	gint    col = lon_offset / lon_step;
+
+	if (row < 0 || row >= rows || col < 0 || col >= cols)
+		return NULL;
+	else if (self->children[row][col] && self->children[row][col]->data)
+		return gis_tile_find(self->children[row][col], lat, lon);
+	else
+		return self;
+}
+
 GisTile *gis_tile_gc(GisTile *self, time_t atime,
 		GisTileFreeFunc free_func, gpointer user_data)
 {

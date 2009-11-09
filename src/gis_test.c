@@ -56,8 +56,8 @@ int main(int argc, char **argv)
 	g_signal_connect(window,  "key-press-event", G_CALLBACK(on_key_press),  NULL);
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(opengl));
 	gtk_widget_show_all(window);
-	gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
-	//gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
+	//gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
+	gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
 
 	gis_view_set_site(view, "KLSX");
 

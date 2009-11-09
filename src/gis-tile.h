@@ -69,6 +69,9 @@ void gis_tile_update(GisTile *root,
 		gdouble lat, gdouble lon, gdouble elev,
 		GisTileLoadFunc load_func, gpointer user_data);
 
+/* Find the leaf tile containing lat-lon */
+GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon);
+
 /* Delete nodes that haven't been accessed since atime */
 GisTile *gis_tile_gc(GisTile *root, time_t atime,
 		GisTileFreeFunc free_func, gpointer user_data);

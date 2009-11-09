@@ -335,6 +335,27 @@ void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *tile)
 		/* No children, render this tile */
 		gis_opengl_render_tile(opengl, tile);
 }
+
+void gis_opengl_set_height_func(GisOpenGL *self, GisTile *tile,
+		RoamHeightFunc height_func, gpointer user_data, gboolean update)
+{
+	if (!tile)
+		return;
+	/* TODO: get points? */
+	GList *triangles = roam_sphere_get_intersect(self->sphere,
+			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	for (GList *cur = triangles; cur; cur = cur->next) {
+		RoamTriangle *tri = cur->data;
+		RoamPoint *points[] = {tri->p.l, tri->p.m, tri->p.r, tri->split};
+		for (int i = 0; i < G_N_ELEMENTS(points); i++) {
+			points[i]->height_func = height_func;
+			points[i]->height_data = user_data;
+			roam_point_update_height(points[i]);
+		}
+	}
+	g_list_free(triangles);
+}
+
 void gis_opengl_redraw(GisOpenGL *self)
 {
 	g_debug("GisOpenGL: redraw");
