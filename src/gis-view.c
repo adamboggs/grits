@@ -36,31 +36,40 @@ enum {
 };
 static guint signals[NUM_SIGNALS];
 
+/* Misc helpers */
+static void _gis_view_fix_location(GisView *self)
+{
+	while (self->location[0] <  -90) self->location[0] += 180;
+	while (self->location[0] >   90) self->location[0] -= 180;
+	while (self->location[1] < -180) self->location[1] += 360;
+	while (self->location[1] >  180) self->location[1] -= 360;
+	self->location[2] = ABS(self->location[2]);
+}
 
 /* Signal helpers */
-static void _gis_view_emit_location_changed(GisView *view)
+static void _gis_view_emit_location_changed(GisView *self)
 {
-	g_signal_emit(view, signals[SIG_LOCATION_CHANGED], 0,
-			view->location[0],
-			view->location[1],
-			view->location[2]);
+	g_signal_emit(self, signals[SIG_LOCATION_CHANGED], 0,
+			self->location[0],
+			self->location[1],
+			self->location[2]);
 }
-static void _gis_view_emit_rotation_changed(GisView *view)
+static void _gis_view_emit_rotation_changed(GisView *self)
 {
-	g_signal_emit(view, signals[SIG_ROTATION_CHANGED], 0,
-			view->rotation[0],
-			view->rotation[1],
-			view->rotation[2]);
+	g_signal_emit(self, signals[SIG_ROTATION_CHANGED], 0,
+			self->rotation[0],
+			self->rotation[1],
+			self->rotation[2]);
 }
-static void _gis_view_emit_time_changed(GisView *view)
+static void _gis_view_emit_time_changed(GisView *self)
 {
-	g_signal_emit(view, signals[SIG_TIME_CHANGED], 0,
-			view->time);
+	g_signal_emit(self, signals[SIG_TIME_CHANGED], 0,
+			self->time);
 }
-static void _gis_view_emit_site_changed(GisView *view)
+static void _gis_view_emit_site_changed(GisView *self)
 {
-	g_signal_emit(view, signals[SIG_SITE_CHANGED], 0,
-			view->site);
+	g_signal_emit(self, signals[SIG_SITE_CHANGED], 0,
+			self->site);
 }
 
 
@@ -73,103 +82,105 @@ GisView *gis_view_new()
 	return g_object_new(GIS_TYPE_VIEW, NULL);
 }
 
-void gis_view_set_time(GisView *view, const char *time)
+void gis_view_set_time(GisView *self, const char *time)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: set_time - time=%s", time);
-	g_free(view->time);
-	view->time = g_strdup(time);
-	_gis_view_emit_time_changed(view);
+	g_free(self->time);
+	self->time = g_strdup(time);
+	_gis_view_emit_time_changed(self);
 }
 
-gchar *gis_view_get_time(GisView *view)
+gchar *gis_view_get_time(GisView *self)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: get_time");
-	return view->time;
+	return self->time;
 }
 
-void gis_view_set_location(GisView *view, gdouble lat, gdouble lon, gdouble elev)
+void gis_view_set_location(GisView *self, gdouble lat, gdouble lon, gdouble elev)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: set_location");
-	view->location[0] = lat;
-	view->location[1] = lon;
-	view->location[2] = elev;
-	_gis_view_emit_location_changed(view);
+	self->location[0] = lat;
+	self->location[1] = lon;
+	self->location[2] = elev;
+	_gis_view_fix_location(self);
+	_gis_view_emit_location_changed(self);
 }
 
-void gis_view_get_location(GisView *view, gdouble *lat, gdouble *lon, gdouble *elev)
+void gis_view_get_location(GisView *self, gdouble *lat, gdouble *lon, gdouble *elev)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	//g_debug("GisView: get_location");
-	*lat  = view->location[0];
-	*lon  = view->location[1];
-	*elev = view->location[2];
+	*lat  = self->location[0];
+	*lon  = self->location[1];
+	*elev = self->location[2];
 }
 
-void gis_view_pan(GisView *view, gdouble lat, gdouble lon, gdouble elev)
+void gis_view_pan(GisView *self, gdouble lat, gdouble lon, gdouble elev)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: pan - lat=%8.3f, lon=%8.3f, elev=%8.3f", lat, lon, elev);
-	view->location[0] += lat;
-	view->location[1] += lon;
-	view->location[2] += elev;
-	_gis_view_emit_location_changed(view);
+	self->location[0] += lat;
+	self->location[1] += lon;
+	self->location[2] += elev;
+	_gis_view_fix_location(self);
+	_gis_view_emit_location_changed(self);
 }
 
-void gis_view_zoom(GisView *view, gdouble scale)
+void gis_view_zoom(GisView *self, gdouble scale)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: zoom");
-	view->location[2] *= scale;
-	_gis_view_emit_location_changed(view);
+	self->location[2] *= scale;
+	_gis_view_emit_location_changed(self);
 }
 
-void gis_view_set_rotation(GisView *view, gdouble x, gdouble y, gdouble z)
+void gis_view_set_rotation(GisView *self, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: set_rotation");
-	view->rotation[0] = x;
-	view->rotation[1] = y;
-	view->rotation[2] = z;
-	_gis_view_emit_rotation_changed(view);
+	self->rotation[0] = x;
+	self->rotation[1] = y;
+	self->rotation[2] = z;
+	_gis_view_emit_rotation_changed(self);
 }
 
-void gis_view_get_rotation(GisView *view, gdouble *x, gdouble *y, gdouble *z)
+void gis_view_get_rotation(GisView *self, gdouble *x, gdouble *y, gdouble *z)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: get_rotation");
-	*x = view->rotation[0];
-	*y = view->rotation[1];
-	*z = view->rotation[2];
+	*x = self->rotation[0];
+	*y = self->rotation[1];
+	*z = self->rotation[2];
 }
 
-void gis_view_rotate(GisView *view, gdouble x, gdouble y, gdouble z)
+void gis_view_rotate(GisView *self, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: rotate - x=%.0f, y=%.0f, z=%.0f", x, y, z);
-	view->rotation[0] += x;
-	view->rotation[1] += y;
-	view->rotation[2] += z;
-	_gis_view_emit_rotation_changed(view);
+	self->rotation[0] += x;
+	self->rotation[1] += y;
+	self->rotation[2] += z;
+	_gis_view_emit_rotation_changed(self);
 }
 
 /* To be deprecated, use {get,set}_location */
-void gis_view_set_site(GisView *view, const gchar *site)
+void gis_view_set_site(GisView *self, const gchar *site)
 {
-	g_assert(GIS_IS_VIEW(view));
+	g_assert(GIS_IS_VIEW(self));
 	g_debug("GisView: set_site");
-	g_free(view->site);
-	view->site = g_strdup(site);
-	_gis_view_emit_site_changed(view);
+	g_free(self->site);
+	self->site = g_strdup(site);
+	_gis_view_emit_site_changed(self);
 }
 
-gchar *gis_view_get_site(GisView *view)
+gchar *gis_view_get_site(GisView *self)
 {
-	g_assert(GIS_IS_VIEW(view));
-	g_debug("GisView: get_site - %s", view->site);
-	return view->site;
+	g_assert(GIS_IS_VIEW(self));
+	g_debug("GisView: get_site - %s", self->site);
+	return self->site;
 }
 
 
