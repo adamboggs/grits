@@ -85,6 +85,7 @@ static void set_visuals(GisOpenGL *self)
 	gdouble rg   = MAX(0, 1-(elev/20000));
 	gdouble blue = MAX(0, 1-(elev/50000));
 	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
+	glColor4f(1, 1, 1, 1);
 
 	glDisable(GL_ALPHA_TEST);
 
