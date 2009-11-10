@@ -50,15 +50,15 @@ GType gis_prefs_get_type(void);
 /* Methods */
 GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults);
 
-gchar    *gis_prefs_get_string   (GisPrefs *prefs, const gchar *key);
-gboolean  gis_prefs_get_boolean  (GisPrefs *prefs, const gchar *key);
-gint      gis_prefs_get_integer  (GisPrefs *prefs, const gchar *key);
-gdouble   gis_prefs_get_double   (GisPrefs *prefs, const gchar *key);
+gchar    *gis_prefs_get_string   (GisPrefs *prefs, const gchar *key, GError **error);
+gboolean  gis_prefs_get_boolean  (GisPrefs *prefs, const gchar *key, GError **error);
+gint      gis_prefs_get_integer  (GisPrefs *prefs, const gchar *key, GError **error);
+gdouble   gis_prefs_get_double   (GisPrefs *prefs, const gchar *key, GError **error);
 
-gchar    *gis_prefs_get_string_v (GisPrefs *prefs, const gchar *group, const gchar *key);
-gboolean  gis_prefs_get_boolean_v(GisPrefs *prefs, const gchar *group, const gchar *key);
-gint      gis_prefs_get_integer_v(GisPrefs *prefs, const gchar *group, const gchar *key);
-gdouble   gis_prefs_get_double_v (GisPrefs *prefs, const gchar *group, const gchar *key);
+gchar    *gis_prefs_get_string_v (GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gboolean  gis_prefs_get_boolean_v(GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gint      gis_prefs_get_integer_v(GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gdouble   gis_prefs_get_double_v (GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
 
 void      gis_prefs_set_string   (GisPrefs *prefs, const gchar *key, const gchar *string);
 void      gis_prefs_set_boolean  (GisPrefs *prefs, const gchar *key, gboolean value);

@@ -65,19 +65,21 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 
 #define make_pref_type(name, c_type, g_type)                                         \
 c_type gis_prefs_get_##name##_v(GisPrefs *self,                                      \
-		const gchar *group, const gchar *key)                                \
+		const gchar *group, const gchar *key, GError **_error)               \
 {                                                                                    \
 	GError *error = NULL;                                                        \
 	c_type value = g_key_file_get_##name(self->key_file, group, key, &error);    \
 	if (error && error->code != G_KEY_FILE_ERROR_GROUP_NOT_FOUND)                \
 		g_warning("GisPrefs: get_value_##name - error getting key %s: %s\n", \
 				key, error->message);                                \
+	if (error && _error)                                                         \
+		*_error = error;                                                     \
 	return value;                                                                \
 }                                                                                    \
-c_type gis_prefs_get_##name(GisPrefs *self, const gchar *key)                        \
+c_type gis_prefs_get_##name(GisPrefs *self, const gchar *key, GError **error)        \
 {                                                                                    \
 	gchar **keys  = g_strsplit(key, "/", 2);                                     \
-	c_type value = gis_prefs_get_##name##_v(self, keys[0], keys[1]);             \
+	c_type value = gis_prefs_get_##name##_v(self, keys[0], keys[1], error);      \
 	g_strfreev(keys);                                                            \
 	return value;                                                                \
 }                                                                                    \
