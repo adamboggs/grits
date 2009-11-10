@@ -47,7 +47,7 @@ struct _GisOpenGL {
 	GisView    *view;
 	GisPlugins *plugins;
 	RoamSphere *sphere;
-	guint       sm_source;
+	guint       sm_source[2];
 
 	/* for testing */
 	gboolean    wireframe;

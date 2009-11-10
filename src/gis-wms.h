@@ -18,7 +18,6 @@
 #ifndef __GIS_WMS_H__
 #define __GIS_WMS_H__
 
-#include <config.h>
 #include <glib.h>
 #include <libsoup/soup.h>
 

@@ -450,7 +450,8 @@ static void gis_opengl_init(GisOpenGL *self)
 	g_object_set(self, "can-focus", TRUE, NULL);
 
 #ifndef ROAM_DEBUG
-	self->sm_source = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, self, NULL);
+	self->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, self, NULL);
+	self->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, self, NULL);
 #endif
 
 	g_signal_connect(self, "realize",            G_CALLBACK(on_realize),      NULL);
@@ -472,9 +473,13 @@ static void gis_opengl_dispose(GObject *_self)
 {
 	g_debug("GisOpenGL: dispose");
 	GisOpenGL *self = GIS_OPENGL(_self);
-	if (self->sm_source) {
-		g_source_remove(self->sm_source);
-		self->sm_source = 0;
+	if (self->sm_source[0]) {
+		g_source_remove(self->sm_source[0]);
+		self->sm_source[0] = 0;
+	}
+	if (self->sm_source[1]) {
+		g_source_remove(self->sm_source[1]);
+		self->sm_source[1] = 0;
 	}
 	if (self->sphere) {
 		roam_sphere_free(self->sphere);

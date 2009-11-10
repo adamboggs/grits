@@ -18,7 +18,6 @@
 #ifndef __GIS_TILE_H__
 #define __GIS_TILE_H__
 
-#include <config.h>
 #include <glib.h>
 
 typedef struct _GisTile        GisTile;
