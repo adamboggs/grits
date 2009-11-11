@@ -43,7 +43,7 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 	g_key_file_load_from_file(self->key_file, self->key_path,
 			G_KEY_FILE_KEEP_COMMENTS, &error);
 	if (error && defaults) {
-		g_debug("GisPrefs: new - Trying %s defaults", defaults);
+		g_debug("GisPrefs: new - Trying defaults");
 		g_clear_error(&error);
 		g_key_file_load_from_file(self->key_file, defaults,
 				G_KEY_FILE_KEEP_COMMENTS, &error);
