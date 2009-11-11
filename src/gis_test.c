@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 	gdk_threads_leave();
 
 	gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
-	//gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
+	gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
 
 	gis_view_set_site(view, "KLSX");
 

@@ -399,8 +399,6 @@ void gis_opengl_begin(GisOpenGL *self)
 {
 	g_assert(GIS_IS_OPENGL(self));
 
-	gdk_threads_enter();
-
 	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(self));
 	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
 
@@ -412,7 +410,6 @@ void gis_opengl_end(GisOpenGL *self)
 	g_assert(GIS_IS_OPENGL(self));
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
 	gdk_gl_drawable_gl_end(gldrawable);
-	gdk_threads_leave();
 }
 void gis_opengl_flush(GisOpenGL *self)
 {
