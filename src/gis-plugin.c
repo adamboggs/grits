@@ -108,7 +108,7 @@ GList *gis_plugins_available(GisPlugins *self)
 		g_debug("            checking %s", dirs[i]);
 		const gchar *name;
 		while ((name = g_dir_read_name(dir))) {
-			if (g_pattern_match_simple("*.so", name)) {
+			if (g_pattern_match_simple("*." G_MODULE_SUFFIX, name)) {
 				gchar **parts = g_strsplit(name, ".", 2);
 				list = g_list_prepend(list, g_strdup(parts[0]));
 				g_strfreev(parts);
