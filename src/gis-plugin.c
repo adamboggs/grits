@@ -123,16 +123,18 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 {
 	g_debug("GisPlugins: load %s", name);
 	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
+	g_debug("GisPlugins: load - trying %s", path);
 	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
 		g_free(path);
 		path = g_strdup_printf("%s/%s.%s", PLUGINSDIR, name, G_MODULE_SUFFIX);
 	}
+	g_debug("GisPlugins: load - trying %s", path);
 	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
 		g_warning("Module %s not found", name);
 		g_free(path);
 		return NULL;
 	}
-	GModule *module = g_module_open(path, 0);
+	GModule *module = g_module_open(path, G_MODULE_BIND_LAZY);
 	g_free(path);
 	if (module == NULL) {
 		g_warning("Unable to load module %s: %s", name, g_module_error());

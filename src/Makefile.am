@@ -1,6 +1,6 @@
 SUBDIRS = . plugins
 
-AM_CFLAGS   = -Wall --std=gnu99 
+AM_CFLAGS   = -Wall --std=gnu99
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
 AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(SOUP_LIBS)
 
@@ -35,6 +35,7 @@ libgis_la_SOURCES = \
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
 	-DPKGDATADIR="\"$(datadir)/gis\"" -DPLUGINSDIR="\"$(libdir)/gis\""
 libgis_la_LIBADD = $(AM_LDADD)
+libgis_la_LDFLAGS = -no-undefined
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgis.pc
@@ -43,7 +44,6 @@ pkgconfig_DATA = libgis.pc
 bin_PROGRAMS = gis_test wms_test
 
 gis_test_SOURCES  = gis_test.c gis.h
-gis_test_LDFLAGS  = -static
 gis_test_LDADD    = $(AM_LDADD) libgis.la
 
 wms_test_SOURCES  = wms_test.c gis-world.c gis-world.h gis-wms.c gis-wms.h gis-tile.c gis-tile.h

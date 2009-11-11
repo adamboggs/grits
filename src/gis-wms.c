@@ -75,8 +75,10 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 void gis_wms_soup_chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _file)
 {
 	FILE *file = _file;
-	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
+	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+		g_warning("GisWms: soup_chunk_cb - soup failed with %d", message->status_code);
 		return;
+	}
 	goffset total = soup_message_headers_get_content_length(message->response_headers);
 	if (fwrite(chunk->data, chunk->length, 1, file) != 1)
 		g_warning("GisWms: soup_chunk_cb - eror writing data");
@@ -104,10 +106,13 @@ char *gis_wms_make_local(GisWms *self, GisTile *tile)
 
 	/* Download file */
 	gchar *uri = _make_uri(self, tile);
+	g_debug("GisWms: make_local - fetching %s", uri);
 	SoupMessage *message = soup_message_new("GET", uri);
 	g_signal_connect(message, "got-chunk", G_CALLBACK(gis_wms_soup_chunk_cb), file);
 	soup_message_headers_set_range(message->request_headers, ftell(file), -1);
 	int status = soup_session_send_message(self->soup, message);
+	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
+		g_warning("GisWms: make_local - soup failed with %d", message->status_code);
 	g_free(uri);
 
 	/* Clean up */

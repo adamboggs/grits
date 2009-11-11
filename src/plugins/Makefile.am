@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 AM_CFLAGS   = -Wall --std=gnu99  -I../
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
-AM_LDFLAGS  = -module -avoid-version
+AM_LDFLAGS  = -module -avoid-version -no-undefined
 LIBS        = $(top_srcdir)/src/libgis.la
 
 pluginsdir  = "$(libdir)/gis"
