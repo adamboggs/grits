@@ -117,6 +117,7 @@ struct _RoamSphere {
 	RoamTriangle *roots[8];
 };
 RoamSphere *roam_sphere_new();
+void roam_sphere_update_view(RoamSphere *sphere);
 void roam_sphere_update_errors(RoamSphere *sphere);
 void roam_sphere_split_one(RoamSphere *sphere);
 void roam_sphere_merge_one(RoamSphere *sphere);

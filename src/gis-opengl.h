@@ -67,6 +67,10 @@ GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins);
 void gis_opengl_center_position(GisOpenGL *opengl,
 		gdouble lat, gdouble lon, gdouble elev);
 
+void gis_opengl_project(GisOpenGL *opengl,
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble *px, gdouble *py, gdouble *pz);
+
 void gis_opengl_render_tile(GisOpenGL *opengl, GisTile *tile);
 
 void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *root);

@@ -7,9 +7,10 @@ LIBS        = $(top_srcdir)/src/libgis.la
 
 pluginsdir  = "$(libdir)/gis"
 
-plugins_LTLIBRARIES = bmng.la srtm.la
+plugins_LTLIBRARIES = bmng.la srtm.la test.la
 bmng_la_SOURCES     = bmng.c bmng.h
 srtm_la_SOURCES     = srtm.c srtm.h
+test_la_SOURCES     = test.c test.h
 
 test:
 	( cd ../; make test )

@@ -105,6 +105,8 @@ static void set_visuals(GisOpenGL *self)
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//glShadeModel(GL_FLAT);
+
+	roam_sphere_update_view(self->sphere);
 }
 
 
@@ -284,6 +286,19 @@ void gis_opengl_center_position(GisOpenGL *self, gdouble lat, gdouble lon, gdoub
 	glRotatef(lon, 0, 1, 0);
 	glRotatef(-lat, 1, 0, 0);
 	glTranslatef(0, 0, elev2rad(elev));
+}
+
+void gis_opengl_project(GisOpenGL *self,
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble *px, gdouble *py, gdouble *pz)
+{
+	gdouble x, y, z;
+	lle2xyz(lat, lon, elev, &x, &y, &z);
+	gluProject(x, y, z,
+		self->sphere->view->model,
+		self->sphere->view->proj,
+		self->sphere->view->view,
+		px, py, pz);
 }
 
 void gis_opengl_render_tile(GisOpenGL *self, GisTile *tile)

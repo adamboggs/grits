@@ -34,19 +34,6 @@
  *   - Target polygon count/detail
  */
 
-/* Misc */
-RoamView *roam_view_new()
-{
-	return g_new0(RoamView, 1);
-}
-void roam_view_update(RoamView *view)
-{
-	glGetDoublev (GL_MODELVIEW_MATRIX,  view->model);
-	glGetDoublev (GL_PROJECTION_MATRIX, view->proj);
-	glGetIntegerv(GL_VIEWPORT,          view->view);
-	view->version++;
-}
-
 /* For GPQueue comparators */
 static gint tri_cmp(RoamTriangle *a, RoamTriangle *b, gpointer data)
 {
@@ -535,15 +522,22 @@ RoamSphere *roam_sphere_new()
 
 	return self;
 }
+void roam_sphere_update_view(RoamSphere *self)
+{
+	if (!self->view)
+		self->view = g_new0(RoamView, 1);
+	glGetDoublev (GL_MODELVIEW_MATRIX,  self->view->model);
+	glGetDoublev (GL_PROJECTION_MATRIX, self->view->proj);
+	glGetIntegerv(GL_VIEWPORT,          self->view->view);
+	self->view->version++;
+}
 void roam_sphere_update_errors(RoamSphere *self)
 {
 	g_debug("RoamSphere: update_errors - polys=%d", self->polys);
-	if (!self->view)
-		self->view = roam_view_new();
-	roam_view_update(self->view);
-
 	GPtrArray *tris = g_pqueue_get_array(self->triangles);
 	GPtrArray *dias = g_pqueue_get_array(self->diamonds);
+
+	roam_sphere_update_view(self);
 
 	for (int i = 0; i < tris->len; i++) {
 		RoamTriangle *tri = tris->pdata[i];
