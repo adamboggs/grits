@@ -39,11 +39,12 @@ struct _GisView {
 	gchar   *site;
 	gdouble  location[3];
 	gdouble  rotation[3];
+	gboolean offline;
 };
 
 struct _GisViewClass {
 	GObjectClass parent_class;
-	
+
 	/* class members */
 };
 
@@ -67,5 +68,10 @@ void gis_view_rotate      (GisView *view, gdouble  x, gdouble  y, gdouble  z);
 /* To be deprecated, use {get,set}_location */
 void gis_view_set_site(GisView *view, const gchar *site);
 gchar *gis_view_get_site(GisView *view);
+
+void gis_world_refresh(GisWorld *world);
+
+void gis_world_set_offline(GisWorld *world, gboolean offline);
+gboolean gis_world_get_offline(GisWorld *world);
 
 #endif

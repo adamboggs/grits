@@ -15,14 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_WORLD_H__
-#define __GIS_WORLD_H__
-
-#include <glib-object.h>
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
+#ifndef __GIS_UTIL_H__
+#define __GIS_UTIL_H__
 
 #define EARTH_R (6371000)
 #define EARTH_C (2*M_PI*EARTH_R)
@@ -96,41 +90,5 @@ void xyz2ll(gdouble x, gdouble y, gdouble z,
 gdouble ll2m(gdouble lon_dist, gdouble lat);
 
 gdouble distd(gdouble *a, gdouble *b);
-
-/************
- * GisWorld *
- ************/
-#define GIS_TYPE_WORLD            (gis_world_get_type())
-#define GIS_WORLD(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_WORLD, GisWorld))
-#define GIS_IS_WORLD(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_WORLD))
-#define GIS_WORLD_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_WORLD, GisWorldClass))
-#define GIS_IS_WORLD_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_WORLD))
-#define GIS_WORLD_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_WORLD, GisWorldClass))
-
-typedef struct _GisWorld      GisWorld;
-typedef struct _GisWorldClass GisWorldClass;
-
-struct _GisWorld {
-	GObject parent_instance;
-
-	/* instance members */
-	gboolean offline;
-};
-
-struct _GisWorldClass {
-	GObjectClass parent_class;
-	
-	/* class members */
-};
-
-GType gis_world_get_type(void);
-
-/* Methods */
-GisWorld *gis_world_new();
-
-void gis_world_refresh(GisWorld *world);
-
-void gis_world_set_offline(GisWorld *world, gboolean offline);
-gboolean gis_world_get_offline(GisWorld *world);
 
 #endif

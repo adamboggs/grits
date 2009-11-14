@@ -19,19 +19,21 @@
 
 #include "gis-marshal.h"
 #include "gis-view.h"
-#include "gis-world.h"
 
 /* Constants */
 enum {
 	PROP_0,
 	PROP_TIME,
 	PROP_SITE,
+	PROP_OFFLINE,
 };
 enum {
 	SIG_TIME_CHANGED,
 	SIG_SITE_CHANGED,
 	SIG_LOCATION_CHANGED,
 	SIG_ROTATION_CHANGED,
+	SIG_REFRESH,
+	SIG_OFFLINE,
 	NUM_SIGNALS,
 };
 static guint signals[NUM_SIGNALS];
@@ -70,6 +72,15 @@ static void _gis_view_emit_site_changed(GisView *self)
 {
 	g_signal_emit(self, signals[SIG_SITE_CHANGED], 0,
 			self->site);
+}
+static void _gis_world_emit_refresh(GisWorld *world)
+{
+	g_signal_emit(world, signals[SIG_REFRESH], 0);
+}
+static void _gis_world_emit_offline(GisWorld *world)
+{
+	g_signal_emit(world, signals[SIG_OFFLINE], 0,
+			world->offline);
 }
 
 
@@ -183,6 +194,27 @@ gchar *gis_view_get_site(GisView *self)
 	return self->site;
 }
 
+void gis_world_refresh(GisWorld *world)
+{
+	g_debug("GisWorld: refresh");
+	_gis_world_emit_refresh(world);
+}
+
+void gis_world_set_offline(GisWorld *world, gboolean offline)
+{
+	g_assert(GIS_IS_WORLD(world));
+	g_debug("GisWorld: set_offline - %d", offline);
+	world->offline = offline;
+	_gis_world_emit_offline(world);
+}
+
+gboolean gis_world_get_offline(GisWorld *world)
+{
+	g_assert(GIS_IS_WORLD(world));
+	g_debug("GisWorld: get_offline - %d", world->offline);
+	return world->offline;
+}
+
 
 /****************
  * GObject code *
@@ -221,8 +253,9 @@ static void gis_view_set_property(GObject *object, guint property_id,
 	g_debug("GisView: set_property");
 	GisView *self = GIS_VIEW(object);
 	switch (property_id) {
-	case PROP_TIME:     gis_view_set_time(self, g_value_get_string(value)); break;
-	case PROP_SITE:     gis_view_set_site(self, g_value_get_string(value)); break;
+	case PROP_TIME:     gis_view_set_time(self, g_value_get_string (value));  break;
+	case PROP_SITE:     gis_view_set_site(self, g_value_get_string (value));  break;
+	case PROP_OFFLINE:  gis_view_set_site(self, g_value_get_boolean(value)); break;
 	default:            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
 	}
 }
@@ -232,8 +265,9 @@ static void gis_view_get_property(GObject *object, guint property_id,
 	g_debug("GisView: get_property");
 	GisView *self = GIS_VIEW(object);
 	switch (property_id) {
-	case PROP_TIME:     g_value_set_string(value, gis_view_get_time(self)); break;
-	case PROP_SITE:     g_value_set_string(value, gis_view_get_site(self)); break;
+	case PROP_TIME:     g_value_set_string (value, gis_view_get_time(self)); break;
+	case PROP_SITE:     g_value_set_string (value, gis_view_get_site(self)); break;
+	case PROP_OFFLINE:  g_value_set_boolean(value, gis_view_get_site(self)); break;
 	default:            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
 	}
 }
@@ -256,6 +290,12 @@ static void gis_view_class_init(GisViewClass *klass)
 			"site",
 			"site seen by the viewport",
 			"Site of the viewport. Currently this is the name of the radar site.",
+			G_PARAM_READWRITE));
+	g_object_class_install_property(gobject_class, PROP_OFFLINE,
+		g_param_spec_pointer(
+			"offline",
+			"whether the viewer should access the network",
+			"Offline state of the viewer. If set to true, the viewer will not access the network",
 			G_PARAM_READWRITE));
 	signals[SIG_TIME_CHANGED] = g_signal_new(
 			"time-changed",
@@ -305,4 +345,25 @@ static void gis_view_class_init(GisViewClass *klass)
 			G_TYPE_DOUBLE,
 			G_TYPE_DOUBLE,
 			G_TYPE_DOUBLE);
+	signals[SIG_REFRESH] = g_signal_new(
+			"refresh",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+	signals[SIG_OFFLINE] = g_signal_new(
+			"offline",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__BOOLEAN,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_BOOLEAN);
 }
