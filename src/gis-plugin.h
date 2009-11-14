@@ -47,7 +47,6 @@ GtkWidget *gis_plugin_get_config(GisPlugin *self);
 
 /* Plugins API */
 #include "gis-viewer.h"
-#include "gis-opengl.h"
 #include "gis-prefs.h"
 
 struct _GisPlugins {
@@ -55,13 +54,13 @@ struct _GisPlugins {
 	GPtrArray *plugins;
 };
 
-typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisOpenGL *opengl, GisPrefs *prefs);
+typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);
 
 GisPlugins *gis_plugins_new(gchar *dir);
 void        gis_plugins_free();
 GList      *gis_plugins_available(GisPlugins *plugins);
 GisPlugin  *gis_plugins_load(GisPlugins *plugins, const char *name,
-		GisViewer *viewer, GisOpenGL *opengl, GisPrefs *prefs);
+		GisViewer *viewer, GisPrefs *prefs);
 gboolean    gis_plugins_unload(GisPlugins *plugins, const char *name);
 void        gis_plugins_foreach(GisPlugins *plugins, GCallback callback, gpointer user_data);
 

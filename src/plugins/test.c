@@ -26,12 +26,11 @@
 /***********
  * Methods *
  ***********/
-GisPluginTest *gis_plugin_test_new(GisViewer *viewer, GisOpenGL *opengl)
+GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 {
 	g_debug("GisPluginTest: new");
 	GisPluginTest *self = g_object_new(GIS_TYPE_PLUGIN_TEST, NULL);
 	self->viewer = viewer;
-	self->opengl = opengl;
 	return self;
 }
 
@@ -40,14 +39,14 @@ static void gis_plugin_test_expose(GisPlugin *_self)
 	GisPluginTest *self = GIS_PLUGIN_TEST(_self);
 	g_debug("GisPluginTest: expose");
 
-	double width  = GTK_WIDGET(self->opengl)->allocation.width;
-	double height = GTK_WIDGET(self->opengl)->allocation.height;
+	double width  = GTK_WIDGET(self->viewer)->allocation.width;
+	double height = GTK_WIDGET(self->viewer)->allocation.height;
 
 	// St. Charles
 	// lat =  38.841847
 	// lon = -90.491982
 	gdouble px, py, pz;
-	gis_opengl_project(self->opengl,
+	gis_viewer_project(self->viewer,
 		38.841847, -90.491982, 0, &px, &py, &pz);
 	py = height-py;
 
@@ -104,35 +103,14 @@ static void gis_plugin_test_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginTest: plugin_init");
 	/* Add methods to the interface */
-	iface->expose     = gis_plugin_test_expose;
+	iface->expose = gis_plugin_test_expose;
 }
 /* Class/Object init */
 static void gis_plugin_test_init(GisPluginTest *self)
 {
 	g_debug("GisPluginTest: init");
-	/* Set defaults */
-	self->viewer = NULL;
-	self->opengl = NULL;
-}
-static void gis_plugin_test_dispose(GObject *gobject)
-{
-	g_debug("GisPluginTest: dispose");
-	GisPluginTest *self = GIS_PLUGIN_TEST(gobject);
-	/* Drop references */
-	G_OBJECT_CLASS(gis_plugin_test_parent_class)->dispose(gobject);
-}
-static void gis_plugin_test_finalize(GObject *gobject)
-{
-	g_debug("GisPluginTest: finalize");
-	GisPluginTest *self = GIS_PLUGIN_TEST(gobject);
-	/* Free data */
-	G_OBJECT_CLASS(gis_plugin_test_parent_class)->finalize(gobject);
-
 }
 static void gis_plugin_test_class_init(GisPluginTestClass *klass)
 {
 	g_debug("GisPluginTest: class_init");
-	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_test_dispose;
-	gobject_class->finalize = gis_plugin_test_finalize;
 }

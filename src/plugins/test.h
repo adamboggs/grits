@@ -35,7 +35,6 @@ struct _GisPluginTest {
 
 	/* instance members */
 	GisViewer *viewer;
-	GisOpenGL *opengl;
 };
 
 struct _GisPluginTestClass {
@@ -45,6 +44,6 @@ struct _GisPluginTestClass {
 GType gis_plugin_test_get_type();
 
 /* Methods */
-GisPluginTest *gis_plugin_test_new(GisViewer *viewer, GisOpenGL *opengl);
+GisPluginTest *gis_plugin_test_new(GisViewer *viewer);
 
 #endif

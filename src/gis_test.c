@@ -47,20 +47,19 @@ int main(int argc, char **argv)
 
 	GisPrefs   *prefs   = gis_prefs_new(NULL, NULL);
 	GisPlugins *plugins = gis_plugins_new(NULL);
-	GisViewer  *viewer  = gis_viewer_new();
-	GisOpenGL  *opengl  = gis_opengl_new(viewer, plugins);
+	GisViewer  *viewer  = gis_opengl_new(plugins);
 
 	gdk_threads_enter();
 	GtkWidget  *window  = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(window,  "destroy",         G_CALLBACK(gtk_main_quit), NULL);
 	g_signal_connect(window,  "key-press-event", G_CALLBACK(on_key_press),  NULL);
-	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(opengl));
+	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(viewer));
 	gtk_widget_show_all(window);
 	gdk_threads_leave();
 
-	gis_plugins_load(plugins, "bmng", viewer, opengl, prefs);
-	//gis_plugins_load(plugins, "srtm", viewer, opengl, prefs);
-	gis_plugins_load(plugins, "test", viewer, opengl, prefs);
+	gis_plugins_load(plugins, "bmng", viewer, prefs);
+	gis_plugins_load(plugins, "srtm", viewer, prefs);
+	gis_plugins_load(plugins, "test", viewer, prefs);
 
 	gis_viewer_set_site(viewer, "KLSX");
 
@@ -69,7 +68,6 @@ int main(int argc, char **argv)
 
 	g_object_unref(prefs);
 	g_object_unref(viewer);
-	g_object_unref(opengl);
 	gis_plugins_free(plugins);
 	gdk_threads_leave();
 	return 0;

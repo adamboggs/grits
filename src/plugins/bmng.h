@@ -35,7 +35,6 @@ struct _GisPluginBmng {
 
 	/* instance members */
 	GisViewer *viewer;
-	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
 	GMutex    *mutex;
@@ -49,6 +48,6 @@ struct _GisPluginBmngClass {
 GType gis_plugin_bmng_get_type();
 
 /* Methods */
-GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer, GisOpenGL *opengl);
+GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer);
 
 #endif

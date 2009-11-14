@@ -18,6 +18,7 @@
 #ifndef __GIS_VIEWER_H__
 #define __GIS_VIEWER_H__
 
+#include <gtk/gtk.h>
 #include <glib-object.h>
 
 /* Type macros */
@@ -31,21 +32,44 @@
 typedef struct _GisViewer      GisViewer;
 typedef struct _GisViewerClass GisViewerClass;
 
+typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
+
+#include "gis-tile.h"
+#include "gis-plugin.h"
+
 struct _GisViewer {
-	GObject parent_instance;
+	GtkDrawingArea parent_instance;
 
 	/* instance members */
-	gchar   *time;
-	gchar   *site;
-	gdouble  location[3];
-	gdouble  rotation[3];
-	gboolean offline;
+	GisPlugins *plugins;
+	gchar      *time;
+	gchar      *site;
+	gdouble     location[3];
+	gdouble     rotation[3];
+	gboolean    offline;
 };
 
 struct _GisViewerClass {
-	GObjectClass parent_class;
+	GtkDrawingAreaClass parent_class;
 
 	/* class members */
+	void (*center_position)  (GisViewer *viewer,
+	                          gdouble lat, gdouble lon, gdouble elev);
+
+	void (*project)          (GisViewer *viewer,
+	                          gdouble lat, gdouble lon, gdouble elev,
+	                          gdouble *px, gdouble *py, gdouble *pz);
+
+	void (*clear_height_func)(GisViewer *self);
+	void (*set_height_func)  (GisViewer *self, GisTile *tile,
+	                          GisHeightFunc height_func, gpointer user_data,
+	                          gboolean update);
+
+	void (*render_tile)      (GisViewer *viewer, GisTile *tile);
+	void (*render_tiles)     (GisViewer *viewer, GisTile *root);
+
+	void (*begin)            (GisViewer *viewer);
+	void (*end)              (GisViewer *viewer);
 };
 
 GType gis_viewer_get_type(void);
@@ -73,5 +97,24 @@ void gis_viewer_refresh(GisViewer *viewer);
 
 void gis_viewer_set_offline(GisViewer *viewer, gboolean offline);
 gboolean gis_viewer_get_offline(GisViewer *viewer);
+
+/* To be implemented by subclasses */
+void gis_viewer_center_position(GisViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elev);
+
+void gis_viewer_project(GisViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble *px, gdouble *py, gdouble *pz);
+
+void gis_viewer_clear_height_func(GisViewer *self);
+void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
+		GisHeightFunc height_func, gpointer user_data,
+		gboolean update);
+
+void gis_viewer_render_tile (GisViewer *viewer, GisTile *tile);
+void gis_viewer_render_tiles(GisViewer *viewer, GisTile *root);
+
+void gis_viewer_begin(GisViewer *viewer);
+void gis_viewer_end  (GisViewer *viewer);
 
 #endif

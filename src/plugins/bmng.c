@@ -47,7 +47,7 @@ static gboolean _load_tile_cb(gpointer _data)
 	gint      height = gdk_pixbuf_get_height(pixbuf);
 
 	guint *tex = g_new0(guint, 1);
-	gis_opengl_begin(self->opengl);
+	gis_viewer_begin(self->viewer);
 	glGenTextures(1, tex);
 	glBindTexture(GL_TEXTURE_2D, *tex);
 
@@ -60,10 +60,10 @@ static gboolean _load_tile_cb(gpointer _data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glFlush();
-	gis_opengl_end(self->opengl);
+	gis_viewer_end(self->viewer);
 
 	tile->data = tex;
-	gis_opengl_redraw(self->opengl);
+	gtk_widget_queue_draw(GTK_WIDGET(self->viewer));
 	g_object_unref(pixbuf);
 	return FALSE;
 }
@@ -126,12 +126,11 @@ static void _on_location_changed(GisViewer *viewer,
 /***********
  * Methods *
  ***********/
-GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer, GisOpenGL *opengl)
+GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer)
 {
 	g_debug("GisPluginBmng: new");
 	GisPluginBmng *self = g_object_new(GIS_TYPE_PLUGIN_BMNG, NULL);
 	self->viewer = viewer;
-	self->opengl = opengl;
 
 	/* Load initial tiles */
 	_load_tile(self->tiles, self);
@@ -147,9 +146,9 @@ GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer, GisOpenGL *opengl)
 static void gis_plugin_bmng_expose(GisPlugin *_self)
 {
 	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
-	g_debug("GisPluginBmng: expose opengl=%p tiles=%p,%p",
-			self->opengl, self->tiles, self->tiles->data);
-	gis_opengl_render_tiles(self->opengl, self->tiles);
+	g_debug("GisPluginBmng: expose viewer=%p tiles=%p,%p",
+			self->viewer, self->tiles, self->tiles->data);
+	gis_viewer_render_tiles(self->viewer, self->tiles);
 }
 
 

@@ -15,7 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <glib.h>
+#include <config.h>
+#include <gtk/gtk.h>
+#include <gdk/gdkkeysyms.h>
 
 #include "gis-marshal.h"
 #include "gis-viewer.h"
@@ -42,6 +44,9 @@ enum {
 static guint signals[NUM_SIGNALS];
 
 
+/***********
+ * Helpers *
+ ***********/
 /* Misc helpers */
 static void _gis_viewer_fix_location(GisViewer *self)
 {
@@ -87,16 +92,46 @@ static void _gis_viewer_emit_offline(GisViewer *self)
 			self->offline);
 }
 
+/*************
+ * Callbacks *
+ *************/
+static gboolean on_button_press(GisViewer *self, GdkEventButton *event, gpointer _)
+{
+	g_debug("GisViewer: on_button_press - Grabbing focus");
+	gtk_widget_grab_focus(GTK_WIDGET(self));
+	return TRUE;
+}
+static gboolean on_key_press(GisViewer *self, GdkEventKey *event, gpointer _)
+{
+	g_debug("GisViewer: on_key_press - key=%x, state=%x, plus=%x",
+			event->keyval, event->state, GDK_plus);
+
+	double lat, lon, elev, pan;
+	gis_viewer_get_location(self, &lat, &lon, &elev);
+	pan = MIN(elev/(EARTH_R/2), 30);
+	guint kv = event->keyval;
+	gdk_threads_leave();
+	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(self,  0,  -pan, 0);
+	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(self, -pan, 0,   0);
+	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(self,  pan, 0,   0);
+	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(self,  0,   pan, 0);
+	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(self, 10./9);
+	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(self, 9./10);
+	else if (kv == GDK_H) gis_viewer_rotate(self,  0, 0, -2);
+	else if (kv == GDK_J) gis_viewer_rotate(self,  2, 0,  0);
+	else if (kv == GDK_K) gis_viewer_rotate(self, -2, 0,  0);
+	else if (kv == GDK_L) gis_viewer_rotate(self,  0, 0,  2);
+	return TRUE;
+}
+static void on_view_changed(GisViewer *self,
+		gdouble _1, gdouble _2, gdouble _3)
+{
+	gtk_widget_queue_draw(GTK_WIDGET(self));
+}
 
 /***********
  * Methods *
  ***********/
-GisViewer *gis_viewer_new()
-{
-	g_debug("GisViewer: new");
-	return g_object_new(GIS_TYPE_VIEWER, NULL);
-}
-
 void gis_viewer_set_time(GisViewer *self, const char *time)
 {
 	g_assert(GIS_IS_VIEWER(self));
@@ -219,11 +254,80 @@ gboolean gis_viewer_get_offline(GisViewer *self)
 	return self->offline;
 }
 
+/* To be implemented by subclasses */
+void gis_viewer_center_position(GisViewer *self,
+		gdouble lat, gdouble lon, gdouble elev)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->center_position)
+		g_warning("GisViewer: center_position - Unimplemented");
+	klass->center_position(self, lat, lon, elev);
+}
+
+void gis_viewer_project(GisViewer *self,
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble *px, gdouble *py, gdouble *pz)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->project)
+		g_warning("GisViewer: project - Unimplemented");
+	klass->project(self, lat, lon, elev, px, py, pz);
+}
+
+void gis_viewer_clear_height_func(GisViewer *self)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->clear_height_func)
+		g_warning("GisViewer: clear_height_func - Unimplemented");
+	klass->clear_height_func(self);
+}
+
+void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
+		GisHeightFunc height_func, gpointer user_data,
+		gboolean update)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->set_height_func)
+		g_warning("GisViewer: set_height_func - Unimplemented");
+	klass->set_height_func(self, tile, height_func, user_data, update);
+}
+
+void gis_viewer_render_tile(GisViewer *self, GisTile *tile)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->render_tile)
+		g_warning("GisViewer: render_tile - Unimplemented");
+	klass->render_tile(self, tile);
+}
+
+void gis_viewer_render_tiles(GisViewer *self, GisTile *root)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->render_tiles)
+		g_warning("GisViewer: render_tiles - Unimplemented");
+	klass->render_tiles(self, root);
+}
+
+void gis_viewer_begin(GisViewer *self)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->begin)
+		g_warning("GisViewer: begin - Unimplemented");
+	klass->begin(self);
+}
+
+void gis_viewer_end(GisViewer *self)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->end)
+		g_warning("GisViewer: end - Unimplemented");
+	klass->end(self);
+}
 
 /****************
  * GObject code *
  ****************/
-G_DEFINE_TYPE(GisViewer, gis_viewer, G_TYPE_OBJECT);
+G_DEFINE_ABSTRACT_TYPE(GisViewer, gis_viewer, GTK_TYPE_DRAWING_AREA);
 static void gis_viewer_init(GisViewer *self)
 {
 	g_debug("GisViewer: init");
@@ -236,12 +340,12 @@ static void gis_viewer_init(GisViewer *self)
 	self->rotation[0] = 0;
 	self->rotation[1] = 0;
 	self->rotation[2] = 0;
-}
-static void gis_viewer_dispose(GObject *gobject)
-{
-	g_debug("GisViewer: dispose");
-	/* Drop references to other GObjects */
-	G_OBJECT_CLASS(gis_viewer_parent_class)->dispose(gobject);
+
+	g_signal_connect(self, "key-press-event",    G_CALLBACK(on_key_press),    NULL);
+	g_signal_connect(self, "button-press-event", G_CALLBACK(on_button_press), NULL);
+
+	g_signal_connect(self, "location-changed",   G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(self, "rotation-changed",   G_CALLBACK(on_view_changed), NULL);
 }
 static void gis_viewer_finalize(GObject *gobject)
 {
@@ -279,7 +383,6 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 {
 	g_debug("GisViewer: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->dispose      = gis_viewer_dispose;
 	gobject_class->finalize     = gis_viewer_finalize;
 	gobject_class->get_property = gis_viewer_get_property;
 	gobject_class->set_property = gis_viewer_set_property;

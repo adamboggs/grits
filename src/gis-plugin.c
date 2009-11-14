@@ -119,7 +119,7 @@ GList *gis_plugins_available(GisPlugins *self)
 }
 
 GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
-		GisViewer *viewer, GisOpenGL *opengl, GisPrefs *prefs)
+		GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: load %s", name);
 	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
@@ -155,7 +155,7 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 
 	GisPluginStore *store = g_new0(GisPluginStore, 1);
 	store->name = g_strdup(name);
-	store->plugin = constructor(viewer, opengl, prefs);
+	store->plugin = constructor(viewer, prefs);
 	g_ptr_array_add(self->plugins, store);
 	return store->plugin;
 }
@@ -177,6 +177,8 @@ gboolean gis_plugins_unload(GisPlugins *self, const char *name)
 void gis_plugins_foreach(GisPlugins *self, GCallback _callback, gpointer user_data)
 {
 	g_debug("GisPlugins: foreach");
+	if (self == NULL)
+		return;
 	typedef void (*CBFunc)(GisPlugin *, const gchar *, gpointer);
 	CBFunc callback = (CBFunc)_callback;
 	for (int i = 0; i < self->plugins->len; i++) {

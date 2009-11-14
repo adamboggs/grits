@@ -36,18 +36,39 @@
 
 // #define ROAM_DEBUG
 
+/***********
+ * Helpers *
+ ***********/
+static void _gis_opengl_begin(GisOpenGL *self)
+{
+	g_assert(GIS_IS_OPENGL(self));
+
+	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(self));
+	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
+
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		g_assert_not_reached();
+}
+
+static void _gis_opengl_end(GisOpenGL *self)
+{
+	g_assert(GIS_IS_OPENGL(self));
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
+	gdk_gl_drawable_gl_end(gldrawable);
+}
+
 /*************
  * ROAM Code *
  *************/
-static void set_visuals(GisOpenGL *self)
+static void _set_visuals(GisOpenGL *self)
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	/* Camera 1 */
 	double lat, lon, elev, rx, ry, rz;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
-	gis_viewer_get_rotation(self->viewer, &rx, &ry, &rz);
+	gis_viewer_get_location(GIS_VIEWER(self), &lat, &lon, &elev);
+	gis_viewer_get_rotation(GIS_VIEWER(self), &rx, &ry, &rz);
 	glRotatef(rx, 1, 0, 0);
 	glRotatef(rz, 0, 0, 1);
 
@@ -117,13 +138,13 @@ static void set_visuals(GisOpenGL *self)
 static void on_realize(GisOpenGL *self, gpointer _)
 {
 	g_debug("GisOpenGL: on_realize");
-	set_visuals(self);
+	_set_visuals(self);
 	roam_sphere_update_errors(self->sphere);
 }
 static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_configure");
-	gis_opengl_begin(self);
+	_gis_opengl_begin(self);
 
 	double width  = GTK_WIDGET(self)->allocation.width;
 	double height = GTK_WIDGET(self)->allocation.height;
@@ -138,13 +159,13 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	roam_sphere_update_errors(self->sphere);
 #endif
 
-	gis_opengl_end(self);
+	_gis_opengl_end(self);
 	return FALSE;
 }
 
 static void on_expose_plugin(GisPlugin *plugin, gchar *name, GisOpenGL *self)
 {
-	set_visuals(self);
+	_set_visuals(self);
 	glMatrixMode(GL_PROJECTION); glPushMatrix();
 	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
 	gis_plugin_expose(plugin);
@@ -154,20 +175,20 @@ static void on_expose_plugin(GisPlugin *plugin, gchar *name, GisOpenGL *self)
 static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_expose - begin");
-	gis_opengl_begin(self);
+	_gis_opengl_begin(self);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifndef ROAM_DEBUG
-	gis_plugins_foreach(self->plugins, G_CALLBACK(on_expose_plugin), self);
+	gis_plugins_foreach(GIS_VIEWER(self)->plugins, G_CALLBACK(on_expose_plugin), self);
 
 	if (self->wireframe) {
-		set_visuals(self);
+		_set_visuals(self);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		roam_sphere_draw(self->sphere);
 	}
 #else
-	set_visuals(self);
+	_set_visuals(self);
 	glColor4f(0.0, 0.0, 9.0, 0.6);
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -176,18 +197,12 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 	//roam_sphere_draw_normals(self->sphere);
 #endif
 
-	set_visuals(self);
-	gis_opengl_end(self);
-	gis_opengl_flush(self);
+	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
+	gdk_gl_drawable_swap_buffers(gldrawable);
+
+	_gis_opengl_end(self);
 	g_debug("GisOpenGL: on_expose - end\n");
 	return FALSE;
-}
-
-static gboolean on_button_press(GisOpenGL *self, GdkEventButton *event, gpointer _)
-{
-	g_debug("GisOpenGL: on_button_press - Grabbing focus");
-	gtk_widget_grab_focus(GTK_WIDGET(self));
-	return TRUE;
 }
 
 static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
@@ -195,24 +210,13 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 	g_debug("GisOpenGL: on_key_press - key=%x, state=%x, plus=%x",
 			event->keyval, event->state, GDK_plus);
 
-	double lat, lon, elev, pan;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
-	pan = MIN(elev/(EARTH_R/2), 30);
 	guint kv = event->keyval;
 	gdk_threads_leave();
-	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(self->viewer,  0,  -pan, 0);
-	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(self->viewer, -pan, 0,   0);
-	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(self->viewer,  pan, 0,   0);
-	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(self->viewer,  0,   pan, 0);
-	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(self->viewer, 10./9);
-	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(self->viewer, 9./10);
-	else if (kv == GDK_H) gis_viewer_rotate(self->viewer,  0, 0, -2);
-	else if (kv == GDK_J) gis_viewer_rotate(self->viewer,  2, 0,  0);
-	else if (kv == GDK_K) gis_viewer_rotate(self->viewer, -2, 0,  0);
-	else if (kv == GDK_L) gis_viewer_rotate(self->viewer,  0, 0,  2);
-
 	/* Testing */
-	else if (kv == GDK_w) {self->wireframe = !self->wireframe; gtk_widget_queue_draw(GTK_WIDGET(self));}
+	if (kv == GDK_w) {
+		self->wireframe = !self->wireframe;
+		gtk_widget_queue_draw(GTK_WIDGET(self));
+	}
 #ifdef ROAM_DEBUG
 	else if (kv == GDK_n) roam_sphere_split_one(self->sphere);
 	else if (kv == GDK_p) roam_sphere_merge_one(self->sphere);
@@ -232,19 +236,18 @@ static gboolean _update_errors_cb(gpointer sphere)
 	roam_sphere_update_errors(sphere);
 	return FALSE;
 }
-static void on_view_changed(GisViewer *viewer,
-		gdouble _1, gdouble _2, gdouble _3, GisOpenGL *self)
+static void on_view_changed(GisOpenGL *self,
+		gdouble _1, gdouble _2, gdouble _3)
 {
 	g_debug("GisOpenGL: on_view_changed");
 	gdk_threads_enter();
-	gis_opengl_begin(self);
-	set_visuals(self);
+	_gis_opengl_begin(self);
+	_set_visuals(self);
 #ifndef ROAM_DEBUG
 	g_idle_add_full(G_PRIORITY_HIGH_IDLE+30, _update_errors_cb, self->sphere, NULL);
 	//roam_sphere_update_errors(self->sphere);
 #endif
-	gis_opengl_redraw(self);
-	gis_opengl_end(self);
+	_gis_opengl_end(self);
 	gdk_threads_leave();
 }
 
@@ -252,45 +255,39 @@ static gboolean on_idle(GisOpenGL *self)
 {
 	//g_debug("GisOpenGL: on_idle");
 	gdk_threads_enter();
-	gis_opengl_begin(self);
+	_gis_opengl_begin(self);
 	if (roam_sphere_split_merge(self->sphere))
-		gis_opengl_redraw(self);
-	gis_opengl_end(self);
+		gtk_widget_queue_draw(GTK_WIDGET(self));
+	_gis_opengl_end(self);
 	gdk_threads_leave();
 	return TRUE;
 }
 
 
-/***********
- * Methods *
- ***********/
-GisOpenGL *gis_opengl_new(GisViewer *viewer, GisPlugins *plugins)
+/*********************
+ * GisViewer methods *
+ *********************/
+GisViewer *gis_opengl_new(GisPlugins *plugins)
 {
 	g_debug("GisOpenGL: new");
-	GisOpenGL *self = g_object_new(GIS_TYPE_OPENGL, NULL);
-	self->viewer  = viewer;
+	GisViewer *self = g_object_new(GIS_TYPE_OPENGL, NULL);
 	self->plugins = plugins;
-	g_object_ref(viewer);
-
-	g_signal_connect(self->viewer, "location-changed", G_CALLBACK(on_view_changed), self);
-	g_signal_connect(self->viewer, "rotation-changed", G_CALLBACK(on_view_changed), self);
-
-	self->sphere = roam_sphere_new(self);
-
-	return g_object_ref(self);
+	return self;
 }
 
-void gis_opengl_center_position(GisOpenGL *self, gdouble lat, gdouble lon, gdouble elev)
+static void gis_opengl_center_position(GisViewer *_self, gdouble lat, gdouble lon, gdouble elev)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	glRotatef(lon, 0, 1, 0);
 	glRotatef(-lat, 1, 0, 0);
 	glTranslatef(0, 0, elev2rad(elev));
 }
 
-void gis_opengl_project(GisOpenGL *self,
+static void gis_opengl_project(GisViewer *_self,
 		gdouble lat, gdouble lon, gdouble elev,
 		gdouble *px, gdouble *py, gdouble *pz)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	gdouble x, y, z;
 	lle2xyz(lat, lon, elev, &x, &y, &z);
 	gluProject(x, y, z,
@@ -300,8 +297,9 @@ void gis_opengl_project(GisOpenGL *self,
 		px, py, pz);
 }
 
-void gis_opengl_render_tile(GisOpenGL *self, GisTile *tile)
+static void gis_opengl_render_tile(GisViewer *_self, GisTile *tile)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	if (!tile || !tile->data)
 		return;
 	GList *triangles = roam_sphere_get_intersect(self->sphere,
@@ -348,8 +346,9 @@ void gis_opengl_render_tile(GisOpenGL *self, GisTile *tile)
 	g_list_free(triangles);
 }
 
-void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *tile)
+static void gis_opengl_render_tiles(GisViewer *_self, GisTile *tile)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	/* Only render children if possible */
 	gboolean has_children = TRUE;
 	GisTile *child;
@@ -359,15 +358,16 @@ void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *tile)
 	if (has_children)
 		/* Only render children */
 		gis_tile_foreach(tile, child)
-			gis_opengl_render_tiles(opengl, child);
+			gis_opengl_render_tiles(_self, child);
 	else
 		/* No children, render this tile */
-		gis_opengl_render_tile(opengl, tile);
+		gis_opengl_render_tile(_self, tile);
 }
 
-void gis_opengl_set_height_func(GisOpenGL *self, GisTile *tile,
+static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 		RoamHeightFunc height_func, gpointer user_data, gboolean update)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	if (!tile)
 		return;
 	/* TODO: get points? */
@@ -398,49 +398,30 @@ static void _gis_opengl_clear_height_func_rec(RoamTriangle *root)
 	_gis_opengl_clear_height_func_rec(root->kids[0]);
 	_gis_opengl_clear_height_func_rec(root->kids[1]);
 }
-void gis_opengl_clear_height_func(GisOpenGL *self)
+
+static void gis_opengl_clear_height_func(GisViewer *_self)
 {
+	GisOpenGL *self = GIS_OPENGL(_self);
 	for (int i = 0; i < G_N_ELEMENTS(self->sphere->roots); i++)
 		_gis_opengl_clear_height_func_rec(self->sphere->roots[i]);
 }
 
-void gis_opengl_redraw(GisOpenGL *self)
+static void gis_opengl_begin(GisViewer *_self)
 {
-	g_debug("GisOpenGL: redraw");
-	gtk_widget_queue_draw(GTK_WIDGET(self));
-}
-void gis_opengl_begin(GisOpenGL *self)
-{
-	g_assert(GIS_IS_OPENGL(self));
-
-	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(self));
-	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
-
-	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		g_assert_not_reached();
-}
-void gis_opengl_end(GisOpenGL *self)
-{
-	g_assert(GIS_IS_OPENGL(self));
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
-	gdk_gl_drawable_gl_end(gldrawable);
-}
-void gis_opengl_flush(GisOpenGL *self)
-{
-	g_assert(GIS_IS_OPENGL(self));
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
-	if (gdk_gl_drawable_is_double_buffered(gldrawable))
-		gdk_gl_drawable_swap_buffers(gldrawable);
-	else
-		glFlush();
-	gdk_gl_drawable_gl_end(gldrawable);
+	g_assert(GIS_IS_OPENGL(_self));
+	_gis_opengl_begin(GIS_OPENGL(_self));
 }
 
+static void gis_opengl_end(GisViewer *_self)
+{
+	g_assert(GIS_IS_OPENGL(_self));
+	_gis_opengl_end(GIS_OPENGL(_self));
+}
 
 /****************
  * GObject code *
  ****************/
-G_DEFINE_TYPE(GisOpenGL, gis_opengl, GTK_TYPE_DRAWING_AREA);
+G_DEFINE_TYPE(GisOpenGL, gis_opengl, GIS_TYPE_VIEWER);
 static void gis_opengl_init(GisOpenGL *self)
 {
 	g_debug("GisOpenGL: init");
@@ -462,6 +443,8 @@ static void gis_opengl_init(GisOpenGL *self)
 			GDK_KEY_PRESS_MASK);
 	g_object_set(self, "can-focus", TRUE, NULL);
 
+	self->sphere = roam_sphere_new(self);
+
 #ifndef ROAM_DEBUG
 	self->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, self, NULL);
 	self->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, self, NULL);
@@ -471,16 +454,10 @@ static void gis_opengl_init(GisOpenGL *self)
 	g_signal_connect(self, "configure-event",    G_CALLBACK(on_configure),    NULL);
 	g_signal_connect(self, "expose-event",       G_CALLBACK(on_expose),       NULL);
 
-	g_signal_connect(self, "button-press-event", G_CALLBACK(on_button_press), NULL);
-	g_signal_connect(self, "enter-notify-event", G_CALLBACK(on_button_press), NULL);
 	g_signal_connect(self, "key-press-event",    G_CALLBACK(on_key_press),    NULL);
-}
-static GObject *gis_opengl_constructor(GType gtype, guint n_properties,
-		GObjectConstructParam *properties)
-{
-	g_debug("GisOpengl: constructor");
-	GObjectClass *parent_class = G_OBJECT_CLASS(gis_opengl_parent_class);
-	return parent_class->constructor(gtype, n_properties, properties);
+
+	g_signal_connect(self, "location-changed",   G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(self, "rotation-changed",   G_CALLBACK(on_view_changed), NULL);
 }
 static void gis_opengl_dispose(GObject *_self)
 {
@@ -498,23 +475,21 @@ static void gis_opengl_dispose(GObject *_self)
 		roam_sphere_free(self->sphere);
 		self->sphere = NULL;
 	}
-	if (self->viewer) {
-		g_object_unref(self->viewer);
-		self->viewer = NULL;
-	}
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
-}
-static void gis_opengl_finalize(GObject *_self)
-{
-	g_debug("GisOpenGL: finalize");
-	GisOpenGL *self = GIS_OPENGL(_self);
-	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
 static void gis_opengl_class_init(GisOpenGLClass *klass)
 {
 	g_debug("GisOpenGL: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->constructor  = gis_opengl_constructor;
-	gobject_class->dispose      = gis_opengl_dispose;
-	gobject_class->finalize     = gis_opengl_finalize;
+	gobject_class->dispose     = gis_opengl_dispose;
+
+	GisViewerClass *viewer_class = GIS_VIEWER_CLASS(klass);
+	viewer_class->center_position   = gis_opengl_center_position;
+	viewer_class->project           = gis_opengl_project;
+	viewer_class->clear_height_func = gis_opengl_clear_height_func;
+	viewer_class->set_height_func   = gis_opengl_set_height_func;
+	viewer_class->render_tile       = gis_opengl_render_tile;
+	viewer_class->render_tiles      = gis_opengl_render_tiles;
+	viewer_class->begin             = gis_opengl_begin;
+	viewer_class->end               = gis_opengl_end;
 }

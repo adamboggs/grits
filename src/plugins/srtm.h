@@ -35,7 +35,6 @@ struct _GisPluginSrtm {
 
 	/* instance members */
 	GisViewer *viewer;
-	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
 	GMutex    *mutex;
@@ -49,6 +48,6 @@ struct _GisPluginSrtmClass {
 GType gis_plugin_srtm_get_type();
 
 /* Methods */
-GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer, GisOpenGL *opengl);
+GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer);
 
 #endif

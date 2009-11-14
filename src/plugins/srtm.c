@@ -162,7 +162,7 @@ static gboolean _load_tile_cb(gpointer _load)
 	/* Do necessasairy processing */
 	/* TODO: Lock this and move to thread, can remove self from _load then */
 	if (LOAD_BIL)
-		gis_opengl_set_height_func(self->opengl, tile, _height_func, self, TRUE);
+		gis_viewer_set_height_func(self->viewer, tile, _height_func, self, TRUE);
 
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)
@@ -237,12 +237,11 @@ static void _on_location_changed(GisViewer *viewer,
 /***********
  * Methods *
  ***********/
-GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer, GisOpenGL *opengl)
+GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer)
 {
 	g_debug("GisPluginSrtm: new");
 	GisPluginSrtm *self = g_object_new(GIS_TYPE_PLUGIN_SRTM, NULL);
 	self->viewer = viewer;
-	self->opengl = opengl;
 
 	/* Load initial tiles */
 	_load_tile(self->tiles, self);
@@ -261,7 +260,7 @@ static void gis_plugin_srtm_expose(GisPlugin *_self)
 	g_debug("GisPluginSrtm: expose tiles=%p data=%p",
 		self->tiles, self->tiles->data);
 	if (LOAD_OPENGL)
-		gis_opengl_render_tiles(self->opengl, self->tiles);
+		gis_viewer_render_tiles(self->viewer, self->tiles);
 }
 
 
@@ -297,7 +296,7 @@ static void gis_plugin_srtm_dispose(GObject *gobject)
 	/* Drop references */
 	g_signal_handler_disconnect(self->viewer, self->sigid);
 	if (LOAD_BIL)
-		gis_opengl_clear_height_func(self->opengl);
+		gis_viewer_clear_height_func(self->viewer);
 	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);
 }
 static void gis_plugin_srtm_finalize(GObject *gobject)

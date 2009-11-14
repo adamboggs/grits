@@ -115,13 +115,6 @@ static void gis_prefs_init(GisPrefs *self)
 	g_debug("GisPrefs: init");
 	self->key_file = g_key_file_new();
 }
-static GObject *gis_prefs_constructor(GType gtype, guint n_properties,
-		GObjectConstructParam *properties)
-{
-	g_debug("GisPrefs: constructor");
-	GObjectClass *parent_class = G_OBJECT_CLASS(gis_prefs_parent_class);
-	return  parent_class->constructor(gtype, n_properties, properties);
-}
 static void gis_prefs_dispose(GObject *_self)
 {
 	g_debug("GisPrefs: dispose");
@@ -140,18 +133,11 @@ static void gis_prefs_dispose(GObject *_self)
 	}
 	G_OBJECT_CLASS(gis_prefs_parent_class)->dispose(_self);
 }
-static void gis_prefs_finalize(GObject *_self)
-{
-	g_debug("GisPrefs: finalize");
-	G_OBJECT_CLASS(gis_prefs_parent_class)->finalize(_self);
-}
 static void gis_prefs_class_init(GisPrefsClass *klass)
 {
 	g_debug("GisPrefs: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->constructor  = gis_prefs_constructor;
 	gobject_class->dispose      = gis_prefs_dispose;
-	gobject_class->finalize     = gis_prefs_finalize;
 	signals[SIG_PREF_CHANGED] = g_signal_new(
 			"pref-changed",
 			G_TYPE_FROM_CLASS(gobject_class),

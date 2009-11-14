@@ -18,8 +18,6 @@
 #ifndef __GIS_OPENGL_H__
 #define __GIS_OPENGL_H__
 
-#include <gtk/gtk.h>
-#include <gtk/gtkgl.h>
 #include <glib-object.h>
 
 /* Type macros */
@@ -34,16 +32,12 @@ typedef struct _GisOpenGL      GisOpenGL;
 typedef struct _GisOpenGLClass GisOpenGLClass;
 
 #include "gis-viewer.h"
-#include "gis-plugin.h"
-#include "gis-tile.h"
 #include "roam.h"
 
 struct _GisOpenGL {
-	GtkDrawingArea parent_instance;
+	GisViewer parent_instance;
 
 	/* instance members */
-	GisViewer  *viewer;
-	GisPlugins *plugins;
 	RoamSphere *sphere;
 	guint       sm_source[2];
 
@@ -52,7 +46,7 @@ struct _GisOpenGL {
 };
 
 struct _GisOpenGLClass {
-	GtkDrawingAreaClass parent_class;
+	GisViewerClass parent_class;
 
 	/* class members */
 };
@@ -60,28 +54,6 @@ struct _GisOpenGLClass {
 GType gis_opengl_get_type(void);
 
 /* Methods */
-GisOpenGL *gis_opengl_new(GisViewer *viewer, GisPlugins *plugins);
-
-void gis_opengl_center_position(GisOpenGL *opengl,
-		gdouble lat, gdouble lon, gdouble elev);
-
-void gis_opengl_project(GisOpenGL *opengl,
-		gdouble lat, gdouble lon, gdouble elev,
-		gdouble *px, gdouble *py, gdouble *pz);
-
-void gis_opengl_render_tile(GisOpenGL *opengl, GisTile *tile);
-
-void gis_opengl_render_tiles(GisOpenGL *opengl, GisTile *root);
-
-void gis_opengl_set_height_func(GisOpenGL *self, GisTile *tile,
-		RoamHeightFunc height_func, gpointer user_data, gboolean update);
-
-void gis_opengl_clear_height_func(GisOpenGL *self);
-
-void gis_opengl_redraw(GisOpenGL *opengl);
-
-void gis_opengl_begin(GisOpenGL *opengl);
-void gis_opengl_end(GisOpenGL *opengl);
-void gis_opengl_flush(GisOpenGL *opengl);
+GisViewer *gis_opengl_new(GisPlugins *plugins);
 
 #endif
