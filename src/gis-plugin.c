@@ -119,7 +119,7 @@ GList *gis_plugins_available(GisPlugins *self)
 }
 
 GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
-		GisWorld *world, GisView *view, GisOpenGL *opengl, GisPrefs *prefs)
+		GisViewer *viewer, GisOpenGL *opengl, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: load %s", name);
 	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
@@ -155,7 +155,7 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 
 	GisPluginStore *store = g_new0(GisPluginStore, 1);
 	store->name = g_strdup(name);
-	store->plugin = constructor(world, view, opengl, prefs);
+	store->plugin = constructor(viewer, opengl, prefs);
 	g_ptr_array_add(self->plugins, store);
 	return store->plugin;
 }

@@ -15,23 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_VIEW_H__
-#define __GIS_VIEW_H__
+#ifndef __GIS_VIEWER_H__
+#define __GIS_VIEWER_H__
 
 #include <glib-object.h>
 
 /* Type macros */
-#define GIS_TYPE_VIEW            (gis_view_get_type())
-#define GIS_VIEW(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_VIEW, GisView))
-#define GIS_IS_VIEW(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_VIEW))
-#define GIS_VIEW_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_VIEW, GisViewClass))
-#define GIS_IS_VIEW_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_VIEW))
-#define GIS_VIEW_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_VIEW, GisViewClass))
+#define GIS_TYPE_VIEWER            (gis_viewer_get_type())
+#define GIS_VIEWER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_VIEWER, GisViewer))
+#define GIS_IS_VIEWER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_VIEWER))
+#define GIS_VIEWER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_VIEWER, GisViewerClass))
+#define GIS_IS_VIEWER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_VIEWER))
+#define GIS_VIEWER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_VIEWER, GisViewerClass))
 
-typedef struct _GisView      GisView;
-typedef struct _GisViewClass GisViewClass;
+typedef struct _GisViewer      GisViewer;
+typedef struct _GisViewerClass GisViewerClass;
 
-struct _GisView {
+struct _GisViewer {
 	GObject parent_instance;
 
 	/* instance members */
@@ -42,36 +42,36 @@ struct _GisView {
 	gboolean offline;
 };
 
-struct _GisViewClass {
+struct _GisViewerClass {
 	GObjectClass parent_class;
 
 	/* class members */
 };
 
-GType gis_view_get_type(void);
+GType gis_viewer_get_type(void);
 
 /* Methods */
-GisView *gis_view_new();
+GisViewer *gis_viewer_new();
 
-void gis_view_set_time(GisView *view, const gchar *time);
-gchar *gis_view_get_time(GisView *view);
+void gis_viewer_set_time(GisViewer *viewer, const gchar *time);
+gchar *gis_viewer_get_time(GisViewer *viewer);
 
-void gis_view_set_location(GisView *view, gdouble  lat, gdouble  lon, gdouble  elev);
-void gis_view_get_location(GisView *view, gdouble *lat, gdouble *lon, gdouble *elev);
-void gis_view_pan         (GisView *view, gdouble  lat, gdouble  lon, gdouble  elev);
-void gis_view_zoom        (GisView *view, gdouble  scale);
+void gis_viewer_set_location(GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
+void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);
+void gis_viewer_pan         (GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
+void gis_viewer_zoom        (GisViewer *viewer, gdouble  scale);
 
-void gis_view_set_rotation(GisView *view, gdouble  x, gdouble  y, gdouble  z);
-void gis_view_get_rotation(GisView *view, gdouble *x, gdouble *y, gdouble *z);
-void gis_view_rotate      (GisView *view, gdouble  x, gdouble  y, gdouble  z);
+void gis_viewer_set_rotation(GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
+void gis_viewer_get_rotation(GisViewer *viewer, gdouble *x, gdouble *y, gdouble *z);
+void gis_viewer_rotate      (GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
 
 /* To be deprecated, use {get,set}_location */
-void gis_view_set_site(GisView *view, const gchar *site);
-gchar *gis_view_get_site(GisView *view);
+void gis_viewer_set_site(GisViewer *viewer, const gchar *site);
+gchar *gis_viewer_get_site(GisViewer *viewer);
 
-void gis_world_refresh(GisWorld *world);
+void gis_viewer_refresh(GisViewer *viewer);
 
-void gis_world_set_offline(GisWorld *world, gboolean offline);
-gboolean gis_world_get_offline(GisWorld *world);
+void gis_viewer_set_offline(GisViewer *viewer, gboolean offline);
+gboolean gis_viewer_get_offline(GisViewer *viewer);
 
 #endif

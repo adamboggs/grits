@@ -18,8 +18,8 @@
 #include <glib.h>
 #include <GL/glu.h>
 
-#include "gis-world.h"
 #include "gis-prims.h"
+#include "gis-util.h"
 
 /* TODO
  *   - Manage normals for GisPoint

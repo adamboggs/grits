@@ -20,7 +20,6 @@
 
 #include "gis-util.h"
 
-
 /******************
  * Global helpers *
  ******************/

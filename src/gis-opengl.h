@@ -33,8 +33,7 @@
 typedef struct _GisOpenGL      GisOpenGL;
 typedef struct _GisOpenGLClass GisOpenGLClass;
 
-#include "gis-view.h"
-#include "gis-world.h"
+#include "gis-viewer.h"
 #include "gis-plugin.h"
 #include "gis-tile.h"
 #include "roam.h"
@@ -43,8 +42,7 @@ struct _GisOpenGL {
 	GtkDrawingArea parent_instance;
 
 	/* instance members */
-	GisWorld   *world;
-	GisView    *view;
+	GisViewer  *viewer;
 	GisPlugins *plugins;
 	RoamSphere *sphere;
 	guint       sm_source[2];
@@ -62,7 +60,7 @@ struct _GisOpenGLClass {
 GType gis_opengl_get_type(void);
 
 /* Methods */
-GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins);
+GisOpenGL *gis_opengl_new(GisViewer *viewer, GisPlugins *plugins);
 
 void gis_opengl_center_position(GisOpenGL *opengl,
 		gdouble lat, gdouble lon, gdouble elev);

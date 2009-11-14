@@ -47,9 +47,8 @@ int main(int argc, char **argv)
 
 	GisPrefs   *prefs   = gis_prefs_new(NULL, NULL);
 	GisPlugins *plugins = gis_plugins_new(NULL);
-	GisWorld   *world   = gis_world_new();
-	GisView    *view    = gis_view_new();
-	GisOpenGL  *opengl  = gis_opengl_new(world, view, plugins);
+	GisViewer  *viewer  = gis_viewer_new();
+	GisOpenGL  *opengl  = gis_opengl_new(viewer, plugins);
 
 	gdk_threads_enter();
 	GtkWidget  *window  = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -59,18 +58,17 @@ int main(int argc, char **argv)
 	gtk_widget_show_all(window);
 	gdk_threads_leave();
 
-	gis_plugins_load(plugins, "bmng", world, view, opengl, prefs);
-	//gis_plugins_load(plugins, "srtm", world, view, opengl, prefs);
-	gis_plugins_load(plugins, "test", world, view, opengl, prefs);
+	gis_plugins_load(plugins, "bmng", viewer, opengl, prefs);
+	//gis_plugins_load(plugins, "srtm", viewer, opengl, prefs);
+	gis_plugins_load(plugins, "test", viewer, opengl, prefs);
 
-	gis_view_set_site(view, "KLSX");
+	gis_viewer_set_site(viewer, "KLSX");
 
 	gdk_threads_enter();
 	gtk_main();
 
 	g_object_unref(prefs);
-	g_object_unref(world);
-	g_object_unref(view);
+	g_object_unref(viewer);
 	g_object_unref(opengl);
 	gis_plugins_free(plugins);
 	gdk_threads_leave();

@@ -34,7 +34,7 @@ struct _GisPluginSrtm {
 	GObject parent_instance;
 
 	/* instance members */
-	GisView   *view;
+	GisViewer *viewer;
 	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
@@ -49,6 +49,6 @@ struct _GisPluginSrtmClass {
 GType gis_plugin_srtm_get_type();
 
 /* Methods */
-GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *opengl);
+GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer, GisOpenGL *opengl);
 
 #endif

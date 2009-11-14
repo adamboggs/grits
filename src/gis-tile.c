@@ -18,8 +18,8 @@
 #include <config.h>
 #include <glib.h>
 
-#include "gis-world.h"
 #include "gis-tile.h"
+#include "gis-util.h"
 
 gchar *gis_tile_path_table[2][2] = {
 	{"00.", "01."},

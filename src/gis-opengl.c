@@ -28,6 +28,7 @@
 #include <GL/glu.h>
 
 #include "gis-opengl.h"
+#include "gis-util.h"
 #include "roam.h"
 
 #define FOV_DIST   2000.0
@@ -45,8 +46,8 @@ static void set_visuals(GisOpenGL *self)
 
 	/* Camera 1 */
 	double lat, lon, elev, rx, ry, rz;
-	gis_view_get_location(self->view, &lat, &lon, &elev);
-	gis_view_get_rotation(self->view, &rx, &ry, &rz);
+	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
+	gis_viewer_get_rotation(self->viewer, &rx, &ry, &rz);
 	glRotatef(rx, 1, 0, 0);
 	glRotatef(rz, 0, 0, 1);
 
@@ -195,20 +196,20 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 			event->keyval, event->state, GDK_plus);
 
 	double lat, lon, elev, pan;
-	gis_view_get_location(self->view, &lat, &lon, &elev);
+	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
 	pan = MIN(elev/(EARTH_R/2), 30);
 	guint kv = event->keyval;
 	gdk_threads_leave();
-	if      (kv == GDK_Left  || kv == GDK_h) gis_view_pan(self->view,  0,  -pan, 0);
-	else if (kv == GDK_Down  || kv == GDK_j) gis_view_pan(self->view, -pan, 0,   0);
-	else if (kv == GDK_Up    || kv == GDK_k) gis_view_pan(self->view,  pan, 0,   0);
-	else if (kv == GDK_Right || kv == GDK_l) gis_view_pan(self->view,  0,   pan, 0);
-	else if (kv == GDK_minus || kv == GDK_o) gis_view_zoom(self->view, 10./9);
-	else if (kv == GDK_plus  || kv == GDK_i) gis_view_zoom(self->view, 9./10);
-	else if (kv == GDK_H) gis_view_rotate(self->view,  0, 0, -2);
-	else if (kv == GDK_J) gis_view_rotate(self->view,  2, 0,  0);
-	else if (kv == GDK_K) gis_view_rotate(self->view, -2, 0,  0);
-	else if (kv == GDK_L) gis_view_rotate(self->view,  0, 0,  2);
+	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(self->viewer,  0,  -pan, 0);
+	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(self->viewer, -pan, 0,   0);
+	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(self->viewer,  pan, 0,   0);
+	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(self->viewer,  0,   pan, 0);
+	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(self->viewer, 10./9);
+	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(self->viewer, 9./10);
+	else if (kv == GDK_H) gis_viewer_rotate(self->viewer,  0, 0, -2);
+	else if (kv == GDK_J) gis_viewer_rotate(self->viewer,  2, 0,  0);
+	else if (kv == GDK_K) gis_viewer_rotate(self->viewer, -2, 0,  0);
+	else if (kv == GDK_L) gis_viewer_rotate(self->viewer,  0, 0,  2);
 
 	/* Testing */
 	else if (kv == GDK_w) {self->wireframe = !self->wireframe; gtk_widget_queue_draw(GTK_WIDGET(self));}
@@ -231,7 +232,7 @@ static gboolean _update_errors_cb(gpointer sphere)
 	roam_sphere_update_errors(sphere);
 	return FALSE;
 }
-static void on_view_changed(GisView *view,
+static void on_view_changed(GisViewer *viewer,
 		gdouble _1, gdouble _2, gdouble _3, GisOpenGL *self)
 {
 	g_debug("GisOpenGL: on_view_changed");
@@ -263,18 +264,16 @@ static gboolean on_idle(GisOpenGL *self)
 /***********
  * Methods *
  ***********/
-GisOpenGL *gis_opengl_new(GisWorld *world, GisView *view, GisPlugins *plugins)
+GisOpenGL *gis_opengl_new(GisViewer *viewer, GisPlugins *plugins)
 {
 	g_debug("GisOpenGL: new");
 	GisOpenGL *self = g_object_new(GIS_TYPE_OPENGL, NULL);
-	self->world   = world;
-	self->view    = view;
+	self->viewer  = viewer;
 	self->plugins = plugins;
-	g_object_ref(world);
-	g_object_ref(view);
+	g_object_ref(viewer);
 
-	g_signal_connect(self->view, "location-changed", G_CALLBACK(on_view_changed), self);
-	g_signal_connect(self->view, "rotation-changed", G_CALLBACK(on_view_changed), self);
+	g_signal_connect(self->viewer, "location-changed", G_CALLBACK(on_view_changed), self);
+	g_signal_connect(self->viewer, "rotation-changed", G_CALLBACK(on_view_changed), self);
 
 	self->sphere = roam_sphere_new(self);
 
@@ -499,13 +498,9 @@ static void gis_opengl_dispose(GObject *_self)
 		roam_sphere_free(self->sphere);
 		self->sphere = NULL;
 	}
-	if (self->world) {
-		g_object_unref(self->world);
-		self->world = NULL;
-	}
-	if (self->view) {
-		g_object_unref(self->view);
-		self->view = NULL;
+	if (self->viewer) {
+		g_object_unref(self->viewer);
+		self->viewer = NULL;
 	}
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
 }

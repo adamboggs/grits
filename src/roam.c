@@ -22,10 +22,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "gis-world.h"
-
+#include "gis-util.h"
 #include "roam.h"
-
 
 /**
  * TODO:

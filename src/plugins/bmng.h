@@ -34,7 +34,7 @@ struct _GisPluginBmng {
 	GObject parent_instance;
 
 	/* instance members */
-	GisView   *view;
+	GisViewer *viewer;
 	GisOpenGL *opengl;
 	GisTile   *tiles;
 	GisWms    *wms;
@@ -49,6 +49,6 @@ struct _GisPluginBmngClass {
 GType gis_plugin_bmng_get_type();
 
 /* Methods */
-GisPluginBmng *gis_plugin_bmng_new(GisWorld *world, GisView *view, GisOpenGL *opengl);
+GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer, GisOpenGL *opengl);
 
 #endif

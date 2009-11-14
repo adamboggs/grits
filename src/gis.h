@@ -19,12 +19,12 @@
 #define __GIS_H__
 
 /* GIS Core */
-#include "gis-world.h"
-#include "gis-view.h"
+#include "gis-viewer.h"
 #include "gis-opengl.h"
 #include "gis-prefs.h"
 
 /* GIS helprs */
+#include "gis-util.h"
 #include "gis-data.h"
 #include "gis-tile.h"
 #include "gis-wms.h"

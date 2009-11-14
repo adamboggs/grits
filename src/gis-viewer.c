@@ -18,7 +18,10 @@
 #include <glib.h>
 
 #include "gis-marshal.h"
-#include "gis-view.h"
+#include "gis-viewer.h"
+
+#include "gis-util.h"
+
 
 /* Constants */
 enum {
@@ -38,8 +41,9 @@ enum {
 };
 static guint signals[NUM_SIGNALS];
 
+
 /* Misc helpers */
-static void _gis_view_fix_location(GisView *self)
+static void _gis_viewer_fix_location(GisViewer *self)
 {
 	while (self->location[0] <  -90) self->location[0] += 180;
 	while (self->location[0] >   90) self->location[0] -= 180;
@@ -49,180 +53,180 @@ static void _gis_view_fix_location(GisView *self)
 }
 
 /* Signal helpers */
-static void _gis_view_emit_location_changed(GisView *self)
+static void _gis_viewer_emit_location_changed(GisViewer *self)
 {
 	g_signal_emit(self, signals[SIG_LOCATION_CHANGED], 0,
 			self->location[0],
 			self->location[1],
 			self->location[2]);
 }
-static void _gis_view_emit_rotation_changed(GisView *self)
+static void _gis_viewer_emit_rotation_changed(GisViewer *self)
 {
 	g_signal_emit(self, signals[SIG_ROTATION_CHANGED], 0,
 			self->rotation[0],
 			self->rotation[1],
 			self->rotation[2]);
 }
-static void _gis_view_emit_time_changed(GisView *self)
+static void _gis_viewer_emit_time_changed(GisViewer *self)
 {
 	g_signal_emit(self, signals[SIG_TIME_CHANGED], 0,
 			self->time);
 }
-static void _gis_view_emit_site_changed(GisView *self)
+static void _gis_viewer_emit_site_changed(GisViewer *self)
 {
 	g_signal_emit(self, signals[SIG_SITE_CHANGED], 0,
 			self->site);
 }
-static void _gis_world_emit_refresh(GisWorld *world)
+static void _gis_viewer_emit_refresh(GisViewer *self)
 {
-	g_signal_emit(world, signals[SIG_REFRESH], 0);
+	g_signal_emit(self, signals[SIG_REFRESH], 0);
 }
-static void _gis_world_emit_offline(GisWorld *world)
+static void _gis_viewer_emit_offline(GisViewer *self)
 {
-	g_signal_emit(world, signals[SIG_OFFLINE], 0,
-			world->offline);
+	g_signal_emit(self, signals[SIG_OFFLINE], 0,
+			self->offline);
 }
 
 
 /***********
  * Methods *
  ***********/
-GisView *gis_view_new()
+GisViewer *gis_viewer_new()
 {
-	g_debug("GisView: new");
-	return g_object_new(GIS_TYPE_VIEW, NULL);
+	g_debug("GisViewer: new");
+	return g_object_new(GIS_TYPE_VIEWER, NULL);
 }
 
-void gis_view_set_time(GisView *self, const char *time)
+void gis_viewer_set_time(GisViewer *self, const char *time)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: set_time - time=%s", time);
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: set_time - time=%s", time);
 	g_free(self->time);
 	self->time = g_strdup(time);
-	_gis_view_emit_time_changed(self);
+	_gis_viewer_emit_time_changed(self);
 }
 
-gchar *gis_view_get_time(GisView *self)
+gchar *gis_viewer_get_time(GisViewer *self)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: get_time");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: get_time");
 	return self->time;
 }
 
-void gis_view_set_location(GisView *self, gdouble lat, gdouble lon, gdouble elev)
+void gis_viewer_set_location(GisViewer *self, gdouble lat, gdouble lon, gdouble elev)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: set_location");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: set_location");
 	self->location[0] = lat;
 	self->location[1] = lon;
 	self->location[2] = elev;
-	_gis_view_fix_location(self);
-	_gis_view_emit_location_changed(self);
+	_gis_viewer_fix_location(self);
+	_gis_viewer_emit_location_changed(self);
 }
 
-void gis_view_get_location(GisView *self, gdouble *lat, gdouble *lon, gdouble *elev)
+void gis_viewer_get_location(GisViewer *self, gdouble *lat, gdouble *lon, gdouble *elev)
 {
-	g_assert(GIS_IS_VIEW(self));
-	//g_debug("GisView: get_location");
+	g_assert(GIS_IS_VIEWER(self));
+	//g_debug("GisViewer: get_location");
 	*lat  = self->location[0];
 	*lon  = self->location[1];
 	*elev = self->location[2];
 }
 
-void gis_view_pan(GisView *self, gdouble lat, gdouble lon, gdouble elev)
+void gis_viewer_pan(GisViewer *self, gdouble lat, gdouble lon, gdouble elev)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: pan - lat=%8.3f, lon=%8.3f, elev=%8.3f", lat, lon, elev);
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: pan - lat=%8.3f, lon=%8.3f, elev=%8.3f", lat, lon, elev);
 	self->location[0] += lat;
 	self->location[1] += lon;
 	self->location[2] += elev;
-	_gis_view_fix_location(self);
-	_gis_view_emit_location_changed(self);
+	_gis_viewer_fix_location(self);
+	_gis_viewer_emit_location_changed(self);
 }
 
-void gis_view_zoom(GisView *self, gdouble scale)
+void gis_viewer_zoom(GisViewer *self, gdouble scale)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: zoom");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: zoom");
 	self->location[2] *= scale;
-	_gis_view_emit_location_changed(self);
+	_gis_viewer_emit_location_changed(self);
 }
 
-void gis_view_set_rotation(GisView *self, gdouble x, gdouble y, gdouble z)
+void gis_viewer_set_rotation(GisViewer *self, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: set_rotation");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: set_rotation");
 	self->rotation[0] = x;
 	self->rotation[1] = y;
 	self->rotation[2] = z;
-	_gis_view_emit_rotation_changed(self);
+	_gis_viewer_emit_rotation_changed(self);
 }
 
-void gis_view_get_rotation(GisView *self, gdouble *x, gdouble *y, gdouble *z)
+void gis_viewer_get_rotation(GisViewer *self, gdouble *x, gdouble *y, gdouble *z)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: get_rotation");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: get_rotation");
 	*x = self->rotation[0];
 	*y = self->rotation[1];
 	*z = self->rotation[2];
 }
 
-void gis_view_rotate(GisView *self, gdouble x, gdouble y, gdouble z)
+void gis_viewer_rotate(GisViewer *self, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: rotate - x=%.0f, y=%.0f, z=%.0f", x, y, z);
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: rotate - x=%.0f, y=%.0f, z=%.0f", x, y, z);
 	self->rotation[0] += x;
 	self->rotation[1] += y;
 	self->rotation[2] += z;
-	_gis_view_emit_rotation_changed(self);
+	_gis_viewer_emit_rotation_changed(self);
 }
 
 /* To be deprecated, use {get,set}_location */
-void gis_view_set_site(GisView *self, const gchar *site)
+void gis_viewer_set_site(GisViewer *self, const gchar *site)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: set_site");
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: set_site");
 	g_free(self->site);
 	self->site = g_strdup(site);
-	_gis_view_emit_site_changed(self);
+	_gis_viewer_emit_site_changed(self);
 }
 
-gchar *gis_view_get_site(GisView *self)
+gchar *gis_viewer_get_site(GisViewer *self)
 {
-	g_assert(GIS_IS_VIEW(self));
-	g_debug("GisView: get_site - %s", self->site);
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: get_site - %s", self->site);
 	return self->site;
 }
 
-void gis_world_refresh(GisWorld *world)
+void gis_viewer_refresh(GisViewer *self)
 {
-	g_debug("GisWorld: refresh");
-	_gis_world_emit_refresh(world);
+	g_debug("GisViewer: refresh");
+	_gis_viewer_emit_refresh(self);
 }
 
-void gis_world_set_offline(GisWorld *world, gboolean offline)
+void gis_viewer_set_offline(GisViewer *self, gboolean offline)
 {
-	g_assert(GIS_IS_WORLD(world));
-	g_debug("GisWorld: set_offline - %d", offline);
-	world->offline = offline;
-	_gis_world_emit_offline(world);
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: set_offline - %d", offline);
+	self->offline = offline;
+	_gis_viewer_emit_offline(self);
 }
 
-gboolean gis_world_get_offline(GisWorld *world)
+gboolean gis_viewer_get_offline(GisViewer *self)
 {
-	g_assert(GIS_IS_WORLD(world));
-	g_debug("GisWorld: get_offline - %d", world->offline);
-	return world->offline;
+	g_assert(GIS_IS_VIEWER(self));
+	g_debug("GisViewer: get_offline - %d", self->offline);
+	return self->offline;
 }
 
 
 /****************
  * GObject code *
  ****************/
-G_DEFINE_TYPE(GisView, gis_view, G_TYPE_OBJECT);
-static void gis_view_init(GisView *self)
+G_DEFINE_TYPE(GisViewer, gis_viewer, G_TYPE_OBJECT);
+static void gis_viewer_init(GisViewer *self)
 {
-	g_debug("GisView: init");
+	g_debug("GisViewer: init");
 	/* Default values */
 	self->time = g_strdup("");
 	self->site = g_strdup("");
@@ -233,52 +237,52 @@ static void gis_view_init(GisView *self)
 	self->rotation[1] = 0;
 	self->rotation[2] = 0;
 }
-static void gis_view_dispose(GObject *gobject)
+static void gis_viewer_dispose(GObject *gobject)
 {
-	g_debug("GisView: dispose");
+	g_debug("GisViewer: dispose");
 	/* Drop references to other GObjects */
-	G_OBJECT_CLASS(gis_view_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(gis_viewer_parent_class)->dispose(gobject);
 }
-static void gis_view_finalize(GObject *gobject)
+static void gis_viewer_finalize(GObject *gobject)
 {
-	g_debug("GisView: finalize");
-	GisView *self = GIS_VIEW(gobject);
+	g_debug("GisViewer: finalize");
+	GisViewer *self = GIS_VIEWER(gobject);
 	g_free(self->time);
 	g_free(self->site);
-	G_OBJECT_CLASS(gis_view_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
-static void gis_view_set_property(GObject *object, guint property_id,
+static void gis_viewer_set_property(GObject *object, guint property_id,
 		const GValue *value, GParamSpec *pspec)
 {
-	g_debug("GisView: set_property");
-	GisView *self = GIS_VIEW(object);
+	g_debug("GisViewer: set_property");
+	GisViewer *self = GIS_VIEWER(object);
 	switch (property_id) {
-	case PROP_TIME:     gis_view_set_time(self, g_value_get_string (value));  break;
-	case PROP_SITE:     gis_view_set_site(self, g_value_get_string (value));  break;
-	case PROP_OFFLINE:  gis_view_set_site(self, g_value_get_boolean(value)); break;
-	default:            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+	case PROP_TIME:    gis_viewer_set_time   (self, g_value_get_string (value)); break;
+	case PROP_SITE:    gis_viewer_set_site   (self, g_value_get_string (value)); break;
+	case PROP_OFFLINE: gis_viewer_set_offline(self, g_value_get_boolean(value)); break;
+	default:           G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
 	}
 }
-static void gis_view_get_property(GObject *object, guint property_id,
+static void gis_viewer_get_property(GObject *object, guint property_id,
 		GValue *value, GParamSpec *pspec)
 {
-	g_debug("GisView: get_property");
-	GisView *self = GIS_VIEW(object);
+	g_debug("GisViewer: get_property");
+	GisViewer *self = GIS_VIEWER(object);
 	switch (property_id) {
-	case PROP_TIME:     g_value_set_string (value, gis_view_get_time(self)); break;
-	case PROP_SITE:     g_value_set_string (value, gis_view_get_site(self)); break;
-	case PROP_OFFLINE:  g_value_set_boolean(value, gis_view_get_site(self)); break;
-	default:            G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
+	case PROP_TIME:    g_value_set_string (value, gis_viewer_get_time   (self)); break;
+	case PROP_SITE:    g_value_set_string (value, gis_viewer_get_site   (self)); break;
+	case PROP_OFFLINE: g_value_set_boolean(value, gis_viewer_get_offline(self)); break;
+	default:           G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
 	}
 }
-static void gis_view_class_init(GisViewClass *klass)
+static void gis_viewer_class_init(GisViewerClass *klass)
 {
-	g_debug("GisView: class_init");
+	g_debug("GisViewer: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->dispose      = gis_view_dispose;
-	gobject_class->finalize     = gis_view_finalize;
-	gobject_class->get_property = gis_view_get_property;
-	gobject_class->set_property = gis_view_set_property;
+	gobject_class->dispose      = gis_viewer_dispose;
+	gobject_class->finalize     = gis_viewer_finalize;
+	gobject_class->get_property = gis_viewer_get_property;
+	gobject_class->set_property = gis_viewer_set_property;
 	g_object_class_install_property(gobject_class, PROP_TIME,
 		g_param_spec_pointer(
 			"time",
@@ -288,14 +292,16 @@ static void gis_view_class_init(GisViewClass *klass)
 	g_object_class_install_property(gobject_class, PROP_SITE,
 		g_param_spec_pointer(
 			"site",
-			"site seen by the viewport",
-			"Site of the viewport. Currently this is the name of the radar site.",
+			"site seen by the viewerport",
+			"Site of the viewerport. "
+			"Currently this is the name of the radar site.",
 			G_PARAM_READWRITE));
 	g_object_class_install_property(gobject_class, PROP_OFFLINE,
 		g_param_spec_pointer(
 			"offline",
 			"whether the viewer should access the network",
-			"Offline state of the viewer. If set to true, the viewer will not access the network",
+			"Offline state of the viewer. "
+			"If set to true, the viewer will not access the network",
 			G_PARAM_READWRITE));
 	signals[SIG_TIME_CHANGED] = g_signal_new(
 			"time-changed",

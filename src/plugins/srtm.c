@@ -214,7 +214,7 @@ static gpointer _update_tiles(gpointer _self)
 	GisPluginSrtm *self = _self;
 	g_mutex_lock(self->mutex);
 	gdouble lat, lon, elev;
-	gis_view_get_location(self->view, &lat, &lon, &elev);
+	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
 	gis_tile_update(self->tiles,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			lat, lon, elev,
@@ -228,8 +228,8 @@ static gpointer _update_tiles(gpointer _self)
 /*************
  * Callbacks *
  *************/
-static void _on_location_changed(GisView *view, gdouble lat, gdouble lon, gdouble elev,
-		GisPluginSrtm *self)
+static void _on_location_changed(GisViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elev, GisPluginSrtm *self)
 {
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
@@ -237,11 +237,11 @@ static void _on_location_changed(GisView *view, gdouble lat, gdouble lon, gdoubl
 /***********
  * Methods *
  ***********/
-GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
+GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer, GisOpenGL *opengl)
 {
 	g_debug("GisPluginSrtm: new");
 	GisPluginSrtm *self = g_object_new(GIS_TYPE_PLUGIN_SRTM, NULL);
-	self->view   = view;
+	self->viewer = viewer;
 	self->opengl = opengl;
 
 	/* Load initial tiles */
@@ -249,7 +249,7 @@ GisPluginSrtm *gis_plugin_srtm_new(GisWorld *world, GisView *view, GisOpenGL *op
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 
 	/* Connect signals */
-	self->sigid = g_signal_connect(self->view, "location-changed",
+	self->sigid = g_signal_connect(self->viewer, "location-changed",
 			G_CALLBACK(_on_location_changed), self);
 
 	return self;
@@ -295,7 +295,7 @@ static void gis_plugin_srtm_dispose(GObject *gobject)
 	g_debug("GisPluginSrtm: dispose");
 	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
 	/* Drop references */
-	g_signal_handler_disconnect(self->view, self->sigid);
+	g_signal_handler_disconnect(self->viewer, self->sigid);
 	if (LOAD_BIL)
 		gis_opengl_clear_height_func(self->opengl);
 	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);

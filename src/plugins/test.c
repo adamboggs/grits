@@ -26,11 +26,11 @@
 /***********
  * Methods *
  ***********/
-GisPluginTest *gis_plugin_test_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
+GisPluginTest *gis_plugin_test_new(GisViewer *viewer, GisOpenGL *opengl)
 {
 	g_debug("GisPluginTest: new");
 	GisPluginTest *self = g_object_new(GIS_TYPE_PLUGIN_TEST, NULL);
-	self->view   = view;
+	self->viewer = viewer;
 	self->opengl = opengl;
 	return self;
 }
@@ -111,7 +111,7 @@ static void gis_plugin_test_init(GisPluginTest *self)
 {
 	g_debug("GisPluginTest: init");
 	/* Set defaults */
-	self->view   = NULL;
+	self->viewer = NULL;
 	self->opengl = NULL;
 }
 static void gis_plugin_test_dispose(GObject *gobject)
