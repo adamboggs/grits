@@ -12,5 +12,10 @@ bmng_la_SOURCES     = bmng.c bmng.h
 srtm_la_SOURCES     = srtm.c srtm.h
 test_la_SOURCES     = test.c test.h
 
+noinst_LTLIBRARIES  = teapot.la
+teapot_la_SOURCES   = \
+	$(top_srcdir)/examples/plugin/teapot.c
+	$(top_srcdir)/examples/plugin/teapot.h
+
 test:
 	( cd ../; make test )

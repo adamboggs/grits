@@ -34,10 +34,10 @@ struct _GisPluginTeapot {
 	GObject parent_instance;
 
 	/* instance members */
+	GisViewer       *viewer;
 	GtkToggleButton *button;
 	guint            rotate_id;
 	float            rotation;
-	GisOpenGL       *opengl;
 };
 
 struct _GisPluginTeapotClass {
@@ -47,6 +47,6 @@ struct _GisPluginTeapotClass {
 GType gis_plugin_teapot_get_type();
 
 /* Methods */
-GisPluginTeapot *gis_plugin_teapot_new(GisWorld *world, GisView *view, GisOpenGL *opengl);
+GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs);
 
 #endif

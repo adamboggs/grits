@@ -30,7 +30,7 @@ static gboolean rotate(gpointer _self)
 	GisPluginTeapot *self = _self;
 	if (gtk_toggle_button_get_active(self->button)) {
 		self->rotation += 1.0;
-		gis_opengl_redraw(self->opengl);
+		gtk_widget_queue_draw(GTK_WIDGET(self->viewer));
 	}
 	return TRUE;
 }
@@ -39,12 +39,11 @@ static gboolean rotate(gpointer _self)
 /***********
  * Methods *
  ***********/
-GisPluginTeapot *gis_plugin_teapot_new(GisWorld *world, GisView *view, GisOpenGL *opengl)
+GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPluginTeapot: new");
 	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
-	self->opengl = opengl;
-
+	self->viewer = viewer;
 	return self;
 }
 
@@ -105,7 +104,6 @@ static void gis_plugin_teapot_init(GisPluginTeapot *self)
 	self->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
 	self->rotate_id = g_timeout_add(1000/60, rotate, self);
 	self->rotation  = 30.0;
-	self->opengl    = NULL;
 }
 static void gis_plugin_teapot_dispose(GObject *gobject)
 {
@@ -115,18 +113,9 @@ static void gis_plugin_teapot_dispose(GObject *gobject)
 	/* Drop references */
 	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->dispose(gobject);
 }
-static void gis_plugin_teapot_finalize(GObject *gobject)
-{
-	g_debug("GisPluginTeapot: finalize");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
-	/* Free data */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->finalize(gobject);
-
-}
 static void gis_plugin_teapot_class_init(GisPluginTeapotClass *klass)
 {
 	g_debug("GisPluginTeapot: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
 	gobject_class->dispose  = gis_plugin_teapot_dispose;
-	gobject_class->finalize = gis_plugin_teapot_finalize;
 }
