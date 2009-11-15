@@ -19,6 +19,7 @@
 #define __GIS_OBJECT_H__
 
 #include <glib.h>
+#include <cairo.h>
 
 /* Base types */
 typedef struct _GisProjection GisProjection;
@@ -99,7 +100,10 @@ struct _GisCallback {
 };
 struct _GisMarker   {
 	GisObject  parent;
+	gint       xoff, yoff;
 	gchar     *label;
+	cairo_t   *cairo;
+	guint      tex;
 };
 
 /* Support functions */

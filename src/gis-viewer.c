@@ -254,18 +254,6 @@ gboolean gis_viewer_get_offline(GisViewer *self)
 	return self->offline;
 }
 
-void gis_viewer_add_object(GisViewer *self, GisObject *object)
-{
-	g_debug("GisViewer: add_object - %d, %p", object->type, object);
-	self->objects = g_list_prepend(self->objects, object);
-}
-
-void gis_viewer_remove_object(GisViewer *self, GisObject *object)
-{
-	g_debug("GisViewer: remove_object - %d, %p", object->type, object);
-	self->objects = g_list_remove(self->objects, object);
-}
-
 /* To be implemented by subclasses */
 void gis_viewer_center_position(GisViewer *self,
 		gdouble lat, gdouble lon, gdouble elev)
@@ -334,6 +322,22 @@ void gis_viewer_end(GisViewer *self)
 	if (!klass->end)
 		g_warning("GisViewer: end - Unimplemented");
 	klass->end(self);
+}
+
+void gis_viewer_add(GisViewer *self, GisObject *object)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->add)
+		g_warning("GisViewer: add - Unimplemented");
+	klass->add(self, object);
+}
+
+void gis_viewer_remove(GisViewer *self, GisObject *object)
+{
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	if (!klass->remove)
+		g_warning("GisViewer: remove - Unimplemented");
+	klass->remove(self, object);
 }
 
 /****************

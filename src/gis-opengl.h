@@ -38,10 +38,9 @@ struct _GisOpenGL {
 	GisViewer parent_instance;
 
 	/* instance members */
+	GList      *objects;
 	RoamSphere *sphere;
 	guint       sm_source[2];
-	cairo_t    *canvas;
-	guint       canvas_tex;
 
 	/* for testing */
 	gboolean    wireframe;

@@ -145,14 +145,30 @@ void gis_callback_free(GisCallback *self)
 /* GisCallback */
 GisMarker *gis_marker_new(const gchar *label)
 {
+	static const int RADIUS =   4;
+	static const int WIDTH  = 100;
+	static const int HEIGHT =  20;
+
 	GisMarker *self = g_new0(GisMarker, 1);
 	GIS_OBJECT(self)->type = GIS_TYPE_MARKER;
-	self->label = g_strdup(label);;
+	self->xoff  = RADIUS;
+	self->yoff  = HEIGHT-RADIUS;
+	self->label = g_strdup(label);
+	self->cairo = cairo_create(cairo_image_surface_create(
+				CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT));
+	cairo_set_source_rgba(self->cairo, 1, 1, 1, 1);
+	cairo_arc(self->cairo, self->xoff, self->yoff, RADIUS, 0, 2*G_PI);
+	cairo_fill(self->cairo);
+	cairo_move_to(self->cairo, self->xoff+4, self->yoff-8);
+	cairo_set_font_size(self->cairo, 10);
+	cairo_show_text(self->cairo, self->label);
 	return self;
 }
 
 void gis_marker_free(GisMarker *self)
 {
+	cairo_surface_destroy(cairo_get_target(self->cairo));
+	cairo_destroy(self->cairo);
 	g_free(self->label);
 	g_free(self);
 }

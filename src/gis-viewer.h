@@ -43,7 +43,6 @@ struct _GisViewer {
 
 	/* instance members */
 	GisPlugins *plugins;
-	GList      *objects;
 	gchar      *time;
 	gchar      *site;
 	gdouble     location[3];
@@ -72,6 +71,9 @@ struct _GisViewerClass {
 
 	void (*begin)            (GisViewer *viewer);
 	void (*end)              (GisViewer *viewer);
+
+	void (*add)              (GisViewer *viewer, GisObject *object);
+	void (*remove)           (GisViewer *viewer, GisObject *object);
 };
 
 GType gis_viewer_get_type(void);
@@ -100,9 +102,6 @@ void gis_viewer_refresh(GisViewer *viewer);
 void gis_viewer_set_offline(GisViewer *viewer, gboolean offline);
 gboolean gis_viewer_get_offline(GisViewer *viewer);
 
-void gis_viewer_add_object(GisViewer *self, GisObject *object);
-void gis_viewer_remove_object(GisViewer *self, GisObject *object);
-
 /* To be implemented by subclasses */
 void gis_viewer_center_position(GisViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev);
@@ -121,5 +120,8 @@ void gis_viewer_render_tiles(GisViewer *viewer, GisTile *root);
 
 void gis_viewer_begin(GisViewer *viewer);
 void gis_viewer_end  (GisViewer *viewer);
+
+void gis_viewer_add(GisViewer *self, GisObject *object);
+void gis_viewer_remove(GisViewer *self, GisObject *object);
 
 #endif
