@@ -30,7 +30,7 @@ libgis_la_SOURCES = \
 	gis-data.c    gis-data.h    \
 	gis-tile.c    gis-tile.h    \
 	gis-wms.c     gis-wms.h     \
-	gis-prims.c   gis-prims.h   \
+	gis-object.c  gis-object.h  \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \

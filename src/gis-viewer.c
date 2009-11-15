@@ -121,7 +121,7 @@ static gboolean on_key_press(GisViewer *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_J) gis_viewer_rotate(self,  2, 0,  0);
 	else if (kv == GDK_K) gis_viewer_rotate(self, -2, 0,  0);
 	else if (kv == GDK_L) gis_viewer_rotate(self,  0, 0,  2);
-	return TRUE;
+	return FALSE;
 }
 static void on_view_changed(GisViewer *self,
 		gdouble _1, gdouble _2, gdouble _3)
@@ -252,6 +252,18 @@ gboolean gis_viewer_get_offline(GisViewer *self)
 	g_assert(GIS_IS_VIEWER(self));
 	g_debug("GisViewer: get_offline - %d", self->offline);
 	return self->offline;
+}
+
+void gis_viewer_add_object(GisViewer *self, GisObject *object)
+{
+	g_debug("GisViewer: add_object - %d, %p", object->type, object);
+	self->objects = g_list_prepend(self->objects, object);
+}
+
+void gis_viewer_remove_object(GisViewer *self, GisObject *object)
+{
+	g_debug("GisViewer: remove_object - %d, %p", object->type, object);
+	self->objects = g_list_remove(self->objects, object);
 }
 
 /* To be implemented by subclasses */

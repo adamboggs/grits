@@ -49,13 +49,18 @@ GType gis_plugin_get_type()
 
 void gis_plugin_expose(GisPlugin *self)
 {
-	g_return_if_fail(GIS_IS_PLUGIN(self));
+	if (!GIS_IS_PLUGIN(self))
+		return;
+	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
+	if (iface->expose)
+		return
 	GIS_PLUGIN_GET_INTERFACE(self)->expose(self);
 }
 
 GtkWidget *gis_plugin_get_config(GisPlugin *self)
 {
-	g_return_val_if_fail(GIS_IS_PLUGIN(self), NULL);
+	if (!GIS_IS_PLUGIN(self))
+		return NULL;
 	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
 	return iface->get_config ? iface->get_config (self) : NULL;
 }

@@ -31,63 +31,12 @@ GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 	g_debug("GisPluginTest: new");
 	GisPluginTest *self = g_object_new(GIS_TYPE_PLUGIN_TEST, NULL);
 	self->viewer = viewer;
+
+	GisMarker *marker = gis_marker_new("St. Charles");
+	gis_point_set_lle(gis_object_center(marker), 38.841847, -90.491982, 0);
+	gis_viewer_add_object(self->viewer, GIS_OBJECT(marker));
+
 	return self;
-}
-
-static void gis_plugin_test_expose(GisPlugin *_self)
-{
-	GisPluginTest *self = GIS_PLUGIN_TEST(_self);
-	g_debug("GisPluginTest: expose");
-
-	double width  = GTK_WIDGET(self->viewer)->allocation.width;
-	double height = GTK_WIDGET(self->viewer)->allocation.height;
-
-	// St. Charles
-	// lat =  38.841847
-	// lon = -90.491982
-	gdouble px, py, pz;
-	gis_viewer_project(self->viewer,
-		38.841847, -90.491982, 0, &px, &py, &pz);
-	py = height-py;
-
-	//cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
-	//cairo_t *cairo = cairo_create(surface);
-	//cairo_set_source_rgba(cairo, 1, 1, 1, 1);
-	//cairo_arc(cairo, px, py, 4, 0, 2*G_PI);
-	//cairo_fill(cairo);
-	//cairo_move_to(cairo, px+4, py-8);
-	//cairo_set_font_size(cairo, 10);
-	//cairo_show_text(cairo, "Marker!");
-
-	//guint tex;
-	//glEnable(GL_TEXTURE_2D);
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	//glPixelStorei(GL_PACK_ALIGNMENT, 1);
-	//glGenTextures(1, &tex);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-	//		cairo_image_surface_get_data(surface));
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	//glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-	//glMatrixMode(GL_PROJECTION);
-	//glLoadIdentity();
-	//glMatrixMode(GL_MODELVIEW);
-	//glLoadIdentity();
-
-	//glDisable(GL_COLOR_MATERIAL);
-	//glDisable(GL_CULL_FACE);
-	//glDisable(GL_DEPTH_TEST);
-	//glDisable(GL_LIGHTING);
-	//glBegin(GL_QUADS);
-	//glTexCoord2d(0, 0); glVertex3f(-1,  1, 1);
-	//glTexCoord2d(1, 0); glVertex3f( 1,  1, 1);
-	//glTexCoord2d(1, 1); glVertex3f( 1, -1, 1);
-	//glTexCoord2d(0, 1); glVertex3f(-1, -1, 1);
-	//glEnd();
-	//glDeleteTextures(1, &tex);
-	//cairo_destroy(cairo);
-	//cairo_surface_destroy(surface);
 }
 
 
@@ -103,7 +52,6 @@ static void gis_plugin_test_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginTest: plugin_init");
 	/* Add methods to the interface */
-	iface->expose = gis_plugin_test_expose;
 }
 /* Class/Object init */
 static void gis_plugin_test_init(GisPluginTest *self)

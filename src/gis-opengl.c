@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <math.h>
+#include <string.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
 #include <gtk/gtkgl.h>
@@ -29,12 +30,92 @@
 
 #include "gis-opengl.h"
 #include "gis-util.h"
+#include "gis-object.h"
 #include "roam.h"
 
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)
 
 // #define ROAM_DEBUG
+/******************
+ * Object drawing *
+ ******************/
+static void _gis_opengl_draw_triangle(GisOpenGL *self, GisTriangle *tri)
+{
+}
+
+static void _gis_opengl_draw_quad(GisOpenGL *self, GisQuad *quad)
+{
+}
+
+static void _gis_opengl_draw_callback(GisOpenGL *self, GisCallback *cb)
+{
+}
+
+static void _gis_opengl_draw_marker(GisOpenGL *self, GisMarker *marker)
+{
+	GisProjection *proj = (GisProjection*)self->sphere->view;
+	GisPoint *point = gis_object_center(marker);
+	gis_point_project(point, proj);
+
+	double width  = GTK_WIDGET(self)->allocation.width;
+	double height = GTK_WIDGET(self)->allocation.height;
+
+	cairo_set_source_rgba(self->canvas, 1, 1, 1, 1);
+	cairo_arc(self->canvas, point->px, height-point->py, 4, 0, 2*G_PI);
+	cairo_fill(self->canvas);
+	cairo_move_to(self->canvas, point->px+4, height-point->py-8);
+	cairo_set_font_size(self->canvas, 10);
+	cairo_show_text(self->canvas, marker->label);
+}
+
+static void gis_opengl_draw_object(GisOpenGL *self, GisObject *object)
+{
+	g_debug("GisOpenGL: draw_object - Drawing object of type %d", object->type);
+	switch (object->type) {
+	case GIS_TYPE_TRIANGLE: _gis_opengl_draw_triangle(self, GIS_TRIANGLE(object)); break;
+	case GIS_TYPE_QUAD    : _gis_opengl_draw_quad    (self, GIS_QUAD    (object)); break;
+	case GIS_TYPE_CALLBACK: _gis_opengl_draw_callback(self, GIS_CALLBACK(object)); break;
+	case GIS_TYPE_MARKER  : _gis_opengl_draw_marker  (self, GIS_MARKER  (object)); break;
+	default: g_warning("GisOpenGL: draw_object - invalid type %d", object->type);
+	}
+}
+static void gis_opengl_draw_objects(GisOpenGL *self)
+{
+	g_debug("GisOpenGL: draw_objects");
+
+	double width  = GTK_WIDGET(self)->allocation.width;
+	double height = GTK_WIDGET(self)->allocation.height;
+	cairo_surface_t *surface = cairo_get_target(self->canvas);
+	int stride = cairo_image_surface_get_stride(surface);
+	guchar *data = cairo_image_surface_get_data(surface);
+	memset(data, 0, height*stride);
+
+	/* Draw objects */
+	for (GList *cur = GIS_VIEWER(self)->objects; cur; cur = cur->next)
+		gis_opengl_draw_object(self, cur->data);
+
+	/* Copy canvas to opengl */
+	glMatrixMode(GL_PROJECTION); glPushMatrix(); glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);  glPushMatrix(); glLoadIdentity();
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, self->canvas_tex);
+	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0,0, width,height,
+	//		GL_RGBA, GL_UNSIGNED_BYTE, data);
+	glBegin(GL_QUADS);
+	glTexCoord2d(0, 0); glVertex3f(-1,  1, 1);
+	glTexCoord2d(1, 0); glVertex3f( 1,  1, 1);
+	glTexCoord2d(1, 1); glVertex3f( 1, -1, 1);
+	glTexCoord2d(0, 1); glVertex3f(-1, -1, 1);
+	glEnd();
+	glMatrixMode(GL_PROJECTION); glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+}
+
 
 /***********
  * Helpers *
@@ -148,12 +229,33 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 
 	double width  = GTK_WIDGET(self)->allocation.width;
 	double height = GTK_WIDGET(self)->allocation.height;
-	glViewport(0, 0, width, height);
 
+	/* Setup OpenGL Window */
+	glViewport(0, 0, width, height);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	double ang = atan(height/FOV_DIST);
 	gluPerspective(rad2deg(ang)*2, width/height, 1, 20*EARTH_R);
+
+	/* Recreate the canvas */
+	if (self->canvas) {
+		cairo_surface_destroy(cairo_get_target(self->canvas));
+		cairo_destroy(self->canvas);
+		glDeleteTextures(1, &self->canvas_tex);
+	}
+	g_message("creating %fx%f canvas", width, height);
+	cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, width, height);
+	self->canvas = cairo_create(surface);
+	glEnable(GL_TEXTURE_2D);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glGenTextures(1, &self->canvas_tex);
+	glBindTexture(GL_TEXTURE_2D, self->canvas_tex);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			cairo_image_surface_get_data(cairo_get_target(self->canvas)));
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 
 #ifndef ROAM_DEBUG
 	roam_sphere_update_errors(self->sphere);
@@ -163,7 +265,7 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	return FALSE;
 }
 
-static void on_expose_plugin(GisPlugin *plugin, gchar *name, GisOpenGL *self)
+static void _on_expose_plugin(GisPlugin *plugin, gchar *name, GisOpenGL *self)
 {
 	_set_visuals(self);
 	glMatrixMode(GL_PROJECTION); glPushMatrix();
@@ -180,8 +282,9 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #ifndef ROAM_DEBUG
-	gis_plugins_foreach(GIS_VIEWER(self)->plugins, G_CALLBACK(on_expose_plugin), self);
-
+	gis_plugins_foreach(GIS_VIEWER(self)->plugins,
+			G_CALLBACK(_on_expose_plugin), self);
+	gis_opengl_draw_objects(self);
 	if (self->wireframe) {
 		_set_visuals(self);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -193,7 +296,6 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	roam_sphere_draw(self->sphere);
-
 	//roam_sphere_draw_normals(self->sphere);
 #endif
 
@@ -227,8 +329,7 @@ static gboolean on_key_press(GisOpenGL *self, GdkEventKey *event, gpointer _)
 #else
 	gdk_threads_enter();
 #endif
-
-	return TRUE;
+	return FALSE;
 }
 
 static gboolean _update_errors_cb(gpointer sphere)
@@ -450,14 +551,14 @@ static void gis_opengl_init(GisOpenGL *self)
 	self->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, self, NULL);
 #endif
 
-	g_signal_connect(self, "realize",            G_CALLBACK(on_realize),      NULL);
-	g_signal_connect(self, "configure-event",    G_CALLBACK(on_configure),    NULL);
-	g_signal_connect(self, "expose-event",       G_CALLBACK(on_expose),       NULL);
+	g_signal_connect(self, "realize",          G_CALLBACK(on_realize),      NULL);
+	g_signal_connect(self, "configure-event",  G_CALLBACK(on_configure),    NULL);
+	g_signal_connect(self, "expose-event",     G_CALLBACK(on_expose),       NULL);
 
-	g_signal_connect(self, "key-press-event",    G_CALLBACK(on_key_press),    NULL);
+	g_signal_connect(self, "key-press-event",  G_CALLBACK(on_key_press),    NULL);
 
-	g_signal_connect(self, "location-changed",   G_CALLBACK(on_view_changed), NULL);
-	g_signal_connect(self, "rotation-changed",   G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(self, "location-changed", G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(self, "rotation-changed", G_CALLBACK(on_view_changed), NULL);
 }
 static void gis_opengl_dispose(GObject *_self)
 {
@@ -476,6 +577,17 @@ static void gis_opengl_dispose(GObject *_self)
 		self->sphere = NULL;
 	}
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
+}
+static void gis_opengl_finalize(GObject *_self)
+{
+	g_debug("GisViewer: finalize");
+	GisOpenGL *self = GIS_OPENGL(_self);
+	if (self->canvas) {
+		cairo_surface_destroy(cairo_get_target(self->canvas));
+		cairo_destroy(self->canvas);
+		self->canvas = NULL;
+	}
+	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
 static void gis_opengl_class_init(GisOpenGLClass *klass)
 {

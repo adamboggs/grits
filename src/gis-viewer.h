@@ -36,12 +36,14 @@ typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
 #include "gis-tile.h"
 #include "gis-plugin.h"
+#include "gis-object.h"
 
 struct _GisViewer {
 	GtkDrawingArea parent_instance;
 
 	/* instance members */
 	GisPlugins *plugins;
+	GList      *objects;
 	gchar      *time;
 	gchar      *site;
 	gdouble     location[3];
@@ -97,6 +99,9 @@ void gis_viewer_refresh(GisViewer *viewer);
 
 void gis_viewer_set_offline(GisViewer *viewer, gboolean offline);
 gboolean gis_viewer_get_offline(GisViewer *viewer);
+
+void gis_viewer_add_object(GisViewer *self, GisObject *object);
+void gis_viewer_remove_object(GisViewer *self, GisObject *object);
 
 /* To be implemented by subclasses */
 void gis_viewer_center_position(GisViewer *viewer,

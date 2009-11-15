@@ -18,7 +18,7 @@
 #include <glib.h>
 #include <GL/glu.h>
 
-#include "gis-prims.h"
+#include "gis-object.h"
 #include "gis-util.h"
 
 /* TODO
@@ -78,7 +78,8 @@ void gis_point_unref(GisPoint *self)
 GisTriangle *gis_triangle_new(GisPoint *a, GisPoint *b, GisPoint *c, guint tex)
 {
 	GisTriangle *self = g_new0(GisTriangle, 1);
-	gis_point_set_xyz(&GIS_PRIMITIVE(self)->center,
+	GIS_OBJECT(self)->type = GIS_TYPE_TRIANGLE;
+	gis_point_set_xyz(&GIS_OBJECT(self)->center,
 		(a->x + b->x + c->x)/3,
 		(a->y + b->y + c->y)/3,
 		(a->z + b->z + c->z)/3);
@@ -102,7 +103,8 @@ void gis_triangle_free(GisTriangle *self)
 GisQuad *gis_quad_new(GisPoint *a, GisPoint *b, GisPoint *c, GisPoint *d, guint tex)
 {
 	GisQuad *self = g_new0(GisQuad, 1);
-	gis_point_set_xyz(&GIS_PRIMITIVE(self)->center,
+	GIS_OBJECT(self)->type = GIS_TYPE_QUAD;
+	gis_point_set_xyz(&GIS_OBJECT(self)->center,
 		(a->x + b->x + c->x + d->x)/4,
 		(a->y + b->y + c->y + d->y)/4,
 		(a->z + b->z + c->z + d->z)/4);
@@ -128,6 +130,7 @@ void gis_quad_free(GisQuad *self)
 GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
 {
 	GisCallback *self = g_new0(GisCallback, 1);
+	GIS_OBJECT(self)->type = GIS_TYPE_CALLBACK;
 	self->callback  = callback;
 	self->user_data = user_data;
 	return self;
@@ -135,5 +138,21 @@ GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
 
 void gis_callback_free(GisCallback *self)
 {
+	g_free(self);
+}
+
+
+/* GisCallback */
+GisMarker *gis_marker_new(const gchar *label)
+{
+	GisMarker *self = g_new0(GisMarker, 1);
+	GIS_OBJECT(self)->type = GIS_TYPE_MARKER;
+	self->label = g_strdup(label);;
+	return self;
+}
+
+void gis_marker_free(GisMarker *self)
+{
+	g_free(self->label);
 	g_free(self);
 }
