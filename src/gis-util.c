@@ -65,3 +65,16 @@ gdouble distd(gdouble *a, gdouble *b)
 	            (a[1]-b[1])*(a[1]-b[1]) +
 	            (a[2]-b[2])*(a[2]-b[2]));
 }
+
+gdouble lon_avg(gdouble a, gdouble b)
+{
+	gdouble diff = ABS(a-b);
+	gdouble avg  = (a+b)/2;
+	if (diff > 180) {
+		if (avg >= 0)
+			avg -= 180;
+		else
+			avg += 180;
+	}
+	return avg;
+}

@@ -91,4 +91,6 @@ gdouble ll2m(gdouble lon_dist, gdouble lat);
 
 gdouble distd(gdouble *a, gdouble *b);
 
+gdouble lon_avg(gdouble a, gdouble b);
+
 #endif

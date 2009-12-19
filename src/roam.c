@@ -46,17 +46,18 @@ static gint dia_cmp(RoamDiamond *a, RoamDiamond *b, gpointer data)
 	else                          return  0;
 }
 
+
 /*************
  * RoamPoint *
  *************/
-RoamPoint *roam_point_new(gdouble x, gdouble y, gdouble z)
+RoamPoint *roam_point_new(gdouble lat, gdouble lon, gdouble elev)
 {
 	RoamPoint *self = g_new0(RoamPoint, 1);
-	self->x = x;
-	self->y = y;
-	self->z = z;
+	self->lat  = lat;
+	self->lon  = lon;
+	self->elev = elev;
 	/* For get_intersect */
-	xyz2ll(x, y, z, &self->lat, &self->lon);
+	lle2xyz(lat, lon, elev, &self->x, &self->y, &self->z);
 	return self;
 }
 RoamPoint *roam_point_dup(RoamPoint *self)
@@ -93,13 +94,6 @@ void roam_point_update_height(RoamPoint *self)
 				self->lat, self->lon, self->height_data);
 		lle2xyz(self->lat, self->lon, elev,
 				&self->x, &self->y, &self->z);
-	} else {
-		gdouble dist = sqrt(self->x * self->x +
-				    self->y * self->y +
-				    self->z * self->z);
-		self->x = self->x/dist * EARTH_R;
-		self->y = self->y/dist * EARTH_R;
-		self->z = self->z/dist * EARTH_R;
 	}
 }
 void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
@@ -134,9 +128,11 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 	self->p.m = m;
 	self->p.r = r;
 	self->split = roam_point_new(
-		(l->x + r->x)/2,
-		(l->y + r->y)/2,
-		(l->z + r->z)/2);
+		(l->lat + r->lat)/2,
+		(ABS(l->lat) == 90 ? r->lon :
+		 ABS(r->lat) == 90 ? l->lon :
+		 lon_avg(l->lon, r->lon)),
+		(l->elev + r->elev)/2);
 	/* TODO: Move this back to sphere, or actually use the nesting */
 	self->split->height_func = m->height_func;
 	self->split->height_data = m->height_data;
@@ -173,10 +169,7 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 	self->norm[2] /= total;
 
 	/* Store bounding box, for get_intersect */
-	RoamPoint *m1 = roam_point_new((l->x+m->x)/2, (l->y+m->y)/2, (l->z+m->z)/2);
-	RoamPoint *m2 = roam_point_new((m->x+r->x)/2, (m->y+r->y)/2, (m->z+r->z)/2);
-	RoamPoint *m3 = roam_point_new((r->x+l->x)/2, (r->y+l->y)/2, (r->z+l->z)/2);
-	RoamPoint *p[] = {l,m,r,m1,m2,m3};
+	RoamPoint *p[] = {l,m,r};
 	self->edge.n =  -90; self->edge.s =  90;
 	self->edge.e = -180; self->edge.w = 180;
 	gboolean maxed = FALSE;
@@ -198,9 +191,6 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 		else
 			self->edge.e =  180;
 	}
-	g_free(m1);
-	g_free(m2);
-	g_free(m3);
 
 	//g_message("roam_triangle_new: %p", self);
 	return self;
@@ -479,12 +469,12 @@ RoamSphere *roam_sphere_new()
 	self->diamonds    = g_pqueue_new((GCompareDataFunc)dia_cmp, NULL);
 
 	RoamPoint *vertexes[] = {
-		roam_point_new( 0, 1, 0), // 0
-		roam_point_new( 0,-1, 0), // 1
-		roam_point_new( 0, 0, 1), // 2
-		roam_point_new( 1, 0, 0), // 3
-		roam_point_new( 0, 0,-1), // 4
-		roam_point_new(-1, 0, 0), // 5
+		roam_point_new( 90,   0,  0), // 0 (North)
+		roam_point_new(-90,   0,  0), // 1 (South)
+		roam_point_new(  0,   0,  0), // 2 (Europe/Africa)
+		roam_point_new(  0,  90,  0), // 3 (Asia,East)
+		roam_point_new(  0, 180,  0), // 4 (Pacific)
+		roam_point_new(  0, -90,  0), // 5 (Americas,West)
 	};
 	int _triangles[][2][3] = {
 		/*lv mv rv   ln, bn, rn */
@@ -610,7 +600,7 @@ void roam_sphere_draw_normals(RoamSphere *self)
 	g_debug("RoamSphere: draw_normal");
 	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw_normal, NULL);
 }
-GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list)
+static GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list)
 {
 	if (tri->kids[0] && tri->kids[1]) {
 		list = _roam_sphere_get_leaves(tri->kids[0], list);
@@ -620,7 +610,7 @@ GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list)
 		return g_list_append(list, tri);
 	}
 }
-GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
+static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {
 	gdouble tn = tri->edge.n;

@@ -48,7 +48,7 @@ struct _RoamPoint {
 	gdouble  norm[3];   // Vertex normal
 
 	/* For get_intersect */
-	gdouble  lat, lon;
+	gdouble  lat, lon, elev;
 
 	/* For terrain */
 	RoamHeightFunc height_func;
