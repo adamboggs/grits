@@ -3,17 +3,90 @@
 #include <gdk/gdkkeysyms.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <stdlib.h>
 
-guint tex, texl, texr;
+typedef struct {
+	gfloat xyz[3];
+	gfloat color[4];
+} __attribute__ ((packed)) vert_t;
 
-gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer _)
+static int sort_cmp(const void *a, const void *b)
 {
-	if (event->keyval == GDK_q)
-		gtk_main_quit();
-	return FALSE;
+	vert_t *a_verts = (vert_t*)(((gfloat*)a)+2);
+	vert_t *b_verts = (vert_t*)(((gfloat*)b)+2);
+	gfloat a_sum = a_verts[0].xyz[2] + a_verts[1].xyz[2] + a_verts[2].xyz[2];
+	gfloat b_sum = b_verts[0].xyz[2] + b_verts[1].xyz[2] + b_verts[2].xyz[2];
+	return a_sum == b_sum ? 0 :
+	       a_sum <  b_sum ? 1 : -1;
 }
 
-gboolean on_expose(GtkWidget *drawing, GdkEventExpose *event, gpointer _)
+static gfloat *sort_start()
+{
+	int size = 1000000;
+	gfloat *data = g_new0(gfloat, size);
+	glFeedbackBuffer(size, GL_3D_COLOR, data);
+	glRenderMode(GL_FEEDBACK);
+	g_print("1st = %f\n", data[0]);
+	return data;
+}
+
+static void sort_end(gfloat *data)
+{
+	int vertsize = sizeof(vert_t)/sizeof(gfloat);
+	int count = glRenderMode(GL_RENDER);
+
+	/* Set up screen coords */
+	gint view[4];
+	glGetIntegerv(GL_VIEWPORT, view);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrtho(view[0],view[2], view[1],view[3], -10,10);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glDisable(GL_LIGHTING);
+
+	/* Sort the vertexes (this only works with all-triangles */
+	int trisize = 2*sizeof(gfloat) + 3*sizeof(vert_t);
+	int ntris   = count / trisize;
+	g_print("%d, %d, %d\n", sizeof(gfloat), trisize, ntris);
+	qsort(data, ntris*4, trisize, sort_cmp);
+
+	/* Draw the data */
+	for (int i = 0; i < count;) {
+		gfloat token = data[i++];
+		if (token == GL_POLYGON_TOKEN) {
+			gfloat n = data[i++];
+			vert_t *verts = (vert_t*)&data[i];
+			i += n*vertsize;
+			//g_print("GL_POLYGON_TOKEN: %f\n", n);
+
+			/* Draw triangle */
+			glBegin(GL_TRIANGLES);
+			for (int j = 0; j < n; j++) {
+				//g_print("\t%f, %f, %f\n",
+				//	verts[j].xyz[0],
+				//	verts[j].xyz[1],
+				//	verts[j].xyz[2]);
+				glColor4fv(verts[j].color);
+				glVertex3fv(verts[j].xyz);
+			}
+			glEnd();
+
+			/* Draw line */
+			glColor4f(1,1,1,1);
+			glBegin(GL_LINE_LOOP);
+			for (int j = 0; j < n; j++)
+				glVertex3fv(verts[j].xyz);
+			glEnd();
+		} else {
+			g_error("Unknown token: %f\n", token);
+		}
+	}
+}
+
+static gboolean on_expose(GtkWidget *drawing, GdkEventExpose *event, gpointer _)
 {
 	//glClearColor(0.5, 0.5, 1.0, 1.0);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -43,22 +116,24 @@ gboolean on_expose(GtkWidget *drawing, GdkEventExpose *event, gpointer _)
 	/* Set up projection */
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glOrtho(1,-1, -1,1, -10,10);
+	glOrtho(1,-1, -0.7,0.7, -10,10);
 
 	/* Draw teapots */
 	glMatrixMode(GL_MODELVIEW);
 
+	gfloat *data = sort_start();
 	glLoadIdentity();
-	glTranslatef(-0.2, -0.2, -2);
+	glTranslatef(0.05, 0.05, -2);
 	glRotatef(30, 1, -1, -0.2);
-	glColor4f(0.6, 0.6, 0.4, 0.5);
+	glColor4f(1.0, 0.2, 0.2, 0.6);
 	gdk_gl_draw_teapot(TRUE, 0.5);
 
 	glLoadIdentity();
-	glTranslatef(0.2, 0.2, -2);
+	glTranslatef(-0.2, -0.05, -2);
 	glRotatef(30, 1, -1, -0.2);
-	glColor4f(0.6, 0.6, 0.4, 0.5);
+	glColor4f(0.2, 0.2, 1.0, 0.6);
 	gdk_gl_draw_teapot(TRUE, 0.5);
+	sort_end(data);
 
 	/* Flush */
 	GdkGLDrawable *gldrawable = gdk_gl_drawable_get_current();
@@ -69,11 +144,18 @@ gboolean on_expose(GtkWidget *drawing, GdkEventExpose *event, gpointer _)
 	return FALSE;
 }
 
-gboolean on_configure(GtkWidget *drawing, GdkEventConfigure *event, gpointer _)
+static gboolean on_configure(GtkWidget *drawing, GdkEventConfigure *event, gpointer _)
 {
 	glViewport(0, 0,
 		drawing->allocation.width,
 		drawing->allocation.height);
+	return FALSE;
+}
+
+static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer _)
+{
+	if (event->keyval == GDK_q)
+		gtk_main_quit();
 	return FALSE;
 }
 
