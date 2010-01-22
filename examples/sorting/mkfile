@@ -1,0 +1,6 @@
+MKSHELL=/usr/lib/plan9/bin/rc
+PROGS=sort
+sort_libs=`{pkg-config --libs gtkglext-1.0}
+sort_cflags=`{pkg-config --cflags gtkglext-1.0}
+default:V: sort-run
+<$HOME/lib/mkcommon
