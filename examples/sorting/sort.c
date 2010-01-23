@@ -33,7 +33,7 @@ static gfloat *sort_start()
 static void sort_end(gfloat *data)
 {
 	int vertsize = sizeof(vert_t)/sizeof(gfloat);
-	int count = glRenderMode(GL_RENDER);
+	int nvals = glRenderMode(GL_RENDER);
 
 	/* Set up screen coords */
 	gint view[4];
@@ -49,12 +49,12 @@ static void sort_end(gfloat *data)
 
 	/* Sort the vertexes (this only works with all-triangles */
 	int trisize = 2*sizeof(gfloat) + 3*sizeof(vert_t);
-	int ntris   = count / trisize;
+	int ntris   = nvals*sizeof(gfloat) / trisize;
 	g_print("%d, %d, %d\n", sizeof(gfloat), trisize, ntris);
-	qsort(data, ntris*4, trisize, sort_cmp);
+	qsort(data, ntris, trisize, sort_cmp);
 
 	/* Draw the data */
-	for (int i = 0; i < count;) {
+	for (int i = 0; i < nvals;) {
 		gfloat token = data[i++];
 		if (token == GL_POLYGON_TOKEN) {
 			gfloat n = data[i++];
@@ -84,6 +84,7 @@ static void sort_end(gfloat *data)
 			g_error("Unknown token: %f\n", token);
 		}
 	}
+	g_free(data);
 }
 
 static gboolean on_expose(GtkWidget *drawing, GdkEventExpose *event, gpointer _)
