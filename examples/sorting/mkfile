@@ -1,6 +1,7 @@
 MKSHELL=/usr/lib/plan9/bin/rc
-PROGS=sort
-sort_libs=`{pkg-config --libs gtkglext-1.0}
-sort_cflags=`{pkg-config --cflags gtkglext-1.0}
-default:V: sort-run
+PROGS=sort tes
+LIBS=`{pkg-config --libs gtkglext-1.0}
+CFLAGS=-Wall -g '--std=c99' `{pkg-config --cflags gtkglext-1.0}
+
+default:V: tes-run
 <$HOME/lib/mkcommon
