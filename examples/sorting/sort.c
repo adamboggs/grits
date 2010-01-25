@@ -264,6 +264,56 @@ static guint load_tex(gchar *filename)
 	return tex;
 }
 
+gchar *gl_program_log(guint program, int *_len)
+{
+	gchar *buf = NULL;
+	int len = 0;
+	glGetProgramiv(program, GL_INFO_LOG_LENGTH, &len);
+	if (len > 0) {
+		buf = g_malloc(len);
+		glGetProgramInfoLog(program, len, &len, buf);
+	}
+	if (_len)
+		*_len = len;
+	return buf;
+}
+
+static void load_shader(gchar *filename)
+{
+	gchar *source;
+	gboolean status = g_file_get_contents(filename, &source, NULL, NULL);
+	if (!status)
+		g_error("Failed to load shader");
+
+	guint program = glCreateProgram();
+	if (!program)
+		g_error("Error creating program");
+
+	guint shader = glCreateShader(GL_VERTEX_SHADER_ARB);
+	if (!shader)
+		g_error("Error creating shader");
+
+	glShaderSource(shader, 1, (const gchar**)&source, NULL);
+	if (glGetError())
+		g_error("Error setting shader source");
+
+	glCompileShader(shader);
+	if (glGetError())
+		g_error("Error compiling shader");
+
+	glAttachShader(program, shader);
+	if (glGetError())
+		g_error("Error attaching shader");
+
+	glLinkProgram(program);
+	if (glGetError())
+		g_error("Error linking program");
+
+	glUseProgram(program);
+	if (glGetError())
+		g_error("Error using program:\n%s", gl_program_log(program, NULL));
+}
+
 int main(int argc, char **argv)
 {
 	gtk_init(&argc, &argv);
@@ -288,6 +338,9 @@ int main(int argc, char **argv)
 
 	/* Load texture */
 	tex = load_tex("flag.png");
+
+	/* Load shader */
+	load_shader("sort.glsl");
 
 	gtk_main();
 
