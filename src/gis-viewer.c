@@ -27,12 +27,6 @@
 
 /* Constants */
 enum {
-	PROP_0,
-	PROP_TIME,
-	PROP_SITE,
-	PROP_OFFLINE,
-};
-enum {
 	SIG_TIME_CHANGED,
 	SIG_SITE_CHANGED,
 	SIG_LOCATION_CHANGED,
@@ -371,57 +365,11 @@ static void gis_viewer_finalize(GObject *gobject)
 	g_free(self->site);
 	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
-static void gis_viewer_set_property(GObject *object, guint property_id,
-		const GValue *value, GParamSpec *pspec)
-{
-	g_debug("GisViewer: set_property");
-	GisViewer *self = GIS_VIEWER(object);
-	switch (property_id) {
-	case PROP_TIME:    gis_viewer_set_time   (self, g_value_get_string (value)); break;
-	case PROP_SITE:    gis_viewer_set_site   (self, g_value_get_string (value)); break;
-	case PROP_OFFLINE: gis_viewer_set_offline(self, g_value_get_boolean(value)); break;
-	default:           G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
-	}
-}
-static void gis_viewer_get_property(GObject *object, guint property_id,
-		GValue *value, GParamSpec *pspec)
-{
-	g_debug("GisViewer: get_property");
-	GisViewer *self = GIS_VIEWER(object);
-	switch (property_id) {
-	case PROP_TIME:    g_value_set_string (value, gis_viewer_get_time   (self)); break;
-	case PROP_SITE:    g_value_set_string (value, gis_viewer_get_site   (self)); break;
-	case PROP_OFFLINE: g_value_set_boolean(value, gis_viewer_get_offline(self)); break;
-	default:           G_OBJECT_WARN_INVALID_PROPERTY_ID(object, property_id, pspec);
-	}
-}
 static void gis_viewer_class_init(GisViewerClass *klass)
 {
 	g_debug("GisViewer: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	gobject_class->finalize     = gis_viewer_finalize;
-	gobject_class->get_property = gis_viewer_get_property;
-	gobject_class->set_property = gis_viewer_set_property;
-	g_object_class_install_property(gobject_class, PROP_TIME,
-		g_param_spec_pointer(
-			"time",
-			"time of the current frame",
-			"(format unknown)",
-			G_PARAM_READWRITE));
-	g_object_class_install_property(gobject_class, PROP_SITE,
-		g_param_spec_pointer(
-			"site",
-			"site seen by the viewerport",
-			"Site of the viewerport. "
-			"Currently this is the name of the radar site.",
-			G_PARAM_READWRITE));
-	g_object_class_install_property(gobject_class, PROP_OFFLINE,
-		g_param_spec_pointer(
-			"offline",
-			"whether the viewer should access the network",
-			"Offline state of the viewer. "
-			"If set to true, the viewer will not access the network",
-			G_PARAM_READWRITE));
 	signals[SIG_TIME_CHANGED] = g_signal_new(
 			"time-changed",
 			G_TYPE_FROM_CLASS(gobject_class),
