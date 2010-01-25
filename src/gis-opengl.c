@@ -329,8 +329,8 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-#ifdef ROAM_DEBUG
 	_set_visuals(self);
+#ifdef ROAM_DEBUG
 	glColor4f(0.0, 0.0, 9.0, 0.6);
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -339,7 +339,6 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 #else
 	g_tree_foreach(self->objects, _draw_level, self);
 	if (self->wireframe) {
-		_set_visuals(self);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		roam_sphere_draw(self->sphere);
 	}
