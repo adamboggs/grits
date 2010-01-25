@@ -88,6 +88,7 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 #define LOAD_OPENGL FALSE
 struct _LoadTileData {
 	GisPluginSrtm    *self;
+	gchar            *path;
 	GisTile          *tile;
 	GdkPixbuf        *pixbuf;
 	struct _TileData *data;
@@ -150,10 +151,12 @@ static guint _load_opengl(GdkPixbuf *pixbuf)
 static gboolean _load_tile_cb(gpointer _load)
 {
 	struct _LoadTileData *load = _load;
+	g_debug("GisPluginSrtm: _load_tile_cb: %s", load->path);
 	GisPluginSrtm    *self   = load->self;
 	GisTile          *tile   = load->tile;
 	GdkPixbuf        *pixbuf = load->pixbuf;
 	struct _TileData *data   = load->data;
+	g_free(load->path);
 	g_free(load);
 
 	if (LOAD_OPENGL)
@@ -178,19 +181,18 @@ static void _load_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginSrtm *self = _self;
 
-	g_debug("GisPluginSrtm: _load_tile");
-	gchar *path = gis_wms_make_local(self->wms, tile);
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
+	load->path = gis_wms_make_local(self->wms, tile);
+	g_debug("GisPluginSrtm: _load_tile: %s", load->path);
 	load->self = self;
 	load->tile = tile;
 	load->data = g_new0(struct _TileData, 1);
 	if (LOAD_BIL || LOAD_OPENGL)
-		load->data->bil = _load_bil(path);
+		load->data->bil = _load_bil(load->path);
 	if (LOAD_OPENGL)
 		load->pixbuf = _load_pixbuf(load->data->bil);
 
 	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, load, NULL);
-	g_free(path);
 }
 
 static gboolean _free_tile_cb(gpointer _data)

@@ -296,6 +296,8 @@ void roam_triangle_split(RoamTriangle *self, RoamSphere *sphere)
 
 	if (self != self->t.b->t.b)
 		roam_triangle_split(self->t.b, sphere);
+	if (self != self->t.b->t.b)
+		g_assert_not_reached();
 
 	RoamTriangle *base = self->t.b;
 
@@ -608,7 +610,7 @@ static GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list, gboolean a
 		list = _roam_sphere_get_leaves(tri->kids[1], list, all);
 		return list;
 	} else {
-		return g_list_append(list, tri);
+		return g_list_prepend(list, tri);
 	}
 }
 static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
@@ -630,7 +632,7 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 		/* No intersect */
 		if (debug) g_message("no intersect");
 		return list;
-	} else if (tn < n && ts > s && te < e && tw > w) {
+	} else if (tn <= n && ts >= s && te <= e && tw >= w) {
 		/* Triangle is completely contained */
 		if (debug) g_message("contained");
 		if (all) list = g_list_prepend(list, tri);
@@ -645,7 +647,7 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 	} else {
 		/* This triangle is an edge case */
 		if (debug) g_message("edge");
-		return g_list_append(list, tri);
+		return g_list_prepend(list, tri);
 	}
 }
 GList *roam_sphere_get_intersect(RoamSphere *self, gboolean all,

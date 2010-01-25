@@ -523,9 +523,12 @@ static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 		RoamTriangle *tri = cur->data;
 		RoamPoint *points[] = {tri->p.l, tri->p.m, tri->p.r, tri->split};
 		for (int i = 0; i < G_N_ELEMENTS(points); i++) {
-			points[i]->height_func = height_func;
-			points[i]->height_data = user_data;
-			roam_point_update_height(points[i]);
+			if (tile->edge.n >= points[i]->lat && points[i]->lat >= tile->edge.s &&
+			    tile->edge.e >= points[i]->lon && points[i]->lon >= tile->edge.w) {
+				points[i]->height_func = height_func;
+				points[i]->height_data = user_data;
+				roam_point_update_height(points[i]);
+			}
 		}
 	}
 	g_list_free(triangles);
