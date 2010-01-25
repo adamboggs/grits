@@ -14,6 +14,7 @@ gis_include_HEADERS = \
 	gis-prefs.h   \
 	gis-opengl.h  \
 	gis-plugin.h  \
+	gis-object.h  \
 	gis-util.h    \
 	gis-data.h    \
 	gis-tile.h    \
