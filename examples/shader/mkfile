@@ -1,0 +1,4 @@
+PROGS=shader
+PKGS=gtkglext-1.0
+defualt:V: shader-run
+<$HOME/lib/mkcommon
