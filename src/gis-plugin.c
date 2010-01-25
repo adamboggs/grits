@@ -70,21 +70,22 @@ GisPlugins *gis_plugins_new(gchar *dir)
 	GisPlugins *plugins = g_new0(GisPlugins, 1);
 	if (dir)
 		plugins->dir = g_strdup(dir);
-	plugins->plugins = g_ptr_array_new();
 	return plugins;
 }
 
 void gis_plugins_free(GisPlugins *self)
 {
 	g_debug("GisPlugins: free");
-	for (int i = 0; i < self->plugins->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
+	for (GList *cur = self->plugins; cur; cur = cur->next) {
+		GisPluginStore *store = cur->data;
+		g_debug("GisPlugin: freeing %s refs=%d->%d", store->name,
+			G_OBJECT(store->plugin)->ref_count,
+			G_OBJECT(store->plugin)->ref_count-1);
 		g_object_unref(store->plugin);
 		g_free(store->name);
 		g_free(store);
-		g_ptr_array_remove_index(self->plugins, i);
 	}
-	g_ptr_array_free(self->plugins, TRUE);
+	g_list_free(self->plugins);
 	if (self->dir)
 		g_free(self->dir);
 	g_free(self);
@@ -151,20 +152,20 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 	GisPluginStore *store = g_new0(GisPluginStore, 1);
 	store->name = g_strdup(name);
 	store->plugin = constructor(viewer, prefs);
-	g_ptr_array_add(self->plugins, store);
+	self->plugins = g_list_prepend(self->plugins, store);
 	return store->plugin;
 }
 
 gboolean gis_plugins_unload(GisPlugins *self, const char *name)
 {
 	g_debug("GisPlugins: unload %s", name);
-	for (int i = 0; i < self->plugins->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
+	for (GList *cur = self->plugins; cur; cur = cur->next) {
+		GisPluginStore *store = cur->data;
 		if (g_str_equal(store->name, name)) {
 			g_object_unref(store->plugin);
 			g_free(store->name);
 			g_free(store);
-			g_ptr_array_remove_index(self->plugins, i);
+			self->plugins = g_list_delete_link(self->plugins, cur);
 		}
 	}
 	return FALSE;
@@ -176,8 +177,8 @@ void gis_plugins_foreach(GisPlugins *self, GCallback _callback, gpointer user_da
 		return;
 	typedef void (*CBFunc)(GisPlugin *, const gchar *, gpointer);
 	CBFunc callback = (CBFunc)_callback;
-	for (int i = 0; i < self->plugins->len; i++) {
-		GisPluginStore *store = g_ptr_array_index(self->plugins, i);
+	for (GList *cur = self->plugins; cur; cur = cur->next) {
+		GisPluginStore *store = cur->data;
 		callback(store->plugin, store->name, user_data);
 	}
 }

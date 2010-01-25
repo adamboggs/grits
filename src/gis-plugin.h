@@ -49,8 +49,8 @@ GtkWidget *gis_plugin_get_config(GisPlugin *self);
 #include "gis-prefs.h"
 
 struct _GisPlugins {
-	gchar     *dir;
-	GPtrArray *plugins;
+	gchar *dir;
+	GList *plugins;
 };
 
 typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);

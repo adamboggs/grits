@@ -57,7 +57,7 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 		g_free(tmp);
 	}
 	if (error) {
-		g_warning("GisPrefs: new - Unable to load key file `%s': %s",
+		g_debug("GisPrefs: new - Unable to load key file `%s': %s",
 			self->key_path, error->message);
 	}
 	return self;

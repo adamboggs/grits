@@ -254,7 +254,7 @@ GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer)
 {
 	g_debug("GisPluginSrtm: new");
 	GisPluginSrtm *self = g_object_new(GIS_TYPE_PLUGIN_SRTM, NULL);
-	self->viewer = viewer;
+	self->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
 	_load_tile(self->tiles, self);
@@ -301,9 +301,13 @@ static void gis_plugin_srtm_dispose(GObject *gobject)
 	g_debug("GisPluginSrtm: dispose");
 	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
 	/* Drop references */
-	g_signal_handler_disconnect(self->viewer, self->sigid);
 	if (LOAD_BIL)
 		gis_viewer_clear_height_func(self->viewer);
+	if (self->viewer) {
+		g_signal_handler_disconnect(self->viewer, self->sigid);
+		g_object_unref(self->viewer);
+		self->viewer = NULL;
+	}
 	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);
 }
 static void gis_plugin_srtm_finalize(GObject *gobject)

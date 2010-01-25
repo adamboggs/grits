@@ -663,10 +663,6 @@ static void gis_opengl_dispose(GObject *_self)
 		g_source_remove(self->sm_source[1]);
 		self->sm_source[1] = 0;
 	}
-	if (self->sphere) {
-		roam_sphere_free(self->sphere);
-		self->sphere = NULL;
-	}
 	/* TODO: Cleanup/free objects tree */
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
 }
@@ -674,6 +670,7 @@ static void gis_opengl_finalize(GObject *_self)
 {
 	g_debug("GisViewer: finalize");
 	GisOpenGL *self = GIS_OPENGL(_self);
+	roam_sphere_free(self->sphere);
 	g_mutex_free(self->sphere_lock);
 	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
@@ -681,7 +678,7 @@ static void gis_opengl_class_init(GisOpenGLClass *klass)
 {
 	g_debug("GisOpenGL: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->dispose     = gis_opengl_dispose;
+	gobject_class->dispose = gis_opengl_dispose;
 
 	GisViewerClass *viewer_class = GIS_VIEWER_CLASS(klass);
 	viewer_class->center_position   = gis_opengl_center_position;

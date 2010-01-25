@@ -24,13 +24,15 @@
 /*************
  * Callbacks *
  *************/
-static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event, gpointer _)
+static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
+		gpointer _window)
 {
 	g_debug("GisTest: on_key_press - key=%x, state=%x",
 			event->keyval, event->state);
+	GtkWidget *window = _window;
 	switch (event->keyval) {
 	case GDK_q:
-		gtk_widget_destroy(widget);
+		gtk_widget_destroy(window);
 		return TRUE;
 	}
 	return FALSE;
@@ -52,7 +54,7 @@ int main(int argc, char **argv)
 	gdk_threads_enter();
 	GtkWidget  *window  = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(window,  "destroy",         G_CALLBACK(gtk_main_quit), NULL);
-	g_signal_connect(window,  "key-press-event", G_CALLBACK(on_key_press),  NULL);
+	g_signal_connect(window,  "key-press-event", G_CALLBACK(on_key_press),  window);
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(viewer));
 	gtk_widget_show_all(window);
 	gdk_threads_leave();
@@ -64,9 +66,8 @@ int main(int argc, char **argv)
 	gdk_threads_enter();
 	gtk_main();
 
-	g_object_unref(prefs);
-	g_object_unref(viewer);
 	gis_plugins_free(plugins);
+	g_object_unref(prefs);
 	gdk_threads_leave();
 	return 0;
 }
