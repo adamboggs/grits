@@ -35,25 +35,7 @@ static gboolean rotate(gpointer _self)
 	return TRUE;
 }
 
-
-/***********
- * Methods *
- ***********/
-GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
-{
-	g_debug("GisPluginTeapot: new");
-	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
-	self->viewer = viewer;
-	return self;
-}
-
-static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_self)
-{
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
-	return GTK_WIDGET(self->button);
-}
-
-static void gis_plugin_teapot_expose(GisPlugin *_self)
+static gpointer expose(GisCallback *callback, gpointer _self)
 {
 	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
 	g_debug("GisPluginTeapot: expose");
@@ -78,6 +60,31 @@ static void gis_plugin_teapot_expose(GisPlugin *_self)
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
 	gdk_gl_draw_teapot(TRUE, 0.25);
+
+	return NULL;
+}
+
+
+/***********
+ * Methods *
+ ***********/
+GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
+{
+	g_debug("GisPluginTeapot: new");
+	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
+	self->viewer = viewer;
+
+	/* Add renderers */
+	GisCallback *callback = gis_callback_new(expose, self);
+	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
+
+	return self;
+}
+
+static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_self)
+{
+	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
+	return GTK_WIDGET(self->button);
 }
 
 
@@ -93,7 +100,6 @@ static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginTeapot: plugin_init");
 	/* Add methods to the interface */
-	iface->expose     = gis_plugin_teapot_expose;
 	iface->get_config = gis_plugin_teapot_get_config;
 }
 /* Class/Object init */
