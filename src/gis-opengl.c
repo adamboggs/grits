@@ -98,25 +98,43 @@ static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 	glEnd();
 }
 
-
-static void _draw_objects(GisOpenGL *self)
+static void _draw_callback(GisOpenGL *self, GisCallback *callback)
 {
-	g_debug("GisOpenGL: draw_objects");
-	/* Draw objects */
-	for (GList *cur = self->objects; cur; cur = cur->next) {
-		glMatrixMode(GL_PROJECTION); glPushMatrix();
-		glMatrixMode(GL_MODELVIEW);  glPushMatrix();
-		GisObject *object = cur->data;
-		switch (object->type) {
-		case GIS_TYPE_MARKER:
-			_draw_marker(self, GIS_MARKER(object));
-			break;
-		default:
-			break;
-		}
-		glMatrixMode(GL_PROJECTION); glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+	callback->callback(callback, callback->user_data);
+}
+
+static void _draw_object(GisOpenGL *self, GisObject *object)
+{
+	//g_debug("GisOpenGL: draw_object");
+	/* Skip out of range objects */
+	if (object->lod > 0) {
+		gdouble eye[3], obj[3];
+		gis_viewer_get_location(GIS_VIEWER(self), &eye[0], &eye[1], &eye[2]);
+		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
+		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
+			&obj[0], &obj[1], &obj[2]);
+		gdouble dist = distd(obj, eye);
+		if (object->lod < dist)
+			return;
 	}
+
+	/* Draw */
+	glMatrixMode(GL_PROJECTION); glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	switch (object->type) {
+	case GIS_TYPE_MARKER:
+		_draw_marker(self, GIS_MARKER(object));
+		break;
+	case GIS_TYPE_CALLBACK:
+		_draw_callback(self, GIS_CALLBACK(object));
+		break;
+	default:
+		break;
+	}
+	glPopAttrib();
+	glMatrixMode(GL_PROJECTION); glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
 }
 
 static void _load_object(GisOpenGL *self, GisObject *object)
@@ -149,9 +167,9 @@ static void _load_object(GisOpenGL *self, GisObject *object)
 	}
 }
 
-static void _free_object(GisOpenGL *self, GisObject *object)
+static void _unload_object(GisOpenGL *self, GisObject *object)
 {
-	g_debug("GisOpenGL: free_object");
+	g_debug("GisOpenGL: unload_object");
 	switch (object->type) {
 	case GIS_TYPE_MARKER: {
 		GisMarker *marker = GIS_MARKER(object);
@@ -242,6 +260,14 @@ static void _set_visuals(GisOpenGL *self)
 /*************
  * Callbacks *
  *************/
+/* The unsorted/sroted GLists are blank head nodes,
+ * This way us we can remove objects from the level just by fixing up links
+ * I.e. we don't need to do a lookup to remove an object if we have its GList */
+struct RenderLevel {
+	GList unsorted;
+	GList sorted;
+};
+
 static void on_realize(GisOpenGL *self, gpointer _)
 {
 	g_debug("GisOpenGL: on_realize");
@@ -271,26 +297,42 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	return FALSE;
 }
 
-static void _on_expose_plugin(GisPlugin *plugin, gchar *name, GisOpenGL *self)
+static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 {
-	_set_visuals(self);
-	glMatrixMode(GL_PROJECTION); glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
-	gis_plugin_expose(plugin);
-	glMatrixMode(GL_PROJECTION); glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+	g_debug("GisOpenGL: _draw_level - level=%-4d", (int)key);
+	GisOpenGL *self = user_data;
+	struct RenderLevel *level = value;
+	int nsorted = 0, nunsorted = 0;
+	GList *cur = NULL;
+
+	/* Draw opaque objects without sorting */
+	glDepthMask(TRUE);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	for (cur = level->unsorted.next; cur; cur = cur->next, nunsorted++)
+		_draw_object(self, GIS_OBJECT(cur->data));
+
+	/* Freeze depth buffer and draw transparent objects sorted */
+	/* TODO: sorting */
+	glDepthMask(FALSE);
+	for (cur = level->sorted.next; cur; cur = cur->next, nsorted++)
+		_draw_object(self, GIS_OBJECT(cur->data));
+
+	/* TODO: Prune empty levels */
+
+	g_debug("GisOpenGL: _draw_level - drew %d,%d objects",
+			nunsorted, nsorted);
+	return FALSE;
 }
+
 static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_expose - begin");
 	_gis_opengl_begin(self);
 
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 #ifndef ROAM_DEBUG
-	gis_plugins_foreach(GIS_VIEWER(self)->plugins,
-			G_CALLBACK(_on_expose_plugin), self);
-	_draw_objects(self);
+	g_tree_foreach(self->objects, _draw_level, self);
 	if (self->wireframe) {
 		_set_visuals(self);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -525,25 +567,42 @@ static void gis_opengl_end(GisViewer *_self)
 	_gis_opengl_end(GIS_OPENGL(_self));
 }
 
-static void gis_opengl_add(GisViewer *_self, GisObject *object)
+static gpointer gis_opengl_add(GisViewer *_self, GisObject *object,
+		gint key, gboolean sort)
 {
 	g_assert(GIS_IS_OPENGL(_self));
 	GisOpenGL *self = GIS_OPENGL(_self);
 	_load_object(self, object);
-	self->objects = g_list_prepend(self->objects, object);
+	struct RenderLevel *level = g_tree_lookup(self->objects, (gpointer)key);
+	if (!level) {
+		level = g_new0(struct RenderLevel, 1);
+		g_tree_insert(self->objects, (gpointer)key, level);
+	}
+	GList *list = sort ? &level->sorted : &level->unsorted;
+	list->next = g_list_prepend(list->next, object);
+	return list->next;
 }
 
-static void gis_opengl_remove(GisViewer *_self, GisObject *object)
+static void gis_opengl_remove(GisViewer *_self, gpointer _link)
 {
 	g_assert(GIS_IS_OPENGL(_self));
+	GList *link = _link;
 	GisOpenGL *self = GIS_OPENGL(_self);
-	_free_object(self, object);
-	self->objects = g_list_remove(self->objects, object);
+	_unload_object(self, link->data);
+	/* Just unlink and free it (blowup link to avoid warnings) */
+	link = g_list_delete_link(NULL, link);
 }
 
 /****************
  * GObject code *
  ****************/
+static int _objects_cmp(gconstpointer _a, gconstpointer _b)
+{
+	gint a = (int)_a, b = (int)_b;
+	return a < b ? -1 :
+	       a > b ?  1 : 0;
+}
+
 G_DEFINE_TYPE(GisOpenGL, gis_opengl, GIS_TYPE_VIEWER);
 static void gis_opengl_init(GisOpenGL *self)
 {
@@ -566,6 +625,7 @@ static void gis_opengl_init(GisOpenGL *self)
 			GDK_KEY_PRESS_MASK);
 	g_object_set(self, "can-focus", TRUE, NULL);
 
+	self->objects = g_tree_new(_objects_cmp);
 	self->sphere = roam_sphere_new(self);
 
 #ifndef ROAM_DEBUG
@@ -598,6 +658,7 @@ static void gis_opengl_dispose(GObject *_self)
 		roam_sphere_free(self->sphere);
 		self->sphere = NULL;
 	}
+	/* TODO: Cleanup/free objects tree */
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
 }
 static void gis_opengl_finalize(GObject *_self)

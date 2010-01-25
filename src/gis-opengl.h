@@ -38,7 +38,7 @@ struct _GisOpenGL {
 	GisViewer parent_instance;
 
 	/* instance members */
-	GList      *objects;
+	GTree      *objects;
 	RoamSphere *sphere;
 	guint       sm_source[2];
 

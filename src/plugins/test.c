@@ -34,7 +34,8 @@ GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 
 	GisMarker *marker = gis_marker_new("St. Charles");
 	gis_point_set_lle(gis_object_center(GIS_OBJECT(marker)), 38.841847, -90.491982, 0);
-	gis_viewer_add(self->viewer, GIS_OBJECT(marker));
+	GIS_OBJECT(marker)->lod = EARTH_R/4;
+	gis_viewer_add(self->viewer, GIS_OBJECT(marker), GIS_LEVEL_OVERLAY, 0);
 
 	return self;
 }

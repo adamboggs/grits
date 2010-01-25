@@ -123,6 +123,15 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
+static gpointer _expose(GisCallback *callback, gpointer _self)
+{
+	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
+	g_debug("GisPluginBmng: expose viewer=%p tiles=%p,%p",
+			self->viewer, self->tiles, self->tiles->data);
+	gis_viewer_render_tiles(self->viewer, self->tiles);
+	return NULL;
+}
+
 /***********
  * Methods *
  ***********/
@@ -140,15 +149,11 @@ GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer)
 	self->sigid = g_signal_connect(self->viewer, "location-changed",
 			G_CALLBACK(_on_location_changed), self);
 
-	return self;
-}
+	/* Add renderers */
+	GisCallback *callback = gis_callback_new(_expose, self);
+	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
 
-static void gis_plugin_bmng_expose(GisPlugin *_self)
-{
-	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
-	g_debug("GisPluginBmng: expose viewer=%p tiles=%p,%p",
-			self->viewer, self->tiles, self->tiles->data);
-	gis_viewer_render_tiles(self->viewer, self->tiles);
+	return self;
 }
 
 
@@ -164,7 +169,6 @@ static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginBmng: plugin_init");
 	/* Add methods to the interface */
-	iface->expose = gis_plugin_bmng_expose;
 }
 /* Class/Object init */
 static void gis_plugin_bmng_init(GisPluginBmng *self)

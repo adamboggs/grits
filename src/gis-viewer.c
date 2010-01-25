@@ -318,20 +318,21 @@ void gis_viewer_end(GisViewer *self)
 	klass->end(self);
 }
 
-void gis_viewer_add(GisViewer *self, GisObject *object)
+gpointer gis_viewer_add(GisViewer *self, GisObject *object,
+		gint level, gboolean sort)
 {
 	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
 	if (!klass->add)
 		g_warning("GisViewer: add - Unimplemented");
-	klass->add(self, object);
+	return klass->add(self, object, level, sort);
 }
 
-void gis_viewer_remove(GisViewer *self, GisObject *object)
+void gis_viewer_remove(GisViewer *self, gpointer ref)
 {
 	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
 	if (!klass->remove)
 		g_warning("GisViewer: remove - Unimplemented");
-	klass->remove(self, object);
+	klass->remove(self, ref);
 }
 
 /****************

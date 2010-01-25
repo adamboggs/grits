@@ -21,6 +21,11 @@
 #include <gtk/gtk.h>
 #include <glib-object.h>
 
+#define GIS_LEVEL_BACKGROUND -100
+#define GIS_LEVEL_WORLD         0
+#define GIS_LEVEL_OVERLAY     100
+#define GIS_LEVEL_HUD         200
+
 /* Type macros */
 #define GIS_TYPE_VIEWER            (gis_viewer_get_type())
 #define GIS_VIEWER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_VIEWER, GisViewer))
@@ -72,8 +77,9 @@ struct _GisViewerClass {
 	void (*begin)            (GisViewer *viewer);
 	void (*end)              (GisViewer *viewer);
 
-	void (*add)              (GisViewer *viewer, GisObject *object);
-	void (*remove)           (GisViewer *viewer, GisObject *object);
+	gpointer (*add)          (GisViewer *viewer, GisObject *object,
+	                          gint level, gboolean sort);
+	void (*remove)           (GisViewer *viewer, gpointer ref);
 };
 
 GType gis_viewer_get_type(void);
@@ -121,7 +127,8 @@ void gis_viewer_render_tiles(GisViewer *viewer, GisTile *root);
 void gis_viewer_begin(GisViewer *viewer);
 void gis_viewer_end  (GisViewer *viewer);
 
-void gis_viewer_add(GisViewer *self, GisObject *object);
-void gis_viewer_remove(GisViewer *self, GisObject *object);
+gpointer gis_viewer_add(GisViewer *self, GisObject *object,
+		gint level, gboolean sort);
+void gis_viewer_remove(GisViewer *self, gpointer ref);
 
 #endif

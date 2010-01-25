@@ -47,16 +47,6 @@ GType gis_plugin_get_type()
 	return type;
 }
 
-void gis_plugin_expose(GisPlugin *self)
-{
-	if (!GIS_IS_PLUGIN(self))
-		return;
-	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
-	if (iface->expose)
-		return
-	GIS_PLUGIN_GET_INTERFACE(self)->expose(self);
-}
-
 GtkWidget *gis_plugin_get_config(GisPlugin *self)
 {
 	if (!GIS_IS_PLUGIN(self))

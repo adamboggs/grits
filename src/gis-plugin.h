@@ -35,7 +35,6 @@ struct _GisPluginInterface
 	GTypeInterface parent_iface;
 
 	/* Virtual functions */
-	void       (*expose    )(GisPlugin *self);
 	GtkWidget *(*get_config)(GisPlugin *self);
 };
 

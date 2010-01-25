@@ -234,6 +234,16 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
+static gpointer _expose(GisCallback *callback, gpointer _self)
+{
+	GisPluginSrtm *self = GIS_PLUGIN_SRTM(_self);
+	g_debug("GisPluginSrtm: expose tiles=%p data=%p",
+		self->tiles, self->tiles->data);
+	if (LOAD_OPENGL)
+		gis_viewer_render_tiles(self->viewer, self->tiles);
+	return NULL;
+}
+
 /***********
  * Methods *
  ***********/
@@ -251,16 +261,11 @@ GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer)
 	self->sigid = g_signal_connect(self->viewer, "location-changed",
 			G_CALLBACK(_on_location_changed), self);
 
-	return self;
-}
+	/* Add renderers */
+	GisCallback *callback = gis_callback_new(_expose, self);
+	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
 
-static void gis_plugin_srtm_expose(GisPlugin *_self)
-{
-	GisPluginSrtm *self = GIS_PLUGIN_SRTM(_self);
-	g_debug("GisPluginSrtm: expose tiles=%p data=%p",
-		self->tiles, self->tiles->data);
-	if (LOAD_OPENGL)
-		gis_viewer_render_tiles(self->viewer, self->tiles);
+	return self;
 }
 
 
@@ -276,7 +281,6 @@ static void gis_plugin_srtm_plugin_init(GisPluginInterface *iface)
 {
 	g_debug("GisPluginSrtm: plugin_init");
 	/* Add methods to the interface */
-	iface->expose = gis_plugin_srtm_expose;
 }
 /* Class/Object init */
 static void gis_plugin_srtm_init(GisPluginSrtm *self)
