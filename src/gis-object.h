@@ -21,83 +21,46 @@
 #include <glib.h>
 #include <cairo.h>
 
-/* Base types */
-typedef struct _GisProjection GisProjection;
+/* GisPoint */
 typedef struct _GisPoint      GisPoint;
 
-struct _GisProjection {
-	gdouble model[16];
-	gdouble proj[16];
-	gint    view[4];
-};
 struct _GisPoint {
-	union {
-		gdouble lle[3];
-		struct { gdouble lat, lon, elev; };
-	};
-	union {
-		gdouble xyz[3];
-		struct { gdouble x, y, z; };
-	};
-	union {
-		gdouble proj[3];
-		struct { gdouble px, py, pz; };
-	};
-	union {
-		gdouble norm[3];
-		struct { gdouble nx, ny, nz; };
-	};
-	union {
-		gdouble coords[2];
-		struct { gdouble cx, cy, xz; };
-	};
-	gint refs;
+	gdouble lat, lon, elev;
 };
 
-/* Objects */
+GisPoint *gis_point_new();
+void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev);
+void gis_point_free(GisPoint *point);
+
+
+/* GisObject */
 #define GIS_OBJECT(object)     ((GisObject  *)object)
-#define GIS_TRIANGLE(triangle) ((GisTriangle*)triangle)
-#define GIS_QUAD(quad)         ((GisQuad    *)quad)
-#define GIS_CALLBACK(callback) ((GisCallback*)callback)
-#define GIS_MARKER(marker)     ((GisMarker  *)marker)
 
 typedef enum {
-	GIS_TYPE_TRIANGLE,
-	GIS_TYPE_QUAD,
 	GIS_TYPE_CALLBACK,
 	GIS_TYPE_MARKER,
 	GIS_NUM_TYPES,
 } GisObjectType;
 
-typedef struct _GisObject   GisObject;
-typedef struct _GisTriangle GisTriangle;
-typedef struct _GisQuad     GisQuad;
-typedef struct _GisCallback GisCallback;
-typedef struct _GisMarker   GisMarker;
-
-typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
+typedef struct _GisObject GisObject;
 
 struct _GisObject {
-	GisObjectType  type;
-	GisPoint       center;
-	GisProjection *proj;
-	gdouble        lod;
+	GisObjectType type;
+	GisPoint      center;
+	gdouble       lod;
 };
-struct _GisTriangle {
-	GisObject  parent;
-	GisPoint  *verts[3];
-	guint      tex;
-};
-struct _GisQuad {
-	GisObject  parent;
-	GisPoint  *verts[4];
-	guint     tex;
-};
-struct _GisCallback {
-	GisObject       parent;
-	GisCallbackFunc callback;
-	gpointer        user_data;
-};
+
+static inline GisPoint *gis_object_center(GisObject *object)
+{
+	return &GIS_OBJECT(object)->center;
+}
+
+
+/* GisMarker */
+#define GIS_MARKER(marker) ((GisMarker  *)marker)
+
+typedef struct _GisMarker GisMarker;
+
 struct _GisMarker   {
 	GisObject  parent;
 	gint       xoff, yoff;
@@ -106,28 +69,24 @@ struct _GisMarker   {
 	guint      tex;
 };
 
-/* Support functions */
-#define gis_object_center(object) \
-	(&GIS_OBJECT(object)->center)
+GisMarker *gis_marker_new(const gchar *label);
+void gis_marker_free(GisMarker *marker);
 
-GisPoint *gis_point_new();
-void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev);
-void gis_point_set_xyz(GisPoint *point, gdouble x, gdouble y, gdouble z);
-void gis_point_set_coords(GisPoint *point, gdouble x, gdouble y);
-void gis_point_project(GisPoint *point, GisProjection *proj);
-GisPoint *gis_point_ref(GisPoint *point);
-void gis_point_unref(GisPoint *point);
 
-GisTriangle *gis_triangle_new(GisPoint *a, GisPoint *b, GisPoint *c, guint tex);
-void gis_triangle_free(GisTriangle *tri);
+/* GisCallback */
+#define GIS_CALLBACK(callback) ((GisCallback*)callback)
 
-GisQuad *gis_quad_new(GisPoint *a, GisPoint *b, GisPoint *c, GisPoint *d, guint tex);
-void gis_quad_free(GisQuad *quad);
+typedef struct _GisCallback GisCallback;
+typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
+
+struct _GisCallback {
+	GisObject       parent;
+	GisCallbackFunc callback;
+	gpointer        user_data;
+};
 
 GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
 void gis_callback_free(GisCallback *cb);
 
-GisMarker *gis_marker_new(const gchar *label);
-void gis_marker_free(GisMarker *marker);
 
 #endif

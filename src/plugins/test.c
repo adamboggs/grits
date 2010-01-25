@@ -33,7 +33,7 @@ GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 	self->viewer = viewer;
 
 	GisMarker *marker = gis_marker_new("St. Charles");
-	gis_point_set_lle(gis_object_center(marker), 38.841847, -90.491982, 0);
+	gis_point_set_lle(gis_object_center(GIS_OBJECT(marker)), 38.841847, -90.491982, 0);
 	gis_viewer_add(self->viewer, GIS_OBJECT(marker));
 
 	return self;

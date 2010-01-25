@@ -21,10 +21,6 @@
 #include "gis-object.h"
 #include "gis-util.h"
 
-/* TODO
- *   - Manage normals for GisPoint
- */
-
 /* GisPoint */
 GisPoint *gis_point_new()
 {
@@ -36,113 +32,15 @@ void gis_point_set_lle(GisPoint *self, gdouble lat, gdouble lon, gdouble elev)
 	self->lat  = lat;
 	self->lon  = lon;
 	self->elev = elev;
-	lle2xyz(self->lat, self->lon, self->elev,
-			&self->x, &self->y, &self->z);
 }
 
-void gis_point_set_xyz(GisPoint *self, gdouble x, gdouble y, gdouble z)
-{
-	self->x = x;
-	self->y = y;
-	self->z = z;
-}
-
-void gis_point_set_coords(GisPoint *self, gdouble x, gdouble y)
-{
-	self->cx = x;
-	self->cy = y;
-}
-
-void gis_point_project(GisPoint *self, GisProjection *proj)
-{
-	gluProject(self->x, self->y, self->z,
-	           proj->model, proj->proj, proj->view,
-	           &self->px, &self->py, &self->pz);
-}
-
-GisPoint *gis_point_ref(GisPoint *self)
-{
-	self->refs++;
-	return self;
-}
-
-void gis_point_unref(GisPoint *self)
-{
-	self->refs--;
-	if (self->refs <= 0)
-		g_free(self);
-}
-
-
-/* GisTriangle */
-GisTriangle *gis_triangle_new(GisPoint *a, GisPoint *b, GisPoint *c, guint tex)
-{
-	GisTriangle *self = g_new0(GisTriangle, 1);
-	GIS_OBJECT(self)->type = GIS_TYPE_TRIANGLE;
-	gis_point_set_xyz(&GIS_OBJECT(self)->center,
-		(a->x + b->x + c->x)/3,
-		(a->y + b->y + c->y)/3,
-		(a->z + b->z + c->z)/3);
-	self->verts[0] = gis_point_ref(a);
-	self->verts[1] = gis_point_ref(b);
-	self->verts[2] = gis_point_ref(c);
-	self->tex      = tex;
-	return self;
-}
-
-void gis_triangle_free(GisTriangle *self)
-{
-	gis_point_unref(self->verts[0]);
-	gis_point_unref(self->verts[1]);
-	gis_point_unref(self->verts[2]);
-	g_free(self);
-}
-
-
-/* GisQuad */
-GisQuad *gis_quad_new(GisPoint *a, GisPoint *b, GisPoint *c, GisPoint *d, guint tex)
-{
-	GisQuad *self = g_new0(GisQuad, 1);
-	GIS_OBJECT(self)->type = GIS_TYPE_QUAD;
-	gis_point_set_xyz(&GIS_OBJECT(self)->center,
-		(a->x + b->x + c->x + d->x)/4,
-		(a->y + b->y + c->y + d->y)/4,
-		(a->z + b->z + c->z + d->z)/4);
-	self->verts[0] = gis_point_ref(a);
-	self->verts[1] = gis_point_ref(b);
-	self->verts[2] = gis_point_ref(c);
-	self->verts[3] = gis_point_ref(d);
-	self->tex      = tex;
-	return self;
-}
-
-void gis_quad_free(GisQuad *self)
-{
-	gis_point_unref(self->verts[0]);
-	gis_point_unref(self->verts[1]);
-	gis_point_unref(self->verts[2]);
-	gis_point_unref(self->verts[3]);
-	g_free(self);
-}
-
-
-/* GisCallback */
-GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
-{
-	GisCallback *self = g_new0(GisCallback, 1);
-	GIS_OBJECT(self)->type = GIS_TYPE_CALLBACK;
-	self->callback  = callback;
-	self->user_data = user_data;
-	return self;
-}
-
-void gis_callback_free(GisCallback *self)
+void gis_point_free(GisPoint *self)
 {
 	g_free(self);
 }
 
 
-/* GisCallback */
+/* GisMarker */
 GisMarker *gis_marker_new(const gchar *label)
 {
 	static const int RADIUS =   4;
@@ -170,5 +68,21 @@ void gis_marker_free(GisMarker *self)
 	cairo_surface_destroy(cairo_get_target(self->cairo));
 	cairo_destroy(self->cairo);
 	g_free(self->label);
+	g_free(self);
+}
+
+
+/* GisCallback */
+GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
+{
+	GisCallback *self = g_new0(GisCallback, 1);
+	GIS_OBJECT(self)->type = GIS_TYPE_CALLBACK;
+	self->callback  = callback;
+	self->user_data = user_data;
+	return self;
+}
+
+void gis_callback_free(GisCallback *self)
+{
 	g_free(self);
 }

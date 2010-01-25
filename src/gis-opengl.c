@@ -65,9 +65,11 @@ static void _gis_opengl_end(GisOpenGL *self)
  ********************/
 static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 {
-	GisProjection *proj = (GisProjection*)self->sphere->view;
-	GisPoint *point = gis_object_center(marker);
-	gis_point_project(point, proj);
+	GisPoint *point = gis_object_center(GIS_OBJECT(marker));
+	gdouble px, py, pz;
+	gis_viewer_project(GIS_VIEWER(self),
+			point->lat, point->lon, point->elev,
+			&px, &py, &pz);
 
 	g_debug("GisOpenGL: draw_marker - texture=%d", marker->tex);
 
@@ -79,8 +81,8 @@ static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 	glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
 	glOrtho(0, GTK_WIDGET(self)->allocation.width,
 	        0, GTK_WIDGET(self)->allocation.height, -1, 1);
-	glTranslated(gis_object_center(marker)->px - marker->xoff,
-	             gis_object_center(marker)->py - marker->yoff, 0);
+	glTranslated(px - marker->xoff,
+	             py - marker->yoff, 0);
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_COLOR_MATERIAL);
