@@ -16,6 +16,7 @@
  */
 
 #include <time.h>
+#include <glib/gstdio.h>
 #include <GL/gl.h>
 
 #include <gis.h>
@@ -77,10 +78,13 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	data->self   = self;
 	data->tile   = tile;
 	data->pixbuf = gdk_pixbuf_new_from_file(path, NULL);
-	if (!data->pixbuf)
+	if (data->pixbuf) {
+		g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
+	} else {
 		g_warning("GisPluginBmng: _load_tile - Error loading pixbuf %s", path);
+		g_remove(path);
+	}
 	g_free(path);
-	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
 	g_debug("GisPluginBmng: _load_tile end %p", g_thread_self());
 }
 
