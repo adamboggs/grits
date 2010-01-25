@@ -124,7 +124,7 @@ void roam_sphere_merge_one(RoamSphere *sphere);
 gint roam_sphere_split_merge(RoamSphere *sphere);
 void roam_sphere_draw(RoamSphere *sphere);
 void roam_sphere_draw_normals(RoamSphere *sphere);
-GList *roam_sphere_get_intersect(RoamSphere *sphere,
+GList *roam_sphere_get_intersect(RoamSphere *sphere, gboolean all,
 		gdouble n, gdouble s, gdouble e, gdouble w);
 void roam_sphere_free(RoamSphere *sphere);
 

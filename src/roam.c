@@ -600,18 +600,19 @@ void roam_sphere_draw_normals(RoamSphere *self)
 	g_debug("RoamSphere: draw_normal");
 	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw_normal, NULL);
 }
-static GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list)
+static GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list, gboolean all)
 {
 	if (tri->kids[0] && tri->kids[1]) {
-		list = _roam_sphere_get_leaves(tri->kids[0], list);
-		list = _roam_sphere_get_leaves(tri->kids[1], list);
+		if (all) list = g_list_prepend(list, tri);
+		list = _roam_sphere_get_leaves(tri->kids[0], list, all);
+		list = _roam_sphere_get_leaves(tri->kids[1], list, all);
 		return list;
 	} else {
 		return g_list_append(list, tri);
 	}
 }
 static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
-		gdouble n, gdouble s, gdouble e, gdouble w)
+		gboolean all, gdouble n, gdouble s, gdouble e, gdouble w)
 {
 	gdouble tn = tri->edge.n;
 	gdouble ts = tri->edge.s;
@@ -632,12 +633,14 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 	} else if (tn < n && ts > s && te < e && tw > w) {
 		/* Triangle is completely contained */
 		if (debug) g_message("contained");
-		return _roam_sphere_get_leaves(tri, list);
+		if (all) list = g_list_prepend(list, tri);
+		return _roam_sphere_get_leaves(tri, list, all);
 	} else if (tri->kids[0] && tri->kids[1]) {
 		/* Paritial intersect with children */
 		if (debug) g_message("edge w/ child");
-		list = _roam_sphere_get_intersect_rec(tri->kids[0], list, n, s, e, w);
-		list = _roam_sphere_get_intersect_rec(tri->kids[1], list, n, s, e, w);
+		if (all) list = g_list_prepend(list, tri);
+		list = _roam_sphere_get_intersect_rec(tri->kids[0], list, all, n, s, e, w);
+		list = _roam_sphere_get_intersect_rec(tri->kids[1], list, all, n, s, e, w);
 		return list;
 	} else {
 		/* This triangle is an edge case */
@@ -645,7 +648,7 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 		return g_list_append(list, tri);
 	}
 }
-GList *roam_sphere_get_intersect(RoamSphere *self,
+GList *roam_sphere_get_intersect(RoamSphere *self, gboolean all,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {
 	/* I think this is correct..
@@ -655,7 +658,7 @@ GList *roam_sphere_get_intersect(RoamSphere *self,
 	GList *list = NULL;
 	for (int i = 0; i < G_N_ELEMENTS(self->roots); i++)
 		list = _roam_sphere_get_intersect_rec(self->roots[i],
-				list, n, s, e, w);
+				list, all, n, s, e, w);
 	return list;
 }
 void roam_sphere_free_tri(RoamTriangle *tri)

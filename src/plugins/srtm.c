@@ -159,6 +159,8 @@ static gboolean _load_tile_cb(gpointer _load)
 	if (LOAD_OPENGL)
 		data->opengl = _load_opengl(pixbuf);
 
+	tile->data = data;
+
 	/* Do necessasairy processing */
 	/* TODO: Lock this and move to thread, can remove self from _load then */
 	if (LOAD_BIL)
@@ -170,7 +172,6 @@ static gboolean _load_tile_cb(gpointer _load)
 	if (LOAD_OPENGL)
 		g_object_unref(pixbuf);
 
-	tile->data = data;
 	return FALSE;
 }
 static void _load_tile(GisTile *tile, gpointer _self)

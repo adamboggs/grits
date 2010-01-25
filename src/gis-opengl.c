@@ -448,7 +448,7 @@ static void gis_opengl_render_tile(GisViewer *_self, GisTile *tile)
 	GisOpenGL *self = GIS_OPENGL(_self);
 	if (!tile || !tile->data)
 		return;
-	GList *triangles = roam_sphere_get_intersect(self->sphere,
+	GList *triangles = roam_sphere_get_intersect(self->sphere, FALSE,
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	if (!triangles)
 		g_warning("GisOpenGL: render_tiles - No triangles to draw: edges=%f,%f,%f,%f",
@@ -517,7 +517,7 @@ static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 	if (!tile)
 		return;
 	/* TODO: get points? */
-	GList *triangles = roam_sphere_get_intersect(self->sphere,
+	GList *triangles = roam_sphere_get_intersect(self->sphere, TRUE,
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	for (GList *cur = triangles; cur; cur = cur->next) {
 		RoamTriangle *tri = cur->data;

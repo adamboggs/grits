@@ -58,7 +58,7 @@ int main(int argc, char **argv)
 	gdk_threads_leave();
 
 	gis_plugins_load(plugins, "bmng", viewer, prefs);
-	//gis_plugins_load(plugins, "srtm", viewer, prefs);
+	gis_plugins_load(plugins, "srtm", viewer, prefs);
 	gis_plugins_load(plugins, "test", viewer, prefs);
 
 	gdk_threads_enter();
