@@ -21,6 +21,7 @@
 #include <libsoup/soup.h>
 
 typedef enum {
+	GIS_NEVER,   // Never cache the file (for offline mode)
 	GIS_ONCE,    // Cache the file if it does not exist
 	GIS_UPDATE,  // Append additional data to cached copy (resume)
 	GIS_REFRESH, // Delete existing file and cache a new copy
