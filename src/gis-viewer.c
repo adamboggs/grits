@@ -28,7 +28,6 @@
 /* Constants */
 enum {
 	SIG_TIME_CHANGED,
-	SIG_SITE_CHANGED,
 	SIG_LOCATION_CHANGED,
 	SIG_ROTATION_CHANGED,
 	SIG_REFRESH,
@@ -70,11 +69,6 @@ static void _gis_viewer_emit_time_changed(GisViewer *self)
 {
 	g_signal_emit(self, signals[SIG_TIME_CHANGED], 0,
 			self->time);
-}
-static void _gis_viewer_emit_site_changed(GisViewer *self)
-{
-	g_signal_emit(self, signals[SIG_SITE_CHANGED], 0,
-			self->site);
 }
 static void _gis_viewer_emit_refresh(GisViewer *self)
 {
@@ -210,23 +204,6 @@ void gis_viewer_rotate(GisViewer *self, gdouble x, gdouble y, gdouble z)
 	_gis_viewer_emit_rotation_changed(self);
 }
 
-/* To be deprecated, use {get,set}_location */
-void gis_viewer_set_site(GisViewer *self, const gchar *site)
-{
-	g_assert(GIS_IS_VIEWER(self));
-	g_debug("GisViewer: set_site");
-	g_free(self->site);
-	self->site = g_strdup(site);
-	_gis_viewer_emit_site_changed(self);
-}
-
-gchar *gis_viewer_get_site(GisViewer *self)
-{
-	g_assert(GIS_IS_VIEWER(self));
-	g_debug("GisViewer: get_site - %s", self->site);
-	return self->site;
-}
-
 void gis_viewer_refresh(GisViewer *self)
 {
 	g_debug("GisViewer: refresh");
@@ -344,7 +321,6 @@ static void gis_viewer_init(GisViewer *self)
 	g_debug("GisViewer: init");
 	/* Default values */
 	self->time = g_strdup("");
-	self->site = g_strdup("");
 	self->location[0] = 40;
 	self->location[1] = -100;
 	self->location[2] = 1.5*EARTH_R;
@@ -363,7 +339,6 @@ static void gis_viewer_finalize(GObject *gobject)
 	g_debug("GisViewer: finalize");
 	GisViewer *self = GIS_VIEWER(gobject);
 	g_free(self->time);
-	g_free(self->site);
 	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
 static void gis_viewer_class_init(GisViewerClass *klass)
@@ -373,17 +348,6 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 	gobject_class->finalize     = gis_viewer_finalize;
 	signals[SIG_TIME_CHANGED] = g_signal_new(
 			"time-changed",
-			G_TYPE_FROM_CLASS(gobject_class),
-			G_SIGNAL_RUN_LAST,
-			0,
-			NULL,
-			NULL,
-			g_cclosure_marshal_VOID__STRING,
-			G_TYPE_NONE,
-			1,
-			G_TYPE_STRING);
-	signals[SIG_SITE_CHANGED] = g_signal_new(
-			"site-changed",
 			G_TYPE_FROM_CLASS(gobject_class),
 			G_SIGNAL_RUN_LAST,
 			0,

@@ -49,7 +49,6 @@ struct _GisViewer {
 	/* instance members */
 	GisPlugins *plugins;
 	gchar      *time;
-	gchar      *site;
 	gdouble     location[3];
 	gdouble     rotation[3];
 	gboolean    offline;
@@ -98,10 +97,6 @@ void gis_viewer_zoom        (GisViewer *viewer, gdouble  scale);
 void gis_viewer_set_rotation(GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
 void gis_viewer_get_rotation(GisViewer *viewer, gdouble *x, gdouble *y, gdouble *z);
 void gis_viewer_rotate      (GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
-
-/* To be deprecated, use {get,set}_location */
-void gis_viewer_set_site(GisViewer *viewer, const gchar *site);
-gchar *gis_viewer_get_site(GisViewer *viewer);
 
 void gis_viewer_refresh(GisViewer *viewer);
 

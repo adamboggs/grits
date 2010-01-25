@@ -61,8 +61,6 @@ int main(int argc, char **argv)
 	//gis_plugins_load(plugins, "srtm", viewer, prefs);
 	gis_plugins_load(plugins, "test", viewer, prefs);
 
-	gis_viewer_set_site(viewer, "KLSX");
-
 	gdk_threads_enter();
 	gtk_main();
 
