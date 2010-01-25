@@ -650,6 +650,9 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 		return g_list_prepend(list, tri);
 	}
 }
+/* Warning: This grabs pointers to triangles which can be changed by other
+ * calls, e.g. split_merge. If you use this, you need to do some locking to
+ * prevent the returned list from becomming stale. */
 GList *roam_sphere_get_intersect(RoamSphere *self, gboolean all,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {

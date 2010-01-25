@@ -270,7 +270,9 @@ static void on_realize(GisOpenGL *self, gpointer _)
 {
 	g_debug("GisOpenGL: on_realize");
 	_set_visuals(self);
+	g_mutex_lock(self->sphere_lock);
 	roam_sphere_update_errors(self->sphere);
+	g_mutex_unlock(self->sphere_lock);
 }
 static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer _)
 {
@@ -288,7 +290,9 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	gluPerspective(rad2deg(ang)*2, width/height, 1, 10*EARTH_R);
 
 #ifndef ROAM_DEBUG
+	g_mutex_lock(self->sphere_lock);
 	roam_sphere_update_errors(self->sphere);
+	g_mutex_unlock(self->sphere_lock);
 #endif
 
 	_gis_opengl_end(self);
@@ -402,8 +406,10 @@ static gboolean on_idle(GisOpenGL *self)
 	//g_debug("GisOpenGL: on_idle");
 	gdk_threads_enter();
 	_gis_opengl_begin(self);
+	g_mutex_lock(self->sphere_lock);
 	if (roam_sphere_split_merge(self->sphere))
 		gtk_widget_queue_draw(GTK_WIDGET(self));
+	g_mutex_unlock(self->sphere_lock);
 	_gis_opengl_end(self);
 	gdk_threads_leave();
 	return TRUE;
@@ -517,6 +523,7 @@ static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 	if (!tile)
 		return;
 	/* TODO: get points? */
+	g_mutex_lock(self->sphere_lock);
 	GList *triangles = roam_sphere_get_intersect(self->sphere, TRUE,
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	for (GList *cur = triangles; cur; cur = cur->next) {
@@ -532,6 +539,7 @@ static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 		}
 	}
 	g_list_free(triangles);
+	g_mutex_unlock(self->sphere_lock);
 }
 
 static void _gis_opengl_clear_height_func_rec(RoamTriangle *root)
@@ -627,6 +635,7 @@ static void gis_opengl_init(GisOpenGL *self)
 
 	self->objects = g_tree_new(_objects_cmp);
 	self->sphere = roam_sphere_new(self);
+	self->sphere_lock = g_mutex_new();
 
 #ifndef ROAM_DEBUG
 	self->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, self, NULL);
@@ -665,6 +674,7 @@ static void gis_opengl_finalize(GObject *_self)
 {
 	g_debug("GisViewer: finalize");
 	GisOpenGL *self = GIS_OPENGL(_self);
+	g_mutex_free(self->sphere_lock);
 	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
 static void gis_opengl_class_init(GisOpenGLClass *klass)
