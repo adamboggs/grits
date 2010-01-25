@@ -15,6 +15,7 @@
 
 	<chapter>
 		<title>Support</title>
+		<xi:include href="xml/gis-object.xml"/>
 		<xi:include href="xml/gis-wms.xml"/>
 		<xi:include href="xml/gis-tile.xml"/>
 		<xi:include href="xml/gis-data.xml"/>
