@@ -59,6 +59,77 @@ static void _gis_opengl_end(GisOpenGL *self)
 	gdk_gl_drawable_gl_end(gldrawable);
 }
 
+static void _set_visuals(GisOpenGL *self)
+{
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	/* Camera 1 */
+	double lat, lon, elev, rx, ry, rz;
+	gis_viewer_get_location(GIS_VIEWER(self), &lat, &lon, &elev);
+	gis_viewer_get_rotation(GIS_VIEWER(self), &rx, &ry, &rz);
+	glRotatef(rx, 1, 0, 0);
+	glRotatef(rz, 0, 0, 1);
+
+	/* Lighting */
+#ifdef ROAM_DEBUG
+	float light_ambient[]  = {0.7f, 0.7f, 0.7f, 1.0f};
+	float light_diffuse[]  = {2.0f, 2.0f, 2.0f, 1.0f};
+#else
+	float light_ambient[]  = {0.2f, 0.2f, 0.2f, 1.0f};
+	float light_diffuse[]  = {5.0f, 5.0f, 5.0f, 1.0f};
+#endif
+	float light_position[] = {-13*EARTH_R, 1*EARTH_R, 3*EARTH_R, 1.0f};
+	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glEnable(GL_LIGHT0);
+	glEnable(GL_LIGHTING);
+
+	float material_ambient[]  = {0.2, 0.2, 0.2, 1.0};
+	float material_diffuse[]  = {0.8, 0.8, 0.8, 1.0};
+	float material_specular[] = {0.0, 0.0, 0.0, 1.0};
+	float material_emission[] = {0.0, 0.0, 0.0, 1.0};
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  material_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  material_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material_emission);
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_COLOR_MATERIAL);
+
+	/* Camera 2 */
+	glTranslatef(0, 0, -elev2rad(elev));
+	glRotatef(lat, 1, 0, 0);
+	glRotatef(-lon, 0, 1, 0);
+
+	/* Misc */
+	gdouble rg   = MAX(0, 1-(elev/20000));
+	gdouble blue = MAX(0, 1-(elev/50000));
+	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
+	glColor4f(1, 1, 1, 1);
+
+	glDisable(GL_ALPHA_TEST);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+#ifndef ROAM_DEBUG
+	glCullFace(GL_BACK);
+	glEnable(GL_CULL_FACE);
+#endif
+
+	glClearDepth(1.0);
+	glDepthFunc(GL_LEQUAL);
+	glEnable(GL_DEPTH_TEST);
+
+	glEnable(GL_LINE_SMOOTH);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	//glShadeModel(GL_FLAT);
+
+	roam_sphere_update_view(self->sphere);
+}
+
 
 /********************
  * Object handleing *
@@ -70,8 +141,10 @@ static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 	gis_viewer_project(GIS_VIEWER(self),
 			point->lat, point->lon, point->elev,
 			&px, &py, &pz);
+	if (pz > 1)
+		return;
 
-	g_debug("GisOpenGL: draw_marker - texture=%d", marker->tex);
+	//g_debug("GisOpenGL: draw_marker - %s pz=%f ", marker->label, pz);
 
 	cairo_surface_t *surface = cairo_get_target(marker->cairo);
 	gdouble width  = cairo_image_surface_get_width(surface);
@@ -89,7 +162,6 @@ static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, marker->tex);
-	g_debug("bind_texture: %d", marker->tex);
 	glBegin(GL_QUADS);
 	glTexCoord2f(1, 1); glVertex3f(width, 0     , 0);
 	glTexCoord2f(1, 0); glVertex3f(width, height, 0);
@@ -182,80 +254,6 @@ static void _unload_object(GisOpenGL *self, GisObject *object)
 	}
 }
 
-/*************
- * ROAM Code *
- *************/
-static void _set_visuals(GisOpenGL *self)
-{
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	/* Camera 1 */
-	double lat, lon, elev, rx, ry, rz;
-	gis_viewer_get_location(GIS_VIEWER(self), &lat, &lon, &elev);
-	gis_viewer_get_rotation(GIS_VIEWER(self), &rx, &ry, &rz);
-	glRotatef(rx, 1, 0, 0);
-	glRotatef(rz, 0, 0, 1);
-
-	/* Lighting */
-#ifdef ROAM_DEBUG
-	float light_ambient[]  = {0.7f, 0.7f, 0.7f, 1.0f};
-	float light_diffuse[]  = {2.0f, 2.0f, 2.0f, 1.0f};
-#else
-	float light_ambient[]  = {0.2f, 0.2f, 0.2f, 1.0f};
-	float light_diffuse[]  = {5.0f, 5.0f, 5.0f, 1.0f};
-#endif
-	float light_position[] = {-13*EARTH_R, 1*EARTH_R, 3*EARTH_R, 1.0f};
-	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE,  light_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHTING);
-
-	float material_ambient[]  = {0.2, 0.2, 0.2, 1.0};
-	float material_diffuse[]  = {0.8, 0.8, 0.8, 1.0};
-	float material_specular[] = {0.0, 0.0, 0.0, 1.0};
-	float material_emission[] = {0.0, 0.0, 0.0, 1.0};
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  material_ambient);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  material_diffuse);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, material_specular);
-	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, material_emission);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_COLOR_MATERIAL);
-
-	/* Camera 2 */
-	glTranslatef(0, 0, -elev2rad(elev));
-	glRotatef(lat, 1, 0, 0);
-	glRotatef(-lon, 0, 1, 0);
-
-	/* Misc */
-	gdouble rg   = MAX(0, 1-(elev/20000));
-	gdouble blue = MAX(0, 1-(elev/50000));
-	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
-	glColor4f(1, 1, 1, 1);
-
-	glDisable(GL_ALPHA_TEST);
-
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_BLEND);
-
-#ifndef ROAM_DEBUG
-	glCullFace(GL_BACK);
-	glEnable(GL_CULL_FACE);
-#endif
-
-	glClearDepth(1.0);
-	glDepthFunc(GL_LEQUAL);
-	glEnable(GL_DEPTH_TEST);
-
-	glEnable(GL_LINE_SMOOTH);
-
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	//glShadeModel(GL_FLAT);
-
-	roam_sphere_update_view(self->sphere);
-}
-
 
 /*************
  * Callbacks *
@@ -287,7 +285,7 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	double ang = atan(height/FOV_DIST);
-	gluPerspective(rad2deg(ang)*2, width/height, 1, 20*EARTH_R);
+	gluPerspective(rad2deg(ang)*2, width/height, 1, 10*EARTH_R);
 
 #ifndef ROAM_DEBUG
 	roam_sphere_update_errors(self->sphere);
@@ -331,20 +329,20 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-#ifndef ROAM_DEBUG
-	g_tree_foreach(self->objects, _draw_level, self);
-	if (self->wireframe) {
-		_set_visuals(self);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		roam_sphere_draw(self->sphere);
-	}
-#else
+#ifdef ROAM_DEBUG
 	_set_visuals(self);
 	glColor4f(0.0, 0.0, 9.0, 0.6);
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	roam_sphere_draw(self->sphere);
 	//roam_sphere_draw_normals(self->sphere);
+#else
+	g_tree_foreach(self->objects, _draw_level, self);
+	if (self->wireframe) {
+		_set_visuals(self);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		roam_sphere_draw(self->sphere);
+	}
 #endif
 
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
