@@ -315,7 +315,8 @@ static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 
 	/* Freeze depth buffer and draw transparent objects sorted */
 	/* TODO: sorting */
-	glDepthMask(FALSE);
+	//glDepthMask(FALSE);
+	glAlphaFunc(GL_GREATER, 0.1);
 	for (cur = level->sorted.next; cur; cur = cur->next, nsorted++)
 		_draw_object(self, GIS_OBJECT(cur->data));
 
