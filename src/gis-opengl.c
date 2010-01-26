@@ -88,7 +88,7 @@ static void _set_visuals(GisOpenGL *self)
 
 	float material_ambient[]  = {0.2, 0.2, 0.2, 1.0};
 	float material_diffuse[]  = {0.8, 0.8, 0.8, 1.0};
-	float material_specular[] = {0.0, 0.0, 0.0, 1.0};
+	float material_specular[] = {0.1, 0.1, 0.1, 1.0};
 	float material_emission[] = {0.0, 0.0, 0.0, 1.0};
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  material_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  material_diffuse);
@@ -101,12 +101,6 @@ static void _set_visuals(GisOpenGL *self)
 	glTranslatef(0, 0, -elev2rad(elev));
 	glRotatef(lat, 1, 0, 0);
 	glRotatef(-lon, 0, 1, 0);
-
-	/* Misc */
-	gdouble rg   = MAX(0, 1-(elev/20000));
-	gdouble blue = MAX(0, 1-(elev/50000));
-	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
-	glColor4f(1, 1, 1, 1);
 
 	glDisable(GL_ALPHA_TEST);
 
