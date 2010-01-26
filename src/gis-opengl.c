@@ -481,11 +481,29 @@ static void gis_opengl_render_tile(GisViewer *_self, GisTile *tile)
 		gdouble londist = e - w;
 		gdouble latdist = n - s;
 
-		gdouble xy[][3] = {
+		gdouble xy[3][2] = {
 			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
 			{(lon[1]-w)/londist, 1-(lat[1]-s)/latdist},
 			{(lon[2]-w)/londist, 1-(lat[2]-s)/latdist},
 		};
+
+		//if ((lat[0] == 90 && (xy[0][0] < 0 || xy[0][0] > 1)) ||
+		//    (lat[1] == 90 && (xy[1][0] < 0 || xy[1][0] > 1)) ||
+		//    (lat[2] == 90 && (xy[2][0] < 0 || xy[2][0] > 1)))
+		//	g_message("w,e=%4.f,%4.f   "
+		//	          "lat,lon,x,y="
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   ",
+		//		w,e,
+		//		lat[0], lon[0], xy[0][0], xy[0][1],
+		//		lat[1], lon[1], xy[1][0], xy[1][1],
+		//		lat[2], lon[2], xy[2][0], xy[2][1]);
+
+		/* Fix poles */
+		if (lat[0] == 90 || lat[0] == -90) xy[0][0] = 0.5;
+		if (lat[1] == 90 || lat[1] == -90) xy[1][0] = 0.5;
+		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);

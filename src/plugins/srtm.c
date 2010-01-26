@@ -65,6 +65,10 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 	guint x_flr = (int)x;
 	guint y_flr = (int)y;
 
+	//if (lon == 180 || lon == -180)
+	//	g_message("lon=%f w=%d min=%f max=%f dist=%f x=%f rem=%f flr=%d",
+	//	           lon,   w,  xmin,  xmax,  xdist,   x, x_rem, x_flr);
+
 	/* TODO: Fix interpolation at edges:
 	 *   - Pad these at the edges instead of wrapping/truncating
 	 *   - Figure out which pixels to index (is 0,0 edge, center, etc) */

@@ -142,6 +142,13 @@ GisTile *gis_tile_find(GisTile *self, gdouble lat, gdouble lon)
 	gint    row = lat_offset / lat_step;
 	gint    col = lon_offset / lon_step;
 
+	if (lon == 180) col--;
+	if (lat == -90) row--;
+
+	//if (lon == 180 || lon == -180)
+	//	g_message("lat=%f,lon=%f step=%f,%f off=%f,%f row=%d/%d,col=%d/%d",
+	//		lat,lon, lat_step,lon_step, lat_offset,lon_offset, row,rows,col,cols);
+
 	if (row < 0 || row >= rows || col < 0 || col >= cols)
 		return NULL;
 	else if (self->children[row][col] && self->children[row][col]->data)
