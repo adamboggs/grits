@@ -19,7 +19,7 @@
 #define __GIS_UTIL_H__
 
 #define EARTH_R (6371000)
-#define EARTH_C (2*M_PI*EARTH_R)
+#define EARTH_C (2*G_PI*EARTH_R)
 #define NORTH  90
 #define SOUTH -90
 #define EAST  180
@@ -65,15 +65,15 @@
  * xyz2lle:    0.0,   0.0,  10.0 ->    0.0,   0.0,   0.0
  */
 
-#define azim2lon(azim) ((azim)*180/M_PI)
-#define lon2azim(lon)  ((lon)*M_PI/180)
-#define incl2lat(incl) (90-(incl)*180/M_PI)
-#define lat2incl(lat)  ((90-(lat))*M_PI/180)
+#define azim2lon(azim) ((azim)*180/G_PI)
+#define lon2azim(lon)  ((lon)*G_PI/180)
+#define incl2lat(incl) (90-(incl)*180/G_PI)
+#define lat2incl(lat)  ((90-(lat))*G_PI/180)
 #define rad2elev(rad)  ((rad)-EARTH_R)
 #define elev2rad(elev) ((elev)+EARTH_R)
 
-#define deg2rad(deg) (((deg)*M_PI)/180.0)
-#define rad2deg(rad) (((rad)*180.0)/M_PI)
+#define deg2rad(deg) (((deg)*G_PI)/180.0)
+#define rad2deg(rad) (((rad)*180.0)/G_PI)
 
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)
