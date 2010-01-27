@@ -16,6 +16,23 @@
  */
 
 /**
+ * Metacarte
+ * ---------
+ * http://labs.metacarta.com/wms/vmap0?
+ * LAYERS=basic&
+ * SERVICE=WMS&
+ * VERSION=1.1.1&
+ * REQUEST=GetMap&
+ * STYLES=&
+ * EXCEPTIONS=application/vnd.ogc.se_inimage&
+ * FORMAT=image/jpeg&
+ * SRS=EPSG:4326&
+ * BBOX=0,-90,180,90&
+ * WIDTH=256&
+ * HEIGHT=256
+ */
+
+/**
  * http://www.nasa.network.com/elev?
  * SERVICE=WMS&
  * VERSION=1.1.0&
@@ -72,7 +89,7 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 		tile->edge.n);
 }
 
-void gis_wms_soup_chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _file)
+static void _soup_chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _file)
 {
 	FILE *file = _file;
 	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
@@ -108,7 +125,7 @@ char *gis_wms_make_local(GisWms *self, GisTile *tile)
 	gchar *uri = _make_uri(self, tile);
 	g_debug("GisWms: make_local - fetching %s", uri);
 	SoupMessage *message = soup_message_new("GET", uri);
-	g_signal_connect(message, "got-chunk", G_CALLBACK(gis_wms_soup_chunk_cb), file);
+	g_signal_connect(message, "got-chunk", G_CALLBACK(_soup_chunk_cb), file);
 	soup_message_headers_set_range(message->request_headers, ftell(file), -1);
 	int status = soup_session_send_message(self->soup, message);
 	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
