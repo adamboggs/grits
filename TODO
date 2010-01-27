@@ -1,18 +1,48 @@
-Road plan
----------
-* Use Vertex Arrays/
-  VertexBufferObjects/
-  DisplayLists/
-  glInterleavedArrays
-* States/cities/roads overlays
-* Atmosphere
-* Mouse control
+Miscellaneous
+-------------
+- Use VertexArrays/VertexBufferObjects/DisplayLists/etc
+- Mouse control
+- Plugins can time/location references too a tree-view
+- Consolidate data code (GisData, GisWms, [GisSlippy])
 
-Roam update
------------
-* Find a better way to fix great circle errors
-* Improve garbage collection (use timeout?)
-* Refactor height functions
-* Fix texture rendering at edges w/ linear filtering
+GisObject:
+  - Improvie GisMarker
+  - Move GisTile/render_tile to GisObject
+  - Move to subdirctory?
 
-vim: ts=2 sw=2 sts=2
+gis-demo:
+  - Rename gis_test -> gis_demo
+  - Add configs, prefs, name spoofing, offline
+
+roam:
+  - Find a better way to fix great circle errors
+  - Improve garbage collection (use timeout?)
+  - Refactor height functions
+  - Fix texture rendering at edges w/ linear filtering
+
+
+Improve plugins
+---------------
+env:
+	- Config panel
+  - Add atmosphere, sun, etc
+
+srtm:
+	- Config panel
+	- Rename to elev
+	- Runtime option to draw heights
+
+bmng:
+	- Config panel
+	- Rename to sat[ellite]
+
+map:
+	- Config panel
+  - Use local rendering instead of pixmaps
+  - Color mapping for alpha/color values
+
+gps:
+  - Create/test it
+  - Config: follow position, draw trace, leave marker
+
+vim: ft=txt ts=2 sw=2 sts=2 spell!
