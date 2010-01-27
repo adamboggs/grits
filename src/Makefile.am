@@ -16,9 +16,9 @@ gis_include_HEADERS = \
 	gis-plugin.h  \
 	gis-object.h  \
 	gis-util.h    \
-	gis-data.h    \
 	gis-tile.h    \
 	gis-wms.h     \
+	gis-data.h    \
 	gpqueue.h     \
 	roam.h
 libgis_la_SOURCES = \
@@ -28,9 +28,9 @@ libgis_la_SOURCES = \
 	gis-plugin.c  gis-plugin.h  \
 	gis-marshal.c gis-marshal.h \
 	gis-util.c    gis-util.h    \
-	gis-data.c    gis-data.h    \
 	gis-tile.c    gis-tile.h    \
 	gis-wms.c     gis-wms.h     \
+	gis-data.c    gis-data.h    \
 	gis-object.c  gis-object.h  \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
@@ -49,7 +49,10 @@ gis_test_SOURCES  = gis_test.c gis.h
 gis_test_LDADD    = $(AM_LDADD) libgis.la
 gis_test_LDFLAGS  = -static
 
-tile_test_SOURCES = tile_test.c gis-util.c gis-util.h gis-wms.c gis-wms.h gis-tile.c gis-tile.h
+tile_test_SOURCES = tile_test.c   \
+	gis-util.c   gis-util.h   \
+	gis-tile.c   gis-tile.h   \
+	gis-wms.c    gis-wms.h
 tile_test_LDADD   = $(AM_LDADD)
 
 MAINTAINERCLEANFILES = Makefile.in

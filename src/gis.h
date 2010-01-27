@@ -25,9 +25,9 @@
 
 /* GIS helprs */
 #include "gis-util.h"
-#include "gis-data.h"
 #include "gis-tile.h"
 #include "gis-wms.h"
+#include "gis-data.h"
 
 /* Plugins */
 #include "gis-plugin.h"

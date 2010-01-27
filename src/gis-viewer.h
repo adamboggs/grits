@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 #include <glib-object.h>
 
+/* Rendering levels */
 #define GIS_LEVEL_BACKGROUND -100
 #define GIS_LEVEL_WORLD         0
 #define GIS_LEVEL_OVERLAY     100
