@@ -43,14 +43,14 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgis.pc
 
 # Test programs
-bin_PROGRAMS = gis_test wms_test
+bin_PROGRAMS = gis_test tile_test
 
 gis_test_SOURCES  = gis_test.c gis.h
 gis_test_LDADD    = $(AM_LDADD) libgis.la
 gis_test_LDFLAGS  = -static
 
-wms_test_SOURCES  = wms_test.c gis-util.c gis-util.h gis-wms.c gis-wms.h gis-tile.c gis-tile.h
-wms_test_LDADD    = $(AM_LDADD)
+tile_test_SOURCES = tile_test.c gis-util.c gis-util.h gis-wms.c gis-wms.h gis-tile.c gis-tile.h
+tile_test_LDADD   = $(AM_LDADD)
 
 MAINTAINERCLEANFILES = Makefile.in
 

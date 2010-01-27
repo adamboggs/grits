@@ -10,4 +10,4 @@
 gis-marshal.[ch]
 gis_test
 gmon.*
-wms_test
+tile_test
