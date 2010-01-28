@@ -43,13 +43,13 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgis.pc
 
 # Test programs
-bin_PROGRAMS = gis-demo tile_test
+bin_PROGRAMS = gis-demo tile-test
 
 gis_demo_SOURCES  = gis-demo.c gis.h
 gis_demo_LDADD    = $(AM_LDADD) libgis.la
 gis_demo_LDFLAGS  = -static
 
-tile_test_SOURCES = tile_test.c   \
+tile_test_SOURCES = tile-test.c   \
 	gis-util.c   gis-util.h   \
 	gis-tile.c   gis-tile.h   \
 	gis-wms.c    gis-wms.h
