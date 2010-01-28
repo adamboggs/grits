@@ -7,7 +7,7 @@
 *.so
 .deps
 .libs
+gis-demo
 gis-marshal.[ch]
-gis_test
 gmon.*
 tile_test

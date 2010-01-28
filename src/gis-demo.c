@@ -27,7 +27,7 @@
 static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
 		gpointer _window)
 {
-	g_debug("GisTest: on_key_press - key=%x, state=%x",
+	g_debug("GisDemo: on_key_press - key=%x, state=%x",
 			event->keyval, event->state);
 	GtkWidget *window = _window;
 	switch (event->keyval) {

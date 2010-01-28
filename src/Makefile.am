@@ -43,11 +43,11 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libgis.pc
 
 # Test programs
-bin_PROGRAMS = gis_test tile_test
+bin_PROGRAMS = gis-demo tile_test
 
-gis_test_SOURCES  = gis_test.c gis.h
-gis_test_LDADD    = $(AM_LDADD) libgis.la
-gis_test_LDFLAGS  = -static
+gis_demo_SOURCES  = gis-demo.c gis.h
+gis_demo_LDADD    = $(AM_LDADD) libgis.la
+gis_demo_LDFLAGS  = -static
 
 tile_test_SOURCES = tile_test.c   \
 	gis-util.c   gis-util.h   \
@@ -63,13 +63,13 @@ MAINTAINERCLEANFILES = Makefile.in
 	glib-genmarshal --prefix=gis_cclosure_marshal --header $< > $@
 
 test: all .libs/gis
-	./gis_test
+	./gis-demo
 
 gdb: all .libs/gis
-	gdb ./gis_test
+	gdb ./gis-demo
 
 ddd: all .libs/gis
-	ddd ./gis_test
+	ddd ./gis-demo
 
 .libs/gis: plugins/.libs
 	ln -sf ../plugins/.libs .libs/gis
@@ -82,5 +82,5 @@ memcheck: all
 	         --leak-resolution=high         \
 	         --num-callers=50               \
 	         --suppressions=gtk.suppression \
-	         ./gis_test                     \
+	         ./gis-demo                     \
 	2> valgrind.out
