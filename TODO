@@ -10,9 +10,6 @@ GisObject:
   - Move GisTile/render_tile to GisObject
   - Move to subdirctory?
 
-gis-demo:
-  - Add configs, prefs, name spoofing, offline
-
 roam:
   - Find a better way to fix great circle errors
   - Improve garbage collection (use timeout?)
