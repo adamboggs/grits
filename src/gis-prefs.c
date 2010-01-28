@@ -60,6 +60,7 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 		g_debug("GisPrefs: new - Unable to load key file `%s': %s",
 			self->key_path, error->message);
 	}
+	g_debug("GisPrefs: new - using %s", self->key_path);
 	return self;
 }
 

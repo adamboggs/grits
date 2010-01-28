@@ -56,6 +56,6 @@ struct _GisOpenGLClass {
 GType gis_opengl_get_type(void);
 
 /* Methods */
-GisViewer *gis_opengl_new(GisPlugins *plugins);
+GisViewer *gis_opengl_new(GisPlugins *plugins, GisPrefs *prefs);
 
 #endif

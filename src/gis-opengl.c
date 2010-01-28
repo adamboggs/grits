@@ -414,11 +414,11 @@ static gboolean on_idle(GisOpenGL *self)
 /*********************
  * GisViewer methods *
  *********************/
-GisViewer *gis_opengl_new(GisPlugins *plugins)
+GisViewer *gis_opengl_new(GisPlugins *plugins, GisPrefs *prefs)
 {
 	g_debug("GisOpenGL: new");
 	GisViewer *self = g_object_new(GIS_TYPE_OPENGL, NULL);
-	self->plugins = plugins;
+	gis_viewer_setup(self, plugins, prefs);
 	return self;
 }
 

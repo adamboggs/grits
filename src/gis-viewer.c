@@ -120,6 +120,13 @@ static void on_view_changed(GisViewer *self,
 /***********
  * Methods *
  ***********/
+void gis_viewer_setup(GisViewer *self, GisPlugins *plugins, GisPrefs *prefs)
+{
+	self->plugins = plugins;
+	self->prefs   = prefs;
+	self->offline = gis_prefs_get_boolean(prefs, "gis/offline", NULL);
+}
+
 void gis_viewer_set_time(GisViewer *self, const char *time)
 {
 	g_assert(GIS_IS_VIEWER(self));
@@ -214,6 +221,7 @@ void gis_viewer_set_offline(GisViewer *self, gboolean offline)
 {
 	g_assert(GIS_IS_VIEWER(self));
 	g_debug("GisViewer: set_offline - %d", offline);
+	gis_prefs_set_boolean(self->prefs, "gis/offline", offline);
 	self->offline = offline;
 	_gis_viewer_emit_offline(self);
 }

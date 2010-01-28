@@ -34,6 +34,10 @@ struct _GisPluginInterface
 {
 	GTypeInterface parent_iface;
 
+	/* Virtual data */
+	const gchar *name;
+	const gchar *description;
+
 	/* Virtual functions */
 	GtkWidget *(*get_config)(GisPlugin *self);
 };
@@ -41,7 +45,10 @@ struct _GisPluginInterface
 GType gis_plugin_get_type();
 
 /* Methods */
-void       gis_plugin_expose(GisPlugin *self);
+const gchar *gis_plugin_get_name(GisPlugin *self);
+
+const gchar *gis_plugin_get_description(GisPlugin *self);
+
 GtkWidget *gis_plugin_get_config(GisPlugin *self);
 
 /* Plugins API */
@@ -49,18 +56,32 @@ GtkWidget *gis_plugin_get_config(GisPlugin *self);
 #include "gis-prefs.h"
 
 struct _GisPlugins {
-	gchar *dir;
-	GList *plugins;
+	gchar    *dir;
+	GList    *plugins;
+	GisPrefs *prefs;
 };
 
 typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);
 
-GisPlugins *gis_plugins_new(gchar *dir);
-void        gis_plugins_free();
-GList      *gis_plugins_available(GisPlugins *plugins);
-GisPlugin  *gis_plugins_load(GisPlugins *plugins, const char *name,
+GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs);
+
+void gis_plugins_free();
+
+GList *gis_plugins_available(GisPlugins *plugins);
+
+GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs);
-gboolean    gis_plugins_unload(GisPlugins *plugins, const char *name);
-void        gis_plugins_foreach(GisPlugins *plugins, GCallback callback, gpointer user_data);
+
+GisPlugin *gis_plugins_enable(GisPlugins *self, const char *name,
+		GisViewer *viewer, GisPrefs *prefs);
+
+GList *gis_plugins_load_enabled(GisPlugins *self,
+		GisViewer *viewer, GisPrefs *prefs);
+
+gboolean gis_plugins_disable(GisPlugins *self, const char *name);
+
+gboolean gis_plugins_unload(GisPlugins *plugins, const char *name);
+
+void gis_plugins_foreach(GisPlugins *plugins, GCallback callback, gpointer user_data);
 
 #endif

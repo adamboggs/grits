@@ -47,12 +47,26 @@ GType gis_plugin_get_type()
 	return type;
 }
 
+const gchar *gis_plugin_get_name(GisPlugin *self)
+{
+	if (!GIS_IS_PLUGIN(self))
+		return NULL;
+	return GIS_PLUGIN_GET_INTERFACE(self)->name;
+}
+
+const gchar *gis_plugin_get_description(GisPlugin *self)
+{
+	if (!GIS_IS_PLUGIN(self))
+		return NULL;
+	return GIS_PLUGIN_GET_INTERFACE(self)->description;
+}
+
 GtkWidget *gis_plugin_get_config(GisPlugin *self)
 {
 	if (!GIS_IS_PLUGIN(self))
 		return NULL;
 	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
-	return iface->get_config ? iface->get_config (self) : NULL;
+	return iface->get_config ? iface->get_config(self) : NULL;
 }
 
 
@@ -64,13 +78,14 @@ typedef struct {
 	GisPlugin *plugin;
 } GisPluginStore;
 
-GisPlugins *gis_plugins_new(gchar *dir)
+GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: new - dir=%s", dir);
-	GisPlugins *plugins = g_new0(GisPlugins, 1);
+	GisPlugins *self = g_new0(GisPlugins, 1);
+	self->prefs = prefs;
 	if (dir)
-		plugins->dir = g_strdup(dir);
-	return plugins;
+		self->dir = g_strdup(dir);
+	return self;
 }
 
 void gis_plugins_free(GisPlugins *self)
@@ -98,6 +113,8 @@ GList *gis_plugins_available(GisPlugins *self)
 	gchar *dirs[] = {self->dir, PLUGINSDIR};
 	g_debug("pluginsdir=%s", PLUGINSDIR);
 	for (int i = 0; i<2; i++) {
+		if (dirs[i] == NULL)
+			continue;
 		GDir *dir = g_dir_open(dirs[i], 0, NULL);
 		if (dir == NULL)
 			continue;
@@ -156,6 +173,28 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 	return store->plugin;
 }
 
+GisPlugin *gis_plugins_enable(GisPlugins *self, const char *name,
+		GisViewer *viewer, GisPrefs *prefs)
+{
+	GisPlugin *plugin = gis_plugins_load(self, name, viewer, prefs);
+	gis_prefs_set_boolean_v(self->prefs, "plugins", name, TRUE);
+	return plugin;
+}
+
+GList *gis_plugins_load_enabled(GisPlugins *self,
+		GisViewer *viewer, GisPrefs *prefs)
+{
+	GList *loaded = NULL;
+	for (GList *cur = gis_plugins_available(self); cur; cur = cur->next) {
+		gchar *name = cur->data;
+		if (gis_prefs_get_boolean_v(self->prefs, "plugins", name, NULL)) {
+			GisPlugin *plugin = gis_plugins_load(self, name, viewer, prefs);
+			loaded = g_list_prepend(loaded, plugin);
+		}
+	}
+	return loaded;
+}
+
 gboolean gis_plugins_unload(GisPlugins *self, const char *name)
 {
 	g_debug("GisPlugins: unload %s", name);
@@ -170,6 +209,14 @@ gboolean gis_plugins_unload(GisPlugins *self, const char *name)
 	}
 	return FALSE;
 }
+
+gboolean gis_plugins_disable(GisPlugins *self, const char *name)
+{
+	gis_prefs_set_boolean_v(self->prefs, "plugins", name, FALSE);
+	gis_plugins_unload(self, name);
+	return FALSE;
+}
+
 void gis_plugins_foreach(GisPlugins *self, GCallback _callback, gpointer user_data)
 {
 	g_debug("GisPlugins: foreach");

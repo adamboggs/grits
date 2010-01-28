@@ -42,6 +42,7 @@ typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
 #include "gis-tile.h"
 #include "gis-plugin.h"
+#include "gis-prefs.h"
 #include "gis-object.h"
 
 struct _GisViewer {
@@ -49,6 +50,7 @@ struct _GisViewer {
 
 	/* instance members */
 	GisPlugins *plugins;
+	GisPrefs   *prefs;
 	gchar      *time;
 	gdouble     location[3];
 	gdouble     rotation[3];
@@ -85,7 +87,7 @@ struct _GisViewerClass {
 GType gis_viewer_get_type(void);
 
 /* Methods */
-GisViewer *gis_viewer_new();
+void gis_viewer_setup(GisViewer *viewer, GisPlugins *plugins, GisPrefs *prefs);
 
 void gis_viewer_set_time(GisViewer *viewer, const gchar *time);
 gchar *gis_viewer_get_time(GisViewer *viewer);
