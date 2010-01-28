@@ -15,22 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BMNG_H__
-#define __BMNG_H__
+#ifndef __SAT_H__
+#define __SAT_H__
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_BMNG            (gis_plugin_bmng_get_type ())
-#define GIS_PLUGIN_BMNG(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_BMNG, GisPluginBmng))
-#define GIS_IS_PLUGIN_BMNG(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_BMNG))
-#define GIS_PLUGIN_BMNG_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_BMNG, GisPluginBmngClass))
-#define GIS_IS_PLUGIN_BMNG_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_BMNG))
-#define GIS_PLUGIN_BMNG_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_BMNG, GisPluginBmngClass))
+#define GIS_TYPE_PLUGIN_SAT            (gis_plugin_sat_get_type ())
+#define GIS_PLUGIN_SAT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_SAT, GisPluginSat))
+#define GIS_IS_PLUGIN_SAT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_SAT))
+#define GIS_PLUGIN_SAT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_SAT, GisPluginSatClass))
+#define GIS_IS_PLUGIN_SAT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_SAT))
+#define GIS_PLUGIN_SAT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_SAT, GisPluginSatClass))
 
-typedef struct _GisPluginBmng      GisPluginBmng;
-typedef struct _GisPluginBmngClass GisPluginBmngClass;
+typedef struct _GisPluginSat      GisPluginSat;
+typedef struct _GisPluginSatClass GisPluginSatClass;
 
-struct _GisPluginBmng {
+struct _GisPluginSat {
 	GObject parent_instance;
 
 	/* instance members */
@@ -41,13 +41,13 @@ struct _GisPluginBmng {
 	gulong     sigid;
 };
 
-struct _GisPluginBmngClass {
+struct _GisPluginSatClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_bmng_get_type();
+GType gis_plugin_sat_get_type();
 
 /* Methods */
-GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer);
+GisPluginSat *gis_plugin_sat_new(GisViewer *viewer);
 
 #endif

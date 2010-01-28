@@ -32,9 +32,8 @@ srtm:
 	- Rename to elev
 	- Runtime option to draw heights
 
-bmng:
+sat:
 	- Config panel
-	- Rename to sat[ellite]
 
 map:
 	- Config panel

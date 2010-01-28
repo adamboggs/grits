@@ -7,8 +7,8 @@ LIBS        = $(top_srcdir)/src/libgis.la
 
 pluginsdir  = "$(libdir)/gis"
 
-plugins_LTLIBRARIES = bmng.la srtm.la map.la env.la test.la
-bmng_la_SOURCES     = bmng.c bmng.h
+plugins_LTLIBRARIES = sat.la srtm.la map.la env.la test.la
+sat_la_SOURCES      = sat.c  sat.h
 srtm_la_SOURCES     = srtm.c srtm.h
 map_la_SOURCES      = map.c  map.h
 env_la_SOURCES      = env.c  env.h

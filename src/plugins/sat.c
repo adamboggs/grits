@@ -21,27 +21,27 @@
 
 #include <gis.h>
 
-#include "bmng.h"
+#include "sat.h"
 
 #define MAX_RESOLUTION 500
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 
 struct _LoadTileData {
-	GisPluginBmng *self;
-	GisTile       *tile;
-	GdkPixbuf     *pixbuf;
+	GisPluginSat *self;
+	GisTile      *tile;
+	GdkPixbuf    *pixbuf;
 };
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginBmng *self   = data->self;
-	GisTile       *tile   = data->tile;
-	GdkPixbuf     *pixbuf = data->pixbuf;
+	GisPluginSat *self   = data->self;
+	GisTile      *tile   = data->tile;
+	GdkPixbuf    *pixbuf = data->pixbuf;
 	g_free(data);
 
 	/* Create Texture */
-	g_debug("GisPluginBmng: _load_tile_cb start");
+	g_debug("GisPluginSat: _load_tile_cb start");
 	guchar   *pixels = gdk_pixbuf_get_pixels(pixbuf);
 	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
 	gint      width  = gdk_pixbuf_get_width(pixbuf);
@@ -71,8 +71,8 @@ static gboolean _load_tile_cb(gpointer _data)
 
 static void _load_tile(GisTile *tile, gpointer _self)
 {
-	GisPluginBmng *self = _self;
-	g_debug("GisPluginBmng: _load_tile start %p", g_thread_self());
+	GisPluginSat *self = _self;
+	g_debug("GisPluginSat: _load_tile start %p", g_thread_self());
 	char *path = gis_wms_make_local(self->wms, tile);
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
 	data->self   = self;
@@ -81,11 +81,11 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	if (data->pixbuf) {
 		g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
 	} else {
-		g_warning("GisPluginBmng: _load_tile - Error loading pixbuf %s", path);
+		g_warning("GisPluginSat: _load_tile - Error loading pixbuf %s", path);
 		g_remove(path);
 	}
 	g_free(path);
-	g_debug("GisPluginBmng: _load_tile end %p", g_thread_self());
+	g_debug("GisPluginSat: _load_tile end %p", g_thread_self());
 }
 
 static gboolean _free_tile_cb(gpointer data)
@@ -96,15 +96,15 @@ static gboolean _free_tile_cb(gpointer data)
 }
 static void _free_tile(GisTile *tile, gpointer _self)
 {
-	GisPluginBmng *self = _self;
-	g_debug("GisPluginBmng: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
+	GisPluginSat *self = _self;
+	g_debug("GisPluginSat: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
 	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _self)
 {
-	g_debug("GisPluginBmng: _update_tiles");
-	GisPluginBmng *self = _self;
+	g_debug("GisPluginSat: _update_tiles");
+	GisPluginSat *self = _self;
 	g_mutex_lock(self->mutex);
 	gdouble lat, lon, elev;
 	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
@@ -122,15 +122,15 @@ static gpointer _update_tiles(gpointer _self)
  * Callbacks *
  *************/
 static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginBmng *self)
+		gdouble lat, gdouble lon, gdouble elev, GisPluginSat *self)
 {
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
 static gpointer _expose(GisCallback *callback, gpointer _self)
 {
-	GisPluginBmng *self = GIS_PLUGIN_BMNG(_self);
-	g_debug("GisPluginBmng: expose viewer=%p tiles=%p,%p",
+	GisPluginSat *self = GIS_PLUGIN_SAT(_self);
+	g_debug("GisPluginSat: expose viewer=%p tiles=%p,%p",
 			self->viewer, self->tiles, self->tiles->data);
 	gis_viewer_render_tiles(self->viewer, self->tiles);
 	return NULL;
@@ -139,10 +139,10 @@ static gpointer _expose(GisCallback *callback, gpointer _self)
 /***********
  * Methods *
  ***********/
-GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer)
+GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 {
-	g_debug("GisPluginBmng: new");
-	GisPluginBmng *self = g_object_new(GIS_TYPE_PLUGIN_BMNG, NULL);
+	g_debug("GisPluginSat: new");
+	GisPluginSat *self = g_object_new(GIS_TYPE_PLUGIN_SAT, NULL);
 	self->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
@@ -165,19 +165,19 @@ GisPluginBmng *gis_plugin_bmng_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginBmng, gis_plugin_bmng, G_TYPE_OBJECT,
+static void gis_plugin_sat_plugin_init(GisPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GisPluginSat, gis_plugin_sat, G_TYPE_OBJECT,
 		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_bmng_plugin_init));
-static void gis_plugin_bmng_plugin_init(GisPluginInterface *iface)
+			gis_plugin_sat_plugin_init));
+static void gis_plugin_sat_plugin_init(GisPluginInterface *iface)
 {
-	g_debug("GisPluginBmng: plugin_init");
+	g_debug("GisPluginSat: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_bmng_init(GisPluginBmng *self)
+static void gis_plugin_sat_init(GisPluginSat *self)
 {
-	g_debug("GisPluginBmng: init");
+	g_debug("GisPluginSat: init");
 	/* Set defaults */
 	self->mutex = g_mutex_new();
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
@@ -185,33 +185,33 @@ static void gis_plugin_bmng_init(GisPluginBmng *self)
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng/", "jpg", TILE_WIDTH, TILE_HEIGHT);
 }
-static void gis_plugin_bmng_dispose(GObject *gobject)
+static void gis_plugin_sat_dispose(GObject *gobject)
 {
-	g_debug("GisPluginBmng: dispose");
-	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
+	g_debug("GisPluginSat: dispose");
+	GisPluginSat *self = GIS_PLUGIN_SAT(gobject);
 	/* Drop references */
 	if (self->viewer) {
 		g_signal_handler_disconnect(self->viewer, self->sigid);
 		g_object_unref(self->viewer);
 		self->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->dispose(gobject);
 }
-static void gis_plugin_bmng_finalize(GObject *gobject)
+static void gis_plugin_sat_finalize(GObject *gobject)
 {
-	g_debug("GisPluginBmng: finalize");
-	GisPluginBmng *self = GIS_PLUGIN_BMNG(gobject);
+	g_debug("GisPluginSat: finalize");
+	GisPluginSat *self = GIS_PLUGIN_SAT(gobject);
 	/* Free data */
 	gis_tile_free(self->tiles, _free_tile, self);
 	gis_wms_free(self->wms);
 	g_mutex_free(self->mutex);
-	G_OBJECT_CLASS(gis_plugin_bmng_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_bmng_class_init(GisPluginBmngClass *klass)
+static void gis_plugin_sat_class_init(GisPluginSatClass *klass)
 {
-	g_debug("GisPluginBmng: class_init");
+	g_debug("GisPluginSat: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_bmng_dispose;
-	gobject_class->finalize = gis_plugin_bmng_finalize;
+	gobject_class->dispose  = gis_plugin_sat_dispose;
+	gobject_class->finalize = gis_plugin_sat_finalize;
 }
