@@ -40,6 +40,9 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	/* Clear the earth */
+	gis_viewer_render_tile(self->viewer, self->background);
+
 	/* Attempt to render an atmosphere */
 	/*
 	glEnable(GL_COLOR_MATERIAL);
@@ -80,6 +83,11 @@ GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
 	g_debug("GisPluginEnv: new");
 	GisPluginEnv *self = g_object_new(GIS_TYPE_PLUGIN_ENV, NULL);
 	self->viewer = viewer;
+
+	/* Load blank background texture */
+	glGenTextures(1, &self->tex);
+	self->background = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	self->background->data = &self->tex;
 
 	/* Add renderers */
 	GisCallback *callback = gis_callback_new(expose, self);

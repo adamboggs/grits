@@ -34,7 +34,9 @@ struct _GisPluginEnv {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer       *viewer;
+	GisViewer *viewer;
+	guint      tex;
+	GisTile   *background;
 };
 
 struct _GisPluginEnvClass {
