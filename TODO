@@ -33,7 +33,6 @@ sat:
 map:
 	- Config panel
   - Use local rendering instead of pixmaps
-  - Color mapping for alpha/color values
 
 gps:
   - Create/test it

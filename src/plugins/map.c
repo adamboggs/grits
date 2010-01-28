@@ -27,17 +27,25 @@
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 
+const guchar colormap[][2][4] = {
+	{{0x73, 0x91, 0xad}, {0x73, 0x91, 0xad, 0x20}}, // Oceans
+	{{0xf6, 0xee, 0xee}, {0xf6, 0xee, 0xee, 0x00}}, // Ground
+	{{0xff, 0xff, 0xff}, {0xff, 0xff, 0xff, 0xff}}, // Borders
+	{{0x73, 0x93, 0xad}, {0x73, 0x93, 0xad, 0x40}}, // Lakes
+};
+
 struct _LoadTileData {
 	GisPluginMap *self;
-	GisTile       *tile;
-	GdkPixbuf     *pixbuf;
+	GisTile      *tile;
+	GdkPixbuf    *pixbuf;
 };
+#include <stdlib.h>
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
 	GisPluginMap *self   = data->self;
-	GisTile       *tile   = data->tile;
-	GdkPixbuf     *pixbuf = data->pixbuf;
+	GisTile      *tile   = data->tile;
+	GdkPixbuf    *pixbuf = data->pixbuf;
 	g_free(data);
 
 	/* Create Texture */
@@ -46,6 +54,20 @@ static gboolean _load_tile_cb(gpointer _data)
 	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
 	gint      width  = gdk_pixbuf_get_width(pixbuf);
 	gint      height = gdk_pixbuf_get_height(pixbuf);
+
+	for (int i = 0; i < width*height; i++) {
+		for (int j = 0; j < G_N_ELEMENTS(colormap); j++) {
+			if (pixels[i*4+0] == colormap[j][0][0] &&
+			    pixels[i*4+1] == colormap[j][0][1] &&
+			    pixels[i*4+2] == colormap[j][0][2]) {
+				pixels[i*4+0] = colormap[j][1][0];
+				pixels[i*4+1] = colormap[j][1][1];
+				pixels[i*4+2] = colormap[j][1][2];
+				pixels[i*4+3] = colormap[j][1][3];
+				break;
+			}
+		}
+	}
 
 	guint *tex = g_new0(guint, 1);
 	gis_viewer_begin(self->viewer);
@@ -155,7 +177,7 @@ GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 
 	/* Add renderers */
 	GisCallback *callback = gis_callback_new(_expose, self);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_OVERLAY, 0);
 
 	return self;
 }
