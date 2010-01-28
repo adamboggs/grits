@@ -15,22 +15,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SRTM_H__
-#define __SRTM_H__
+#ifndef __ELEV_H__
+#define __ELEV_H__
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_SRTM            (gis_plugin_srtm_get_type ())
-#define GIS_PLUGIN_SRTM(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_SRTM, GisPluginSrtm))
-#define GIS_IS_PLUGIN_SRTM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_SRTM))
-#define GIS_PLUGIN_SRTM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_SRTM, GisPluginSrtmClass))
-#define GIS_IS_PLUGIN_SRTM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_SRTM))
-#define GIS_PLUGIN_SRTM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_SRTM, GisPluginSrtmClass))
+#define GIS_TYPE_PLUGIN_ELEV            (gis_plugin_elev_get_type ())
+#define GIS_PLUGIN_ELEV(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_ELEV, GisPluginElev))
+#define GIS_IS_PLUGIN_ELEV(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_ELEV))
+#define GIS_PLUGIN_ELEV_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_ELEV, GisPluginElevClass))
+#define GIS_IS_PLUGIN_ELEV_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_ELEV))
+#define GIS_PLUGIN_ELEV_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_ELEV, GisPluginElevClass))
 
-typedef struct _GisPluginSrtm      GisPluginSrtm;
-typedef struct _GisPluginSrtmClass GisPluginSrtmClass;
+typedef struct _GisPluginElev      GisPluginElev;
+typedef struct _GisPluginElevClass GisPluginElevClass;
 
-struct _GisPluginSrtm {
+struct _GisPluginElev {
 	GObject parent_instance;
 
 	/* instance members */
@@ -41,13 +41,13 @@ struct _GisPluginSrtm {
 	gulong     sigid;
 };
 
-struct _GisPluginSrtmClass {
+struct _GisPluginElevClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_srtm_get_type();
+GType gis_plugin_elev_get_type();
 
 /* Methods */
-GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer);
+GisPluginElev *gis_plugin_elev_new(GisViewer *viewer);
 
 #endif

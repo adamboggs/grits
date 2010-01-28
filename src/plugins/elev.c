@@ -20,7 +20,7 @@
 
 #include <gis.h>
 
-#include "srtm.h"
+#include "elev.h"
 
 #define MAX_RESOLUTION 500
 #define TILE_WIDTH     1024
@@ -34,7 +34,7 @@ struct _TileData {
 
 static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 {
-	GisPluginSrtm *self = _self;
+	GisPluginElev *self = _self;
 	if (!self) return 0;
 
 	GisTile *tile = gis_tile_find(self->tiles, lat, lon);
@@ -91,7 +91,7 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 #define LOAD_BIL    TRUE
 #define LOAD_OPENGL FALSE
 struct _LoadTileData {
-	GisPluginSrtm    *self;
+	GisPluginElev    *self;
 	gchar            *path;
 	GisTile          *tile;
 	GdkPixbuf        *pixbuf;
@@ -101,7 +101,7 @@ static guint16 *_load_bil(gchar *path)
 {
 	gchar *data;
 	g_file_get_contents(path, &data, NULL, NULL);
-	g_debug("GisPluginSrtm: load_bil %p", data);
+	g_debug("GisPluginElev: load_bil %p", data);
 	return (guint16*)data;
 }
 static GdkPixbuf *_load_pixbuf(guint16 *bil)
@@ -123,7 +123,7 @@ static GdkPixbuf *_load_pixbuf(guint16 *bil)
 				pixels[r*stride + c*nchan + 3] = 128;
 		}
 	}
-	g_debug("GisPluginSrtm: load_pixbuf %p", pixbuf);
+	g_debug("GisPluginElev: load_pixbuf %p", pixbuf);
 	return pixbuf;
 }
 static guint _load_opengl(GdkPixbuf *pixbuf)
@@ -149,14 +149,14 @@ static guint _load_opengl(GdkPixbuf *pixbuf)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 
-	g_debug("GisPluginSrtm: load_opengl %d", opengl);
+	g_debug("GisPluginElev: load_opengl %d", opengl);
 	return opengl;
 }
 static gboolean _load_tile_cb(gpointer _load)
 {
 	struct _LoadTileData *load = _load;
-	g_debug("GisPluginSrtm: _load_tile_cb: %s", load->path);
-	GisPluginSrtm    *self   = load->self;
+	g_debug("GisPluginElev: _load_tile_cb: %s", load->path);
+	GisPluginElev    *self   = load->self;
 	GisTile          *tile   = load->tile;
 	GdkPixbuf        *pixbuf = load->pixbuf;
 	struct _TileData *data   = load->data;
@@ -183,11 +183,11 @@ static gboolean _load_tile_cb(gpointer _load)
 }
 static void _load_tile(GisTile *tile, gpointer _self)
 {
-	GisPluginSrtm *self = _self;
+	GisPluginElev *self = _self;
 
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
 	load->path = gis_wms_make_local(self->wms, tile);
-	g_debug("GisPluginSrtm: _load_tile: %s", load->path);
+	g_debug("GisPluginElev: _load_tile: %s", load->path);
 	load->self = self;
 	load->tile = tile;
 	load->data = g_new0(struct _TileData, 1);
@@ -211,14 +211,14 @@ static gboolean _free_tile_cb(gpointer _data)
 }
 static void _free_tile(GisTile *tile, gpointer _self)
 {
-	GisPluginSrtm *self = _self;
-	g_debug("GisPluginSrtm: _free_tile: %p", tile->data);
+	GisPluginElev *self = _self;
+	g_debug("GisPluginElev: _free_tile: %p", tile->data);
 	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _self)
 {
-	GisPluginSrtm *self = _self;
+	GisPluginElev *self = _self;
 	g_mutex_lock(self->mutex);
 	gdouble lat, lon, elev;
 	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
@@ -236,15 +236,15 @@ static gpointer _update_tiles(gpointer _self)
  * Callbacks *
  *************/
 static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginSrtm *self)
+		gdouble lat, gdouble lon, gdouble elev, GisPluginElev *self)
 {
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
 static gpointer _expose(GisCallback *callback, gpointer _self)
 {
-	GisPluginSrtm *self = GIS_PLUGIN_SRTM(_self);
-	g_debug("GisPluginSrtm: expose tiles=%p data=%p",
+	GisPluginElev *self = GIS_PLUGIN_ELEV(_self);
+	g_debug("GisPluginElev: expose tiles=%p data=%p",
 		self->tiles, self->tiles->data);
 	if (LOAD_OPENGL)
 		gis_viewer_render_tiles(self->viewer, self->tiles);
@@ -254,10 +254,10 @@ static gpointer _expose(GisCallback *callback, gpointer _self)
 /***********
  * Methods *
  ***********/
-GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer)
+GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 {
-	g_debug("GisPluginSrtm: new");
-	GisPluginSrtm *self = g_object_new(GIS_TYPE_PLUGIN_SRTM, NULL);
+	g_debug("GisPluginElev: new");
+	GisPluginElev *self = g_object_new(GIS_TYPE_PLUGIN_ELEV, NULL);
 	self->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
@@ -280,30 +280,30 @@ GisPluginSrtm *gis_plugin_srtm_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_srtm_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginSrtm, gis_plugin_srtm, G_TYPE_OBJECT,
+static void gis_plugin_elev_plugin_init(GisPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GisPluginElev, gis_plugin_elev, G_TYPE_OBJECT,
 		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_srtm_plugin_init));
-static void gis_plugin_srtm_plugin_init(GisPluginInterface *iface)
+			gis_plugin_elev_plugin_init));
+static void gis_plugin_elev_plugin_init(GisPluginInterface *iface)
 {
-	g_debug("GisPluginSrtm: plugin_init");
+	g_debug("GisPluginElev: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_srtm_init(GisPluginSrtm *self)
+static void gis_plugin_elev_init(GisPluginElev *self)
 {
-	g_debug("GisPluginSrtm: init");
+	g_debug("GisPluginElev: init");
 	/* Set defaults */
 	self->mutex = g_mutex_new();
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
-		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
+		"http://www.nasa.network.com/srtm", "srtm30", "application/bil",
 		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
-static void gis_plugin_srtm_dispose(GObject *gobject)
+static void gis_plugin_elev_dispose(GObject *gobject)
 {
-	g_debug("GisPluginSrtm: dispose");
-	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
+	g_debug("GisPluginElev: dispose");
+	GisPluginElev *self = GIS_PLUGIN_ELEV(gobject);
 	/* Drop references */
 	if (LOAD_BIL)
 		gis_viewer_clear_height_func(self->viewer);
@@ -312,23 +312,23 @@ static void gis_plugin_srtm_dispose(GObject *gobject)
 		g_object_unref(self->viewer);
 		self->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->dispose(gobject);
 }
-static void gis_plugin_srtm_finalize(GObject *gobject)
+static void gis_plugin_elev_finalize(GObject *gobject)
 {
-	g_debug("GisPluginSrtm: finalize");
-	GisPluginSrtm *self = GIS_PLUGIN_SRTM(gobject);
+	g_debug("GisPluginElev: finalize");
+	GisPluginElev *self = GIS_PLUGIN_ELEV(gobject);
 	/* Free data */
 	gis_tile_free(self->tiles, _free_tile, self);
 	gis_wms_free(self->wms);
 	g_mutex_free(self->mutex);
-	G_OBJECT_CLASS(gis_plugin_srtm_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_srtm_class_init(GisPluginSrtmClass *klass)
+static void gis_plugin_elev_class_init(GisPluginElevClass *klass)
 {
-	g_debug("GisPluginSrtm: class_init");
+	g_debug("GisPluginElev: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_srtm_dispose;
-	gobject_class->finalize = gis_plugin_srtm_finalize;
+	gobject_class->dispose  = gis_plugin_elev_dispose;
+	gobject_class->finalize = gis_plugin_elev_finalize;
 }

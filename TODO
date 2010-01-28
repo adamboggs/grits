@@ -27,9 +27,8 @@ env:
 	- Config panel
   - Add atmosphere, sun, etc
 
-srtm:
+elev:
 	- Config panel
-	- Rename to elev
 	- Runtime option to draw heights
 
 sat:
