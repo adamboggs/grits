@@ -144,10 +144,8 @@ static void setup_plugins(GtkUIManager *manager, GtkNotebook *notebook)
 		gtk_action_group_add_action(actions, GTK_ACTION(action));
 		gtk_ui_manager_add_ui(manager, merge_id, "/Menu/Plugins", name, name,
 				GTK_UI_MANAGER_AUTO, TRUE);
-		if (gis_prefs_get_boolean_v(prefs, "plugins", name, NULL)) {
+		if (gis_prefs_get_boolean_v(prefs, "plugins", name, NULL))
 			gtk_toggle_action_set_active(action, TRUE);
-			gtk_toggle_action_toggled(action);
-		}
 	}
 }
 
