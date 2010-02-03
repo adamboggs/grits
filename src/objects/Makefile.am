@@ -8,8 +8,10 @@ gis_include_HEADERS = \
 
 noinst_LTLIBRARIES = libgis-objects.la
 libgis_objects_la_SOURCES = \
-	gis-object.c gis-object.h \
-	gis-tile.c   gis-tile.h
+	gis-object.c   gis-object.h \
+	gis-marker.c   gis-marker.h \
+	gis-callback.c gis-callback.h \
+	gis-tile.c     gis-tile.h
 libgis_objects_la_LDFLAGS = -static
 
 MAINTAINERCLEANFILES = Makefile.in

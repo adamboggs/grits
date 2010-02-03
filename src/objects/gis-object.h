@@ -20,8 +20,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <cairo.h>
-
 
 /* Take that GLib boilerplate! */
 #define GOBJECT_HEAD( \
@@ -96,51 +94,5 @@ static inline GisPoint *gis_object_center(GisObject *object)
 {
 	return &GIS_OBJECT(object)->center;
 }
-
-
-/* GisMarker */
-#define GIS_TYPE_MARKER (gis_marker_get_type())
-
-GOBJECT_HEAD(
-	GIS, MARKER,
-	Gis, Marker,
-	gis, marker);
-
-struct _GisMarker {
-	GisObject  parent_instance;
-	gint       xoff, yoff;
-	gchar     *label;
-	cairo_t   *cairo;
-	guint      tex;
-};
-
-struct _GisMarkerClass {
-	GisObjectClass parent_class;
-};
-
-GisMarker *gis_marker_new(const gchar *label);
-
-
-/* GisCallback */
-#define GIS_TYPE_CALLBACK (gis_callback_get_type())
-
-GOBJECT_HEAD(
-	GIS, CALLBACK,
-	Gis, Callback,
-	gis, callback);
-
-typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
-
-struct _GisCallback {
-	GisObject       parent;
-	GisCallbackFunc callback;
-	gpointer        user_data;
-};
-
-struct _GisCallbackClass {
-	GisObjectClass parent_class;
-};
-
-GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
 
 #endif

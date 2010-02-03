@@ -18,6 +18,8 @@
 #ifndef __GIS_UTIL_H__
 #define __GIS_UTIL_H__
 
+#include <glib.h>
+
 #define EARTH_R (6371000)
 #define EARTH_C (2*G_PI*EARTH_R)
 #define NORTH  90

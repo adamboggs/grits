@@ -19,6 +19,7 @@
 #define __GIS_TILE_H__
 
 #include <glib.h>
+#include <glib-object.h>
 #include "gis-object.h"
 
 #define GIS_TYPE_TILE (gis_tile_get_type())

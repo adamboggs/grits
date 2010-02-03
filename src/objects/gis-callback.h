@@ -15,26 +15,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_H__
-#define __GIS_H__
+#ifndef __GIS_CALLBACK_H__
+#define __GIS_CALLBACK_H__
 
-/* GIS Core */
-#include "gis-viewer.h"
-#include "gis-opengl.h"
-#include "gis-prefs.h"
-#include "gis-util.h"
-
-/* GIS objects */
+#include <glib.h>
+#include <glib-object.h>
 #include "gis-object.h"
-#include "gis-tile.h"
-#include "gis-marker.h"
-#include "gis-callback.h"
 
-/* GIS data */
-#include "gis-wms.h"
-#include "gis-data.h"
+/* GisCallback */
+#define GIS_TYPE_CALLBACK (gis_callback_get_type())
 
-/* Plugins */
-#include "gis-plugin.h"
+GOBJECT_HEAD(
+	GIS, CALLBACK,
+	Gis, Callback,
+	gis, callback);
+
+typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
+
+struct _GisCallback {
+	GisObject       parent;
+	GisCallbackFunc callback;
+	gpointer        user_data;
+};
+
+struct _GisCallbackClass {
+	GisObjectClass parent_class;
+};
+
+GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
 
 #endif

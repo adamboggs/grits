@@ -15,26 +15,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_H__
-#define __GIS_H__
+#ifndef __GIS_MARKER_H__
+#define __GIS_MARKER_H__
 
-/* GIS Core */
-#include "gis-viewer.h"
-#include "gis-opengl.h"
-#include "gis-prefs.h"
-#include "gis-util.h"
-
-/* GIS objects */
+#include <glib.h>
+#include <glib-object.h>
+#include <cairo.h>
 #include "gis-object.h"
-#include "gis-tile.h"
-#include "gis-marker.h"
-#include "gis-callback.h"
 
-/* GIS data */
-#include "gis-wms.h"
-#include "gis-data.h"
+/* GisMarker */
+#define GIS_TYPE_MARKER (gis_marker_get_type())
 
-/* Plugins */
-#include "gis-plugin.h"
+GOBJECT_HEAD(
+	GIS, MARKER,
+	Gis, Marker,
+	gis, marker);
+
+struct _GisMarker {
+	GisObject  parent_instance;
+	gint       xoff, yoff;
+	gchar     *label;
+	cairo_t   *cairo;
+	guint      tex;
+};
+
+struct _GisMarkerClass {
+	GisObjectClass parent_class;
+};
+
+GisMarker *gis_marker_new(const gchar *label);
 
 #endif
