@@ -19,22 +19,18 @@
 #define __GIS_TILE_H__
 
 #include <glib.h>
+#include "gis-object.h"
 
-typedef struct _GisTile        GisTile;
+#define GIS_TYPE_TILE (gis_tile_get_type())
 
-#define gis_tile_foreach(tile, child) \
-	for (int _x = 0; _x < G_N_ELEMENTS(tile->children); _x++) \
-	for (int _y = 0; child = tile->children[_x][_y], \
-		_y < G_N_ELEMENTS(tile->children[_x]); _y++) \
-
-#define gis_tile_foreach_index(tile, x, y) \
-	for (x = 0; x < G_N_ELEMENTS(tile->children); x++) \
-	for (y = 0; y < G_N_ELEMENTS(tile->children[x]); y++)
-
-typedef void (*GisTileLoadFunc)(GisTile *tile, gpointer user_data);
-typedef void (*GisTileFreeFunc)(GisTile *tile, gpointer user_data);
+GOBJECT_HEAD(
+	GIS, TILE,
+	Gis, Tile,
+	gis, tile);
 
 struct _GisTile {
+	GisObject  parent_instance;
+
 	/* Pointer to the tile data */
 	gpointer data;
 
@@ -51,7 +47,24 @@ struct _GisTile {
 	time_t atime;
 };
 
-/* Path to string table, keep in sync with tile->children */ 
+struct _GisTileClass {
+	GisObjectClass parent_class;
+};
+
+typedef void (*GisTileLoadFunc)(GisTile *tile, gpointer user_data);
+typedef void (*GisTileFreeFunc)(GisTile *tile, gpointer user_data);
+
+/* Forech functions */
+#define gis_tile_foreach(tile, child) \
+	for (int _x = 0; _x < G_N_ELEMENTS(tile->children); _x++) \
+	for (int _y = 0; child = tile->children[_x][_y], \
+		_y < G_N_ELEMENTS(tile->children[_x]); _y++) \
+
+#define gis_tile_foreach_index(tile, x, y) \
+	for (x = 0; x < G_N_ELEMENTS(tile->children); x++) \
+	for (y = 0; y < G_N_ELEMENTS(tile->children[x]); y++)
+
+/* Path to string table, keep in sync with tile->children */
 extern gchar *gis_tile_path_table[2][2];
 
 /* Allocate a new Tile */

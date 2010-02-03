@@ -29,7 +29,7 @@ gchar *gis_tile_path_table[2][2] = {
 GisTile *gis_tile_new(GisTile *parent,
 	gdouble n, gdouble s, gdouble e, gdouble w)
 {
-	GisTile *self = g_new0(GisTile, 1);
+	GisTile *self = g_object_new(GIS_TYPE_TILE, NULL);
 	self->parent = parent;
 	self->edge.n = n;
 	self->edge.s = s;
@@ -190,5 +190,10 @@ void gis_tile_free(GisTile *self, GisTileFreeFunc free_func, gpointer user_data)
 		gis_tile_free(child, free_func, user_data);
 	if (free_func)
 		free_func(self, user_data);
-	g_free(self);
+	g_object_unref(self);
 }
+
+/* GObject code */
+G_DEFINE_TYPE(GisTile, gis_tile, GIS_TYPE_OBJECT);
+static void gis_tile_init(GisTile *self) { }
+static void gis_tile_class_init(GisTileClass *klass) { }

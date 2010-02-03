@@ -40,9 +40,6 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	/* Clear the earth */
-	gis_viewer_render_tile(self->viewer, self->background);
-
 	/* Attempt to render an atmosphere */
 	/*
 	glEnable(GL_COLOR_MATERIAL);
@@ -92,6 +89,7 @@ GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
 	/* Add renderers */
 	GisCallback *callback = gis_callback_new(expose, self);
 	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_BACKGROUND, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(self->background), GIS_LEVEL_BACKGROUND, 0);
 
 	return self;
 }

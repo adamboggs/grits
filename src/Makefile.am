@@ -52,6 +52,7 @@ gis_demo_LDFLAGS  = -static
 tile_test_SOURCES = tile-test.c   \
 	gis-util.c   gis-util.h   \
 	gis-tile.c   gis-tile.h   \
+	gis-object.c gis-object.h \
 	gis-wms.c    gis-wms.h
 tile_test_LDADD   = $(AM_LDADD)
 

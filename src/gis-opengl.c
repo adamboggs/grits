@@ -128,6 +128,89 @@ static void _set_visuals(GisOpenGL *self)
 /********************
  * Object handleing *
  ********************/
+static void _draw_tile(GisOpenGL *self, GisTile *tile)
+{
+	if (!tile || !tile->data)
+		return;
+	GList *triangles = roam_sphere_get_intersect(self->sphere, FALSE,
+			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	if (!triangles)
+		g_warning("GisOpenGL: _draw_tiles - No triangles to draw: edges=%f,%f,%f,%f",
+			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	//g_message("drawing %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
+	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	for (GList *cur = triangles; cur; cur = cur->next) {
+		RoamTriangle *tri = cur->data;
+
+		gdouble lat[3] = {tri->p.r->lat, tri->p.m->lat, tri->p.l->lat};
+		gdouble lon[3] = {tri->p.r->lon, tri->p.m->lon, tri->p.l->lon};
+
+		if (lon[0] < -90 || lon[1] < -90 || lon[2] < -90) {
+			if (lon[0] > 90) lon[0] -= 360;
+			if (lon[1] > 90) lon[1] -= 360;
+			if (lon[2] > 90) lon[2] -= 360;
+		}
+
+		gdouble n = tile->edge.n;
+		gdouble s = tile->edge.s;
+		gdouble e = tile->edge.e;
+		gdouble w = tile->edge.w;
+
+		gdouble londist = e - w;
+		gdouble latdist = n - s;
+
+		gdouble xy[3][2] = {
+			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
+			{(lon[1]-w)/londist, 1-(lat[1]-s)/latdist},
+			{(lon[2]-w)/londist, 1-(lat[2]-s)/latdist},
+		};
+
+		//if ((lat[0] == 90 && (xy[0][0] < 0 || xy[0][0] > 1)) ||
+		//    (lat[1] == 90 && (xy[1][0] < 0 || xy[1][0] > 1)) ||
+		//    (lat[2] == 90 && (xy[2][0] < 0 || xy[2][0] > 1)))
+		//	g_message("w,e=%4.f,%4.f   "
+		//	          "lat,lon,x,y="
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
+		//	          "%4.1f,%4.0f,%4.2f,%4.2f   ",
+		//		w,e,
+		//		lat[0], lon[0], xy[0][0], xy[0][1],
+		//		lat[1], lon[1], xy[1][0], xy[1][1],
+		//		lat[2], lon[2], xy[2][0], xy[2][1]);
+
+		/* Fix poles */
+		if (lat[0] == 90 || lat[0] == -90) xy[0][0] = 0.5;
+		if (lat[1] == 90 || lat[1] == -90) xy[1][0] = 0.5;
+		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);
+		glBegin(GL_TRIANGLES);
+		glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r);
+		glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m);
+		glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l);
+		glEnd();
+	}
+	g_list_free(triangles);
+}
+
+static void _draw_tiles(GisOpenGL *self, GisTile *tile)
+{
+	/* Only draw children if possible */
+	gboolean has_children = TRUE;
+	GisTile *child;
+	gis_tile_foreach(tile, child)
+		if (!child || !child->data)
+			has_children = FALSE;
+	if (has_children)
+		/* Only draw children */
+		gis_tile_foreach(tile, child)
+			_draw_tiles(self, child);
+	else
+		/* No children, draw this tile */
+		_draw_tile(self, tile);
+}
+
 static void _draw_marker(GisOpenGL *self, GisMarker *marker)
 {
 	GisPoint *point = gis_object_center(GIS_OBJECT(marker));
@@ -192,6 +275,8 @@ static void _draw_object(GisOpenGL *self, GisObject *object)
 		_draw_marker(self, GIS_MARKER(object));
 	} else if (GIS_IS_CALLBACK(object)) {
 		_draw_callback(self, GIS_CALLBACK(object));
+	} else if (GIS_IS_TILE(object)) {
+		_draw_tiles(self, GIS_TILE(object));
 	}
 	glPopAttrib();
 	glMatrixMode(GL_PROJECTION); glPopMatrix();
@@ -429,91 +514,6 @@ static void gis_opengl_project(GisViewer *_self,
 		px, py, pz);
 }
 
-static void gis_opengl_render_tile(GisViewer *_self, GisTile *tile)
-{
-	GisOpenGL *self = GIS_OPENGL(_self);
-	if (!tile || !tile->data)
-		return;
-	GList *triangles = roam_sphere_get_intersect(self->sphere, FALSE,
-			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	if (!triangles)
-		g_warning("GisOpenGL: render_tiles - No triangles to draw: edges=%f,%f,%f,%f",
-			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	//g_message("rendering %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
-	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	for (GList *cur = triangles; cur; cur = cur->next) {
-		RoamTriangle *tri = cur->data;
-
-		gdouble lat[3] = {tri->p.r->lat, tri->p.m->lat, tri->p.l->lat};
-		gdouble lon[3] = {tri->p.r->lon, tri->p.m->lon, tri->p.l->lon};
-
-		if (lon[0] < -90 || lon[1] < -90 || lon[2] < -90) {
-			if (lon[0] > 90) lon[0] -= 360;
-			if (lon[1] > 90) lon[1] -= 360;
-			if (lon[2] > 90) lon[2] -= 360;
-		}
-
-		gdouble n = tile->edge.n;
-		gdouble s = tile->edge.s;
-		gdouble e = tile->edge.e;
-		gdouble w = tile->edge.w;
-
-		gdouble londist = e - w;
-		gdouble latdist = n - s;
-
-		gdouble xy[3][2] = {
-			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
-			{(lon[1]-w)/londist, 1-(lat[1]-s)/latdist},
-			{(lon[2]-w)/londist, 1-(lat[2]-s)/latdist},
-		};
-
-		//if ((lat[0] == 90 && (xy[0][0] < 0 || xy[0][0] > 1)) ||
-		//    (lat[1] == 90 && (xy[1][0] < 0 || xy[1][0] > 1)) ||
-		//    (lat[2] == 90 && (xy[2][0] < 0 || xy[2][0] > 1)))
-		//	g_message("w,e=%4.f,%4.f   "
-		//	          "lat,lon,x,y="
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   ",
-		//		w,e,
-		//		lat[0], lon[0], xy[0][0], xy[0][1],
-		//		lat[1], lon[1], xy[1][0], xy[1][1],
-		//		lat[2], lon[2], xy[2][0], xy[2][1]);
-
-		/* Fix poles */
-		if (lat[0] == 90 || lat[0] == -90) xy[0][0] = 0.5;
-		if (lat[1] == 90 || lat[1] == -90) xy[1][0] = 0.5;
-		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
-
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);
-		glBegin(GL_TRIANGLES);
-		glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r);
-		glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m);
-		glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l);
-		glEnd();
-	}
-	g_list_free(triangles);
-}
-
-static void gis_opengl_render_tiles(GisViewer *_self, GisTile *tile)
-{
-	GisOpenGL *self = GIS_OPENGL(_self);
-	/* Only render children if possible */
-	gboolean has_children = TRUE;
-	GisTile *child;
-	gis_tile_foreach(tile, child)
-		if (!child || !child->data)
-			has_children = FALSE;
-	if (has_children)
-		/* Only render children */
-		gis_tile_foreach(tile, child)
-			gis_opengl_render_tiles(_self, child);
-	else
-		/* No children, render this tile */
-		gis_opengl_render_tile(_self, tile);
-}
-
 static void gis_opengl_set_height_func(GisViewer *_self, GisTile *tile,
 		RoamHeightFunc height_func, gpointer user_data, gboolean update)
 {
@@ -683,8 +683,6 @@ static void gis_opengl_class_init(GisOpenGLClass *klass)
 	viewer_class->project           = gis_opengl_project;
 	viewer_class->clear_height_func = gis_opengl_clear_height_func;
 	viewer_class->set_height_func   = gis_opengl_set_height_func;
-	viewer_class->render_tile       = gis_opengl_render_tile;
-	viewer_class->render_tiles      = gis_opengl_render_tiles;
 	viewer_class->begin             = gis_opengl_begin;
 	viewer_class->end               = gis_opengl_end;
 	viewer_class->add               = gis_opengl_add;

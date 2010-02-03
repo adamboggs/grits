@@ -258,16 +258,6 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
-static gpointer _expose(GisCallback *callback, gpointer _self)
-{
-	GisPluginElev *self = GIS_PLUGIN_ELEV(_self);
-	g_debug("GisPluginElev: expose tiles=%p data=%p",
-		self->tiles, self->tiles->data);
-	if (LOAD_OPENGL)
-		gis_viewer_render_tiles(self->viewer, self->tiles);
-	return NULL;
-}
-
 /***********
  * Methods *
  ***********/
@@ -286,8 +276,8 @@ GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), self);
 
 	/* Add renderers */
-	GisCallback *callback = gis_callback_new(_expose, self);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
+	if (LOAD_OPENGL)
+		gis_viewer_add(viewer, GIS_OBJECT(self->tiles), GIS_LEVEL_WORLD, 0);
 
 	return self;
 }

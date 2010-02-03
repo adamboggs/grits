@@ -128,15 +128,6 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, self, FALSE, NULL);
 }
 
-static gpointer _expose(GisCallback *callback, gpointer _self)
-{
-	GisPluginSat *self = GIS_PLUGIN_SAT(_self);
-	g_debug("GisPluginSat: expose viewer=%p tiles=%p,%p",
-			self->viewer, self->tiles, self->tiles->data);
-	gis_viewer_render_tiles(self->viewer, self->tiles);
-	return NULL;
-}
-
 /***********
  * Methods *
  ***********/
@@ -155,8 +146,7 @@ GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), self);
 
 	/* Add renderers */
-	GisCallback *callback = gis_callback_new(_expose, self);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(self->tiles), GIS_LEVEL_WORLD, 0);
 
 	return self;
 }
