@@ -10,11 +10,17 @@ GisObject:
   - Move GisTile/render_tile to GisObject
   - Move to subdirctory?
 
-roam:
+Roam:
   - Find a better way to fix great circle errors
   - Improve garbage collection (use timeout?)
   - Refactor height functions
   - Fix texture rendering at edges w/ linear filtering
+
+Data:
+  - Move to subdirectory?
+  - Create consistent way for caching data.
+  - Provide set of cachers (http, http/wms, http/slippy, etc)
+  - How to integrate these with GisObject?
 
 
 Improve plugins
@@ -37,5 +43,6 @@ map:
 gps:
   - Create/test it
   - Config: follow position, draw trace, leave marker
+
 
 vim: ft=txt ts=2 sw=2 sts=2 spell!
