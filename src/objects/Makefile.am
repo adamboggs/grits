@@ -1,9 +1,11 @@
-AM_CFLAGS  = -Wall --std=gnu99 -fPIC -I../
+AM_CFLAGS  = -Wall --std=gnu99 -fPIC -I$(top_srcdir)/src
 AM_CFLAGS += $(GLIB_CFLAGS) $(CAIRO_CFLAGS)
 
-gis_includedir = $(includedir)/gis
-gis_include_HEADERS = \
-	gis-object.h  \
+gis_objects_includedir = $(includedir)/gis/objects
+gis_objects_include_HEADERS = \
+	gis-object.h \
+	gis-marker.h \
+	gis-callback.h \
 	gis-tile.h
 
 noinst_LTLIBRARIES = libgis-objects.la

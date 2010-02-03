@@ -19,22 +19,22 @@
 #define __GIS_H__
 
 /* GIS Core */
-#include "gis-viewer.h"
-#include "gis-opengl.h"
-#include "gis-prefs.h"
-#include "gis-util.h"
+#include <gis-viewer.h>
+#include <gis-opengl.h>
+#include <gis-prefs.h>
+#include <gis-util.h>
 
 /* GIS objects */
-#include "gis-object.h"
-#include "gis-tile.h"
-#include "gis-marker.h"
-#include "gis-callback.h"
+#include <objects/gis-object.h>
+#include <objects/gis-tile.h>
+#include <objects/gis-marker.h>
+#include <objects/gis-callback.h>
 
 /* GIS data */
-#include "gis-wms.h"
-#include "gis-data.h"
+#include <gis-wms.h>
+#include <gis-data.h>
 
 /* Plugins */
-#include "gis-plugin.h"
+#include <gis-plugin.h>
 
 #endif

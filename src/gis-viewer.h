@@ -40,10 +40,10 @@ typedef struct _GisViewerClass GisViewerClass;
 
 typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
-#include "gis-tile.h"
 #include "gis-plugin.h"
 #include "gis-prefs.h"
-#include "gis-object.h"
+#include "objects/gis-object.h"
+#include "objects/gis-tile.h"
 
 struct _GisViewer {
 	GtkDrawingArea parent_instance;

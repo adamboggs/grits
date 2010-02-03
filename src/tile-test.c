@@ -18,9 +18,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "gis-tile.h"
 #include "gis-wms.h"
 #include "gis-util.h"
+#include "objects/gis-tile.h"
 
 struct CacheState {
 	GtkWidget *image;

@@ -32,9 +32,9 @@
 #include "gis-util.h"
 #include "roam.h"
 
-#include "gis-object.h"
-#include "gis-marker.h"
-#include "gis-callback.h"
+#include "objects/gis-object.h"
+#include "objects/gis-marker.h"
+#include "objects/gis-callback.h"
 
 #define FOV_DIST   2000.0
 #define MPPX(dist) (4*dist/FOV_DIST)

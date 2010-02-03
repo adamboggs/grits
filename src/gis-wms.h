@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <libsoup/soup.h>
 
-#include "gis-tile.h"
+#include "objects/gis-tile.h"
 
 typedef struct _GisWms GisWms;
 
