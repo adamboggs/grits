@@ -11,24 +11,41 @@
 		<xi:include href="xml/gis-viewer.xml"/>
 		<xi:include href="xml/gis-opengl.xml"/>
 		<xi:include href="xml/gis-prefs.xml"/>
+		<xi:include href="xml/gis-util.xml"/>
 	</chapter>
 
 	<chapter>
-		<title>Support</title>
+		<title>Drawing Objects</title>
 		<xi:include href="xml/gis-object.xml"/>
-		<xi:include href="xml/gis-wms.xml"/>
 		<xi:include href="xml/gis-tile.xml"/>
+	</chapter>
+
+	<chapter>
+		<title>Data Access</title>
+		<xi:include href="xml/gis-wms.xml"/>
 		<xi:include href="xml/gis-data.xml"/>
-		<xi:include href="xml/gis-prims.xml"/>
-		<xi:include href="xml/gpqueue.xml"/>
-		<xi:include href="xml/roam.xml"/>
 	</chapter>
 
 	<chapter>
 		<title>Plugins</title>
 		<xi:include href="xml/gis-plugin.xml"/>
-		<xi:include href="xml/bmng.xml"/>
-		<xi:include href="xml/srtm.xml"/>
+		<xi:include href="xml/elev.xml"/>
+		<xi:include href="xml/env.xml"/>
+		<xi:include href="xml/map.xml"/>
+		<xi:include href="xml/sat.xml"/>
+		<xi:include href="xml/test.xml"/>
+	</chapter>
+
+	<chapter>
+		<title>Utilities</title>
+		<xi:include href="xml/gpqueue.xml"/>
+		<xi:include href="xml/roam.xml"/>
+	</chapter>
+
+	<chapter>
+		<title>Miscellaneous</title>
+		<xi:include href="xml/gis-demo.xml"/>
+		<xi:include href="xml/tile-test.xml"/>
 	</chapter>
 
 	<index>
