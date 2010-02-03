@@ -19,7 +19,6 @@
 #include <GL/glu.h>
 
 #include "gis-object.h"
-#include "gis-util.h"
 
 /* GisPoint */
 GisPoint *gis_point_new()
