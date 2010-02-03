@@ -82,6 +82,7 @@ static void _load_tile(GisTile *tile, gpointer _self)
 		g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
 	} else {
 		g_warning("GisPluginSat: _load_tile - Error loading pixbuf %s", path);
+		g_free(data);
 		g_remove(path);
 	}
 	g_free(path);

@@ -16,6 +16,7 @@
  */
 
 #include <gtk/gtkgl.h>
+#include <glib/gstdio.h>
 #include <GL/gl.h>
 
 #include <gis.h>
@@ -25,6 +26,7 @@
 #define MAX_RESOLUTION 500
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
+#define TILE_SIZE      (TILE_WIDTH*TILE_HEIGHT*sizeof(guint16))
 
 struct _TileData {
 	/* OpenGL has to be first to make gis_opengl_render_tiles happy */
@@ -99,9 +101,16 @@ struct _LoadTileData {
 };
 static guint16 *_load_bil(gchar *path)
 {
-	gchar *data;
-	g_file_get_contents(path, &data, NULL, NULL);
+	gsize len;
+	gchar *data = NULL;
+	g_file_get_contents(path, &data, &len, NULL);
 	g_debug("GisPluginElev: load_bil %p", data);
+	if (len != TILE_SIZE) {
+		g_warning("GisPluginElev: _load_bil - unexpected tile size %d, != %d",
+				len, TILE_SIZE);
+		g_free(data);
+		return NULL;
+	}
 	return (guint16*)data;
 }
 static GdkPixbuf *_load_pixbuf(guint16 *bil)
@@ -191,10 +200,18 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	load->self = self;
 	load->tile = tile;
 	load->data = g_new0(struct _TileData, 1);
-	if (LOAD_BIL || LOAD_OPENGL)
+	if (LOAD_BIL || LOAD_OPENGL) {
 		load->data->bil = _load_bil(load->path);
-	if (LOAD_OPENGL)
+		if (!load->data->bil) {
+			g_remove(load->path);
+			g_free(load->path);
+			g_free(load);
+			return;
+		}
+	}
+	if (LOAD_OPENGL) {
 		load->pixbuf = _load_pixbuf(load->data->bil);
+	}
 
 	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, load, NULL);
 }
