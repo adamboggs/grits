@@ -188,15 +188,10 @@ static void _draw_object(GisOpenGL *self, GisObject *object)
 	glMatrixMode(GL_PROJECTION); glPushMatrix();
 	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	switch (object->type) {
-	case GIS_TYPE_MARKER:
+	if (GIS_IS_MARKER(object)) {
 		_draw_marker(self, GIS_MARKER(object));
-		break;
-	case GIS_TYPE_CALLBACK:
+	} else if (GIS_IS_CALLBACK(object)) {
 		_draw_callback(self, GIS_CALLBACK(object));
-		break;
-	default:
-		break;
 	}
 	glPopAttrib();
 	glMatrixMode(GL_PROJECTION); glPopMatrix();
@@ -206,8 +201,7 @@ static void _draw_object(GisOpenGL *self, GisObject *object)
 static void _load_object(GisOpenGL *self, GisObject *object)
 {
 	g_debug("GisOpenGL: load_object");
-	switch (object->type) {
-	case GIS_TYPE_MARKER: {
+	if (GIS_IS_MARKER(object)) {
 		GisMarker *marker = GIS_MARKER(object);
 		cairo_surface_t *surface = cairo_get_target(marker->cairo);
 		gdouble width  = cairo_image_surface_get_width(surface);
@@ -226,25 +220,16 @@ static void _load_object(GisOpenGL *self, GisObject *object)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		g_debug("load_texture: %d", marker->tex);
 		_gis_opengl_end(self);
-		break;
-	}
-	default:
-		break;
 	}
 }
 
 static void _unload_object(GisOpenGL *self, GisObject *object)
 {
 	g_debug("GisOpenGL: unload_object");
-	switch (object->type) {
-	case GIS_TYPE_MARKER: {
+	if (GIS_IS_MARKER(object)) {
 		GisMarker *marker = GIS_MARKER(object);
 		g_debug("delete_texture: %d", marker->tex);
 		glDeleteTextures(1, &marker->tex);
-		break;
-	}
-	default:
-		break;
 	}
 }
 

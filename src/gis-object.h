@@ -19,10 +19,51 @@
 #define __GIS_OBJECT_H__
 
 #include <glib.h>
+#include <glib-object.h>
 #include <cairo.h>
 
+
+/* Take that GLib boilerplate! */
+#define GOBJECT_HEAD( \
+		MAM, BAR, \
+		Mam, Bar, \
+		mam, bar) \
+GType mam##_##bar##_get_type(void); \
+typedef struct _##Mam##Bar Mam##Bar; \
+typedef struct _##Mam##Bar##Class Mam##Bar##Class; \
+static inline Mam##Bar *MAM##_##BAR(gpointer obj) { \
+	return G_TYPE_CHECK_INSTANCE_CAST(obj, MAM##_TYPE_##BAR, Mam##Bar); \
+} \
+static inline gboolean MAM##_IS_##BAR(gpointer obj) { \
+	return G_TYPE_CHECK_INSTANCE_TYPE(obj, MAM##_TYPE_##BAR); \
+} \
+static inline Mam##Bar##Class *MAM##_##BAR##_CLASS(gpointer klass) { \
+	return G_TYPE_CHECK_CLASS_CAST(klass, MAM##_TYPE_##BAR, Mam##Bar##Class); \
+} \
+static inline gboolean MAM##_IS_##BAR##_CLASS(gpointer klass) { \
+	return G_TYPE_CHECK_CLASS_TYPE(klass, MAM##_TYPE_##BAR); \
+} \
+static inline Mam##Bar##Class *MAM##_##BAR##_GET_CLASS(gpointer obj) { \
+	return G_TYPE_INSTANCE_GET_CLASS(obj, MAM##_TYPE_##BAR, Mam##Bar##Class); \
+}
+
+#define GOBJECT_BODY( \
+		parent_type, \
+		MAM, BAR, \
+		Mam, Bar, \
+		mam, bar) \
+G_DEFINE_TYPE(Mam##Bar, mam##_##bar, parent_type); \
+static void mam##_##bar##_init(Mam##Bar *self) { \
+} \
+static void mam##_##bar##_class_init(Mam##Bar##Class *klass) { \
+} \
+static Mam##Bar *mam##_##bar##_new() { \
+	return g_object_new(MAM##_TYPE_##BAR, NULL); \
+}
+
+
 /* GisPoint */
-typedef struct _GisPoint      GisPoint;
+typedef struct _GisPoint GisPoint;
 
 struct _GisPoint {
 	gdouble lat, lon, elev;
@@ -34,20 +75,21 @@ void gis_point_free(GisPoint *point);
 
 
 /* GisObject */
-#define GIS_OBJECT(object)     ((GisObject  *)object)
+#define GIS_TYPE_OBJECT (gis_object_get_type())
 
-typedef enum {
-	GIS_TYPE_CALLBACK,
-	GIS_TYPE_MARKER,
-	GIS_NUM_TYPES,
-} GisObjectType;
-
-typedef struct _GisObject GisObject;
+GOBJECT_HEAD(
+	GIS, OBJECT,
+	Gis, Object,
+	gis, object);
 
 struct _GisObject {
-	GisObjectType type;
-	GisPoint      center;
-	gdouble       lod;
+	GObject parent_instance;
+	GisPoint center;
+	gdouble  lod;
+};
+
+struct _GisObjectClass {
+	GObjectClass parent_class;
 };
 
 static inline GisPoint *gis_object_center(GisObject *object)
@@ -57,26 +99,36 @@ static inline GisPoint *gis_object_center(GisObject *object)
 
 
 /* GisMarker */
-#define GIS_MARKER(marker) ((GisMarker  *)marker)
+#define GIS_TYPE_MARKER (gis_marker_get_type())
 
-typedef struct _GisMarker GisMarker;
+GOBJECT_HEAD(
+	GIS, MARKER,
+	Gis, Marker,
+	gis, marker);
 
-struct _GisMarker   {
-	GisObject  parent;
+struct _GisMarker {
+	GisObject  parent_instance;
 	gint       xoff, yoff;
 	gchar     *label;
 	cairo_t   *cairo;
 	guint      tex;
 };
 
+struct _GisMarkerClass {
+	GisObjectClass parent_class;
+};
+
 GisMarker *gis_marker_new(const gchar *label);
-void gis_marker_free(GisMarker *marker);
 
 
 /* GisCallback */
-#define GIS_CALLBACK(callback) ((GisCallback*)callback)
+#define GIS_TYPE_CALLBACK (gis_callback_get_type())
 
-typedef struct _GisCallback GisCallback;
+GOBJECT_HEAD(
+	GIS, CALLBACK,
+	Gis, Callback,
+	gis, callback);
+
 typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
 
 struct _GisCallback {
@@ -85,8 +137,10 @@ struct _GisCallback {
 	gpointer        user_data;
 };
 
-GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
-void gis_callback_free(GisCallback *cb);
+struct _GisCallbackClass {
+	GisObjectClass parent_class;
+};
 
+GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
 
 #endif
