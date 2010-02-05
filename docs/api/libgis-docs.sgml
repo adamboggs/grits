@@ -15,15 +15,17 @@
 	</chapter>
 
 	<chapter>
-		<title>Drawing Objects</title>
-		<xi:include href="xml/gis-object.xml"/>
-		<xi:include href="xml/gis-tile.xml"/>
+		<title>Data Access</title>
+		<xi:include href="xml/gis-data.xml"/>
+		<xi:include href="xml/gis-wms.xml"/>
 	</chapter>
 
 	<chapter>
-		<title>Data Access</title>
-		<xi:include href="xml/gis-wms.xml"/>
-		<xi:include href="xml/gis-data.xml"/>
+		<title>Drawing Objects</title>
+		<xi:include href="xml/gis-object.xml"/>
+		<xi:include href="xml/gis-tile.xml"/>
+		<xi:include href="xml/gis-marker.xml"/>
+		<xi:include href="xml/gis-callback.xml"/>
 	</chapter>
 
 	<chapter>
