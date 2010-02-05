@@ -19,28 +19,28 @@
 #define __GIS_WMS_H__
 
 #include <glib.h>
-#include <libsoup/soup.h>
 
+#include "data/gis-http.h"
 #include "objects/gis-tile.h"
 
 typedef struct _GisWms {
+	GisHttp *http;
 	gchar *uri_prefix;
 	gchar *uri_layer;
 	gchar *uri_format;
-	gchar *cache_prefix;
-	gchar *cache_ext;
+	gchar *extension;
 	gint   width;
 	gint   height;
-	SoupSession  *soup;
 } GisWms;
 
 
 GisWms *gis_wms_new(
-	gchar *uri_prefix, gchar *uri_layer, gchar *uri_format,
-	gchar *cache_prefix, gchar *cache_ext,
-	gint width, gint height);
+	const gchar *uri_prefix, const gchar *uri_layer,
+	const gchar *uri_format, const gchar *prefix,
+	const gchar *extension, gint width, gint height);
 
-char *gis_wms_make_local(GisWms *wms, GisTile *tile);
+gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
+		GisChunkCallback callback, gpointer user_data);
 
 void gis_wms_free(GisWms *self);
 

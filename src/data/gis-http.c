@@ -24,11 +24,18 @@
 
 GisHttp *gis_http_new(const gchar *prefix)
 {
-	GisHttp *http = g_new0(GisHttp, 1);
-	http->prefix = g_strdup(prefix);
-	http->soup = soup_session_sync_new();
-	g_object_set(http->soup, "user-agent", PACKAGE_STRING, NULL);
-	return http;
+	GisHttp *self = g_new0(GisHttp, 1);
+	self->soup = soup_session_sync_new();
+	self->prefix = g_strdup(prefix);
+	g_object_set(self->soup, "user-agent", PACKAGE_STRING, NULL);
+	return self;
+}
+
+void gis_http_free(GisHttp *self)
+{
+	g_object_unref(self->soup);
+	g_free(self->prefix);
+	g_free(self);
 }
 
 /* For passing data to the chunck callback */

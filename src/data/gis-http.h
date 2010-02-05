@@ -24,8 +24,8 @@
 #include "gis-data.h"
 
 typedef struct _GisHttp {
-	gchar *prefix;
 	SoupSession *soup;
+	gchar *prefix;
 } GisHttp;
 
 /**
@@ -33,6 +33,12 @@ typedef struct _GisHttp {
  * @return The HTTP connection handle
  */
 GisHttp *gis_http_new(const gchar *prefix);
+
+/**
+ * Free data associated with the GisHttp
+ * @param http the GisHttp to free
+ */
+void gis_http_free(GisHttp *http);
 
 /**
  * @param http      GisHttp connection to use

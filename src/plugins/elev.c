@@ -195,7 +195,7 @@ static void _load_tile(GisTile *tile, gpointer _self)
 	GisPluginElev *self = _self;
 
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
-	load->path = gis_wms_make_local(self->wms, tile);
+	load->path = gis_wms_fetch(self->wms, tile, GIS_ONCE, NULL, NULL);
 	g_debug("GisPluginElev: _load_tile: %s", load->path);
 	load->self = self;
 	load->tile = tile;

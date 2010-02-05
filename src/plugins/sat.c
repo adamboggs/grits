@@ -73,7 +73,7 @@ static void _load_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginSat *self = _self;
 	g_debug("GisPluginSat: _load_tile start %p", g_thread_self());
-	char *path = gis_wms_make_local(self->wms, tile);
+	char *path = gis_wms_fetch(self->wms, tile, GIS_ONCE, NULL, NULL);
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
 	data->self   = self;
 	data->tile   = tile;

@@ -63,6 +63,7 @@
 #include <glib.h>
 
 #include "gis-wms.h"
+#include "gis-http.h"
 
 static gchar *_make_uri(GisWms *wms, GisTile *tile)
 {
@@ -89,75 +90,42 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 		tile->edge.n);
 }
 
-static void _soup_chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _file)
+gchar *gis_wms_fetch(GisWms *self, GisTile *tile, GisCacheType mode,
+		GisChunkCallback callback, gpointer user_data)
 {
-	FILE *file = _file;
-	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
-		g_warning("GisWms: soup_chunk_cb - soup failed with %d", message->status_code);
-		return;
-	}
-	goffset total = soup_message_headers_get_content_length(message->response_headers);
-	if (fwrite(chunk->data, chunk->length, 1, file) != 1)
-		g_warning("GisWms: soup_chunk_cb - eror writing data");
-}
-
-char *gis_wms_make_local(GisWms *self, GisTile *tile)
-{
-	/* Get file path */
-	gchar *tile_path = gis_tile_get_path(tile);
-	gchar *path = g_strdup_printf("%s/%s/%s%s%s",
-		g_get_user_cache_dir(), PACKAGE,
-		self->cache_prefix, tile_path, self->cache_ext);
-	g_free(tile_path);
-
-	/* Return if it already exists */
-	if (g_file_test(path, G_FILE_TEST_EXISTS))
-		return path;
-
-	/* Open temp file for writing */
-	gchar *tmp_path = g_strconcat(path, ".part", NULL);
-	gchar *dirname = g_path_get_dirname(tmp_path);
-	g_mkdir_with_parents(dirname, 0755);
-	g_free(dirname);
-	FILE *file = fopen(tmp_path, "a");
-
-	/* Download file */
-	gchar *uri = _make_uri(self, tile);
-	g_debug("GisWms: make_local - fetching %s", uri);
-	SoupMessage *message = soup_message_new("GET", uri);
-	g_signal_connect(message, "got-chunk", G_CALLBACK(_soup_chunk_cb), file);
-	soup_message_headers_set_range(message->request_headers, ftell(file), -1);
-	int status = soup_session_send_message(self->soup, message);
-	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
-		g_warning("GisWms: make_local - soup failed with %d", message->status_code);
+	gchar *uri   = _make_uri(self, tile);
+	gchar *tilep = gis_tile_get_path(tile);
+	gchar *local = g_strdup_printf("%s%s", tilep, self->extension);
+	gchar *path  = gis_http_fetch(self->http, uri, local,
+			mode, callback, user_data);
 	g_free(uri);
-
-	/* Clean up */
-	fclose(file);
-	rename(tmp_path, path);
-	g_free(tmp_path);
+	g_free(tilep);
+	g_free(local);
 	return path;
 }
 
 GisWms *gis_wms_new(
-	gchar *uri_prefix, gchar *uri_layer, gchar *uri_format,
-	gchar *cache_prefix, gchar *cache_ext,
-	gint width, gint height)
+	const gchar *uri_prefix, const gchar *uri_layer,
+	const gchar *uri_format, const gchar *prefix,
+	const gchar *extension, gint width, gint height)
 {
 	GisWms *self = g_new0(GisWms, 1);
-	self->uri_prefix   = uri_prefix;
-	self->uri_layer    = uri_layer;
-	self->uri_format   = uri_format;
-	self->cache_prefix = cache_prefix;
-	self->cache_ext    = cache_ext;
+	self->http         = gis_http_new(prefix);
+	self->uri_prefix   = g_strdup(uri_prefix);
+	self->uri_layer    = g_strdup(uri_layer);
+	self->uri_format   = g_strdup(uri_format);
+	self->extension    = g_strdup(extension);
 	self->width        = width;
 	self->height       = height;
-	self->soup         = soup_session_sync_new();
 	return self;
 }
 
 void gis_wms_free(GisWms *self)
 {
-	g_object_unref(self->soup);
+	gis_http_free(self->http);
+	g_free(self->uri_prefix);
+	g_free(self->uri_layer);
+	g_free(self->uri_format);
+	g_free(self->extension);
 	g_free(self);
 }

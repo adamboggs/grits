@@ -58,7 +58,7 @@ gpointer do_bmng_cache(gpointer _image)
 	GisWms *bmng_wms = gis_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng_test/", "jpg", 512, 256);
-	const char *path = gis_wms_make_local(bmng_wms, tile);
+	const char *path = gis_wms_fetch(bmng_wms, tile, GIS_ONCE, NULL, NULL);
 
 	g_message("Loading bmng image: [%s]", path);
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
@@ -84,7 +84,7 @@ gpointer do_osm_cache(gpointer _image)
 	GisWms *osm_wms = gis_wms_new(
 		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
 		"osm_test/", "png", 512, 256);
-	const char *path = gis_wms_make_local(osm_wms, tile);
+	const char *path = gis_wms_fetch(osm_wms, tile, GIS_ONCE, NULL, NULL);
 
 	g_message("Loading osm image: [%s]", path);
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
