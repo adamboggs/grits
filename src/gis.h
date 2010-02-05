@@ -26,6 +26,7 @@
 
 /* GIS data */
 #include <data/gis-data.h>
+#include <data/gis-http.h>
 #include <data/gis-wms.h>
 
 /* GIS objects */

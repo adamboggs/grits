@@ -15,33 +15,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_WMS_H__
-#define __GIS_WMS_H__
+#ifndef __GIS_HTTP_H__
+#define __GIS_HTTP_H__
 
 #include <glib.h>
 #include <libsoup/soup.h>
 
-#include "objects/gis-tile.h"
+#include "gis-data.h"
 
-typedef struct _GisWms {
-	gchar *uri_prefix;
-	gchar *uri_layer;
-	gchar *uri_format;
-	gchar *cache_prefix;
-	gchar *cache_ext;
-	gint   width;
-	gint   height;
-	SoupSession  *soup;
-} GisWms;
+typedef struct _GisHttp {
+	gchar *prefix;
+	SoupSession *soup;
+} GisHttp;
 
+/**
+ * @param prefix The cache prefix: e.g. /nexrad/level2/
+ * @return The HTTP connection handle
+ */
+GisHttp *gis_http_new(const gchar *prefix);
 
-GisWms *gis_wms_new(
-	gchar *uri_prefix, gchar *uri_layer, gchar *uri_format,
-	gchar *cache_prefix, gchar *cache_ext,
-	gint width, gint height);
-
-char *gis_wms_make_local(GisWms *wms, GisTile *tile);
-
-void gis_wms_free(GisWms *self);
+/**
+ * @param http      GisHttp connection to use
+ * @param uri       The uri to fetch
+ * @param mode      Update type
+ * @param callback  Callback to call when a chunck is recieved
+ * @param user_data Data to pass to callback
+ * @return The local path to the complete file
+ */
+gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const gchar *local,
+		GisCacheType mode,
+		GisChunkCallback callback,
+		gpointer user_data);
 
 #endif

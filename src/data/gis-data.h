@@ -15,27 +15,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DATA_H__
-#define __DATA_H__
+#ifndef __GIS_DATA_H__
+#define __GIS_DATA_H__
 
-#include <libsoup/soup.h>
+#include <glib.h>
 
+/**
+ * Various ways to cach a file
+ */
 typedef enum {
-	GIS_NEVER,   // Never cache the file (for offline mode)
-	GIS_ONCE,    // Cache the file if it does not exist
-	GIS_UPDATE,  // Append additional data to cached copy (resume)
-	GIS_REFRESH, // Delete existing file and cache a new copy
-} GisDataCacheType;
+	GIS_LOCAL,   // Only return local files (for offline mode)
+	GIS_ONCE,    // Download the file only if it does not exist
+	GIS_UPDATE,  // Update the file to be like the server
+	GIS_REFRESH, // Delete the existing file and fetch a new copy
+} GisCacheType;
 
-typedef void (*GisDataCacheDoneCallback)(gchar *file, gboolean updated,
-		gpointer user_data);
-
-typedef void (*GisDataCacheChunkCallback)(gchar *file, goffset cur,
+/**
+ * Function called when part of a file is fetched
+ * Used for updating progress bars, etc
+ */
+typedef void (*GisChunkCallback)(gchar *file, goffset cur,
 		goffset total, gpointer user_data);
 
-SoupSession *cache_file(char *base, char *path, GisDataCacheType update,
-		GisDataCacheChunkCallback user_chunk_cb,
-		GisDataCacheDoneCallback user_done_cb,
-		gpointer user_data);
+/**
+ * Open a file and create the parent directory if necessasairy
+ */
+FILE *fopen_p(const gchar *path, const gchar *mode);
 
 #endif
