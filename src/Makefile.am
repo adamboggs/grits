@@ -1,4 +1,4 @@
-SUBDIRS = objects . plugins
+SUBDIRS = data objects . plugins
 
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
@@ -17,8 +17,6 @@ gis_include_HEADERS = \
 	gis-opengl.h  \
 	gis-plugin.h  \
 	gis-util.h    \
-	gis-wms.h     \
-	gis-data.h    \
 	gpqueue.h     \
 	roam.h
 
@@ -36,15 +34,14 @@ libgis_la_SOURCES = gis.h \
 	gis-plugin.c  gis-plugin.h  \
 	gis-marshal.c gis-marshal.h \
 	gis-util.c    gis-util.h    \
-	gis-wms.c     gis-wms.h     \
-	gis-data.c    gis-data.h    \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
 	-DPKGDATADIR="\"$(datadir)/gis\"" \
 	-DPLUGINSDIR="\"$(libdir)/gis\""
 libgis_la_LIBADD  = $(AM_LDADD) \
-	objects/libgis-objects.la
+	objects/libgis-objects.la \
+	data/libgis-data.la
 
 # Test programs
 bin_PROGRAMS = gis-demo tile-test

@@ -21,6 +21,7 @@ PKG_CHECK_MODULES(SOUP,  libsoup-2.4 >= 2.26)
 AC_CONFIG_FILES([
 	Makefile
 	src/Makefile
+	src/data/Makefile
 	src/objects/Makefile
 	src/plugins/Makefile
 	src/libgis.pc

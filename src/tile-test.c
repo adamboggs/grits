@@ -18,8 +18,8 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "gis-wms.h"
 #include "gis-util.h"
+#include "data/gis-wms.h"
 #include "objects/gis-tile.h"
 
 struct CacheState {

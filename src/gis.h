@@ -24,15 +24,15 @@
 #include <gis-prefs.h>
 #include <gis-util.h>
 
+/* GIS data */
+#include <data/gis-data.h>
+#include <data/gis-wms.h>
+
 /* GIS objects */
 #include <objects/gis-object.h>
 #include <objects/gis-tile.h>
 #include <objects/gis-marker.h>
 #include <objects/gis-callback.h>
-
-/* GIS data */
-#include <gis-wms.h>
-#include <gis-data.h>
 
 /* Plugins */
 #include <gis-plugin.h>
