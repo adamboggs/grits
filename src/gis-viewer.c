@@ -280,12 +280,12 @@ gpointer gis_viewer_add(GisViewer *self, GisObject *object,
 	return klass->add(self, object, level, sort);
 }
 
-void gis_viewer_remove(GisViewer *self, gpointer ref)
+GisObject *gis_viewer_remove(GisViewer *self, gpointer ref)
 {
 	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
 	if (!klass->remove)
 		g_warning("GisViewer: remove - Unimplemented");
-	klass->remove(self, ref);
+	return klass->remove(self, ref);
 }
 
 /****************

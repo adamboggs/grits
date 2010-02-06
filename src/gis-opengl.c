@@ -555,28 +555,48 @@ static gpointer gis_opengl_add(GisViewer *_self, GisObject *object,
 		g_tree_insert(self->objects, (gpointer)key, level);
 	}
 	GList *list = sort ? &level->sorted : &level->unsorted;
-	list->next = g_list_prepend(list->next, object);
-	return list->next;
+	/* Put the link in the list */
+	GList *next = g_new0(GList, 1);
+	next->data = object;
+	next->prev = list;
+	next->next = list->next;
+	list->next = next;
+	return next;
 }
 
-static void gis_opengl_remove(GisViewer *_self, gpointer _link)
+static GisObject *gis_opengl_remove(GisViewer *_self, gpointer _link)
 {
 	g_assert(GIS_IS_OPENGL(_self));
-	GList *link = _link;
 	GisOpenGL *self = GIS_OPENGL(_self);
-	_unload_object(self, link->data);
-	/* Just unlink and free it (blowup link to avoid warnings) */
-	link = g_list_delete_link(NULL, link);
+	GList *link = _link;
+	GisObject *object = link->data;
+	_unload_object(self, object);
+	/* Just unlink and free it, link->prev is assured */
+	link->prev->next = link->next;
+	if (link->next)
+		link->next->prev = link->prev;
+	g_free(link);
+	g_object_unref(object);
+	return object;
 }
 
 /****************
  * GObject code *
  ****************/
-static int _objects_cmp(gconstpointer _a, gconstpointer _b)
+static int _objects_cmp(gconstpointer _a, gconstpointer _b, gpointer _)
 {
 	gint a = (int)_a, b = (int)_b;
 	return a < b ? -1 :
 	       a > b ?  1 : 0;
+}
+static void _objects_free(gpointer value)
+{
+	struct RenderLevel *level = value;
+	if (level->sorted.next)
+		g_list_free(level->sorted.next);
+	if (level->unsorted.next)
+		g_list_free(level->unsorted.next);
+	g_free(level);
 }
 
 G_DEFINE_TYPE(GisOpenGL, gis_opengl, GIS_TYPE_VIEWER);
@@ -601,7 +621,7 @@ static void gis_opengl_init(GisOpenGL *self)
 			GDK_KEY_PRESS_MASK);
 	g_object_set(self, "can-focus", TRUE, NULL);
 
-	self->objects = g_tree_new(_objects_cmp);
+	self->objects = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
 	self->sphere = roam_sphere_new(self);
 	self->sphere_lock = g_mutex_new();
 
@@ -631,7 +651,6 @@ static void gis_opengl_dispose(GObject *_self)
 		g_source_remove(self->sm_source[1]);
 		self->sm_source[1] = 0;
 	}
-	/* TODO: Cleanup/free objects tree */
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
 }
 static void gis_opengl_finalize(GObject *_self)
@@ -639,6 +658,7 @@ static void gis_opengl_finalize(GObject *_self)
 	g_debug("GisOpenGL: finalize");
 	GisOpenGL *self = GIS_OPENGL(_self);
 	roam_sphere_free(self->sphere);
+	g_tree_destroy(self->objects);
 	g_mutex_free(self->sphere_lock);
 	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_self);
 }
@@ -646,6 +666,7 @@ static void gis_opengl_class_init(GisOpenGLClass *klass)
 {
 	g_debug("GisOpenGL: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	gobject_class->finalize = gis_opengl_finalize;
 	gobject_class->dispose = gis_opengl_dispose;
 
 	GisViewerClass *viewer_class = GIS_VIEWER_CLASS(klass);
