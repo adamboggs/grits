@@ -73,9 +73,6 @@ struct _GisViewerClass {
 	                          GisHeightFunc height_func, gpointer user_data,
 	                          gboolean update);
 
-	void (*begin)            (GisViewer *viewer);
-	void (*end)              (GisViewer *viewer);
-
 	gpointer (*add)          (GisViewer *viewer, GisObject *object,
 	                          gint level, gboolean sort);
 	void (*remove)           (GisViewer *viewer, gpointer ref);
@@ -115,9 +112,6 @@ void gis_viewer_clear_height_func(GisViewer *self);
 void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
 		GisHeightFunc height_func, gpointer user_data,
 		gboolean update);
-
-void gis_viewer_begin(GisViewer *viewer);
-void gis_viewer_end  (GisViewer *viewer);
 
 gpointer gis_viewer_add(GisViewer *self, GisObject *object,
 		gint level, gboolean sort);

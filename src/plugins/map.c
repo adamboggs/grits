@@ -71,7 +71,6 @@ static gboolean _load_tile_cb(gpointer _data)
 	}
 
 	guint *tex = g_new0(guint, 1);
-	gis_viewer_begin(self->viewer);
 	glGenTextures(1, tex);
 	glBindTexture(GL_TEXTURE_2D, *tex);
 
@@ -84,7 +83,6 @@ static gboolean _load_tile_cb(gpointer _data)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	glFlush();
-	gis_viewer_end(self->viewer);
 
 	tile->data = tex;
 	gtk_widget_queue_draw(GTK_WIDGET(self->viewer));

@@ -271,22 +271,6 @@ void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
 	klass->set_height_func(self, tile, height_func, user_data, update);
 }
 
-void gis_viewer_begin(GisViewer *self)
-{
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
-	if (!klass->begin)
-		g_warning("GisViewer: begin - Unimplemented");
-	klass->begin(self);
-}
-
-void gis_viewer_end(GisViewer *self)
-{
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
-	if (!klass->end)
-		g_warning("GisViewer: end - Unimplemented");
-	klass->end(self);
-}
-
 gpointer gis_viewer_add(GisViewer *self, GisObject *object,
 		gint level, gboolean sort)
 {

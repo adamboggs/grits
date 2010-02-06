@@ -44,24 +44,6 @@
 /***********
  * Helpers *
  ***********/
-static void _gis_opengl_begin(GisOpenGL *self)
-{
-	g_assert(GIS_IS_OPENGL(self));
-
-	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(self));
-	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
-
-	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		g_assert_not_reached();
-}
-
-static void _gis_opengl_end(GisOpenGL *self)
-{
-	g_assert(GIS_IS_OPENGL(self));
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
-	gdk_gl_drawable_gl_end(gldrawable);
-}
-
 static void _set_visuals(GisOpenGL *self)
 {
 	glMatrixMode(GL_MODELVIEW);
@@ -295,7 +277,6 @@ static void _load_object(GisOpenGL *self, GisObject *object)
 		gdouble width  = cairo_image_surface_get_width(surface);
 		gdouble height = cairo_image_surface_get_height(surface);
 
-		_gis_opengl_begin(self);
 		glEnable(GL_TEXTURE_2D);
 		glGenTextures(1, &marker->tex);
 		glBindTexture(GL_TEXTURE_2D, marker->tex);
@@ -307,7 +288,6 @@ static void _load_object(GisOpenGL *self, GisObject *object)
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		g_debug("load_texture: %d", marker->tex);
-		_gis_opengl_end(self);
 	}
 }
 
@@ -336,15 +316,21 @@ struct RenderLevel {
 static void on_realize(GisOpenGL *self, gpointer _)
 {
 	g_debug("GisOpenGL: on_realize");
+
+	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(self));
+	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		g_assert_not_reached();
+
 	_set_visuals(self);
 	g_mutex_lock(self->sphere_lock);
 	roam_sphere_update_errors(self->sphere);
 	g_mutex_unlock(self->sphere_lock);
 }
+
 static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_configure");
-	_gis_opengl_begin(self);
 
 	double width  = GTK_WIDGET(self)->allocation.width;
 	double height = GTK_WIDGET(self)->allocation.height;
@@ -362,7 +348,6 @@ static gboolean on_configure(GisOpenGL *self, GdkEventConfigure *event, gpointer
 	g_mutex_unlock(self->sphere_lock);
 #endif
 
-	_gis_opengl_end(self);
 	return FALSE;
 }
 
@@ -397,7 +382,6 @@ static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_expose - begin");
-	_gis_opengl_begin(self);
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -419,7 +403,6 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(self));
 	gdk_gl_drawable_swap_buffers(gldrawable);
 
-	_gis_opengl_end(self);
 	g_debug("GisOpenGL: on_expose - end\n");
 	return FALSE;
 }
@@ -459,13 +442,11 @@ static void on_view_changed(GisOpenGL *self,
 {
 	g_debug("GisOpenGL: on_view_changed");
 	gdk_threads_enter();
-	_gis_opengl_begin(self);
 	_set_visuals(self);
 #ifndef ROAM_DEBUG
 	g_idle_add_full(G_PRIORITY_HIGH_IDLE+30, _update_errors_cb, self->sphere, NULL);
 	//roam_sphere_update_errors(self->sphere);
 #endif
-	_gis_opengl_end(self);
 	gdk_threads_leave();
 }
 
@@ -473,12 +454,10 @@ static gboolean on_idle(GisOpenGL *self)
 {
 	//g_debug("GisOpenGL: on_idle");
 	gdk_threads_enter();
-	_gis_opengl_begin(self);
 	g_mutex_lock(self->sphere_lock);
 	if (roam_sphere_split_merge(self->sphere))
 		gtk_widget_queue_draw(GTK_WIDGET(self));
 	g_mutex_unlock(self->sphere_lock);
-	_gis_opengl_end(self);
 	gdk_threads_leave();
 	return TRUE;
 }
@@ -562,18 +541,6 @@ static void gis_opengl_clear_height_func(GisViewer *_self)
 	GisOpenGL *self = GIS_OPENGL(_self);
 	for (int i = 0; i < G_N_ELEMENTS(self->sphere->roots); i++)
 		_gis_opengl_clear_height_func_rec(self->sphere->roots[i]);
-}
-
-static void gis_opengl_begin(GisViewer *_self)
-{
-	g_assert(GIS_IS_OPENGL(_self));
-	_gis_opengl_begin(GIS_OPENGL(_self));
-}
-
-static void gis_opengl_end(GisViewer *_self)
-{
-	g_assert(GIS_IS_OPENGL(_self));
-	_gis_opengl_end(GIS_OPENGL(_self));
 }
 
 static gpointer gis_opengl_add(GisViewer *_self, GisObject *object,
@@ -669,7 +636,7 @@ static void gis_opengl_dispose(GObject *_self)
 }
 static void gis_opengl_finalize(GObject *_self)
 {
-	g_debug("GisViewer: finalize");
+	g_debug("GisOpenGL: finalize");
 	GisOpenGL *self = GIS_OPENGL(_self);
 	roam_sphere_free(self->sphere);
 	g_mutex_free(self->sphere_lock);
@@ -686,8 +653,6 @@ static void gis_opengl_class_init(GisOpenGLClass *klass)
 	viewer_class->project           = gis_opengl_project;
 	viewer_class->clear_height_func = gis_opengl_clear_height_func;
 	viewer_class->set_height_func   = gis_opengl_set_height_func;
-	viewer_class->begin             = gis_opengl_begin;
-	viewer_class->end               = gis_opengl_end;
 	viewer_class->add               = gis_opengl_add;
 	viewer_class->remove            = gis_opengl_remove;
 }
