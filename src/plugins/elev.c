@@ -231,7 +231,8 @@ static void _free_tile(GisTile *tile, gpointer _self)
 {
 	GisPluginElev *self = _self;
 	g_debug("GisPluginElev: _free_tile: %p", tile->data);
-	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
+	if (tile->data)
+		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _self)

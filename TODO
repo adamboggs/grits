@@ -9,7 +9,6 @@ GisObject:
   - Add min/max LOD
 
 GisTile:
-  - Crashes in GisTile updating
   - Prioritize tile updates
   - Only updates visible tiles
   - Render correct tile resolution when zooming out
