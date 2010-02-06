@@ -10,5 +10,6 @@
 .libs
 gis-demo
 gis-marshal.[ch]
+gis-test
 gmon.*
 tile-test
