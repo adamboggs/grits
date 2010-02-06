@@ -109,6 +109,7 @@ GisWms *gis_wms_new(
 	const gchar *uri_format, const gchar *prefix,
 	const gchar *extension, gint width, gint height)
 {
+	g_debug("GisWms: new - %s", uri_prefix);
 	GisWms *self = g_new0(GisWms, 1);
 	self->http         = gis_http_new(prefix);
 	self->uri_prefix   = g_strdup(uri_prefix);
@@ -122,6 +123,7 @@ GisWms *gis_wms_new(
 
 void gis_wms_free(GisWms *self)
 {
+	g_debug("GisWms: free - %s", self->uri_prefix);
 	gis_http_free(self->http);
 	g_free(self->uri_prefix);
 	g_free(self->uri_layer);

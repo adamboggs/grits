@@ -296,7 +296,6 @@ static void _unload_object(GisOpenGL *self, GisObject *object)
 	g_debug("GisOpenGL: unload_object");
 	if (GIS_IS_MARKER(object)) {
 		GisMarker *marker = GIS_MARKER(object);
-		g_debug("delete_texture: %d", marker->tex);
 		glDeleteTextures(1, &marker->tex);
 	}
 }
@@ -444,7 +443,8 @@ static void on_view_changed(GisOpenGL *self,
 	gdk_threads_enter();
 	_set_visuals(self);
 #ifndef ROAM_DEBUG
-	g_idle_add_full(G_PRIORITY_HIGH_IDLE+30, _update_errors_cb, self->sphere, NULL);
+	self->ue_source = g_idle_add_full(G_PRIORITY_HIGH_IDLE+30,
+			_update_errors_cb, self->sphere, NULL);
 	//roam_sphere_update_errors(self->sphere);
 #endif
 	gdk_threads_leave();
@@ -650,6 +650,10 @@ static void gis_opengl_dispose(GObject *_self)
 	if (self->sm_source[1]) {
 		g_source_remove(self->sm_source[1]);
 		self->sm_source[1] = 0;
+	}
+	if (self->ue_source) {
+		g_source_remove(self->ue_source);
+		self->ue_source = 0;
 	}
 	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_self);
 }

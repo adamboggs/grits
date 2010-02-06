@@ -21,21 +21,34 @@
 
 #include "gis.h"
 
+GisPrefs   *prefs   = NULL;
+GisPlugins *plugins = NULL;
+GisViewer  *viewer  = NULL;
+
 /*************
  * Callbacks *
  *************/
-static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
+static gboolean gis_shutdown(GtkWidget *window)
 {
+	gis_plugins_free(plugins);
+	g_object_unref(prefs);
+	gtk_widget_destroy(window);
+
+	while (gtk_events_pending())
+		  gtk_main_iteration();
+
 	gtk_main_quit();
 	return TRUE;
+}
+static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	return gis_shutdown(widget);
 }
 static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
 		gpointer window)
 {
-	if (event->keyval == GDK_q) {
-		gtk_main_quit();
-		return TRUE;
-	}
+	if (event->keyval == GDK_q)
+		return gis_shutdown(widget);
 	return FALSE;
 }
 
@@ -48,25 +61,26 @@ int main(int argc, char **argv)
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
-	GisPrefs   *prefs   = gis_prefs_new(NULL, NULL);
-	GisPlugins *plugins = gis_plugins_new(g_getenv("GIS_PLUGIN_PATH"), prefs);
-	GisViewer  *viewer  = gis_opengl_new(plugins, prefs);
+	prefs   = gis_prefs_new(NULL, NULL);
+	plugins = gis_plugins_new(g_getenv("GIS_PLUGIN_PATH"), prefs);
+	viewer  = gis_opengl_new(plugins, prefs);
 
 	gdk_threads_enter();
-	GtkWidget  *window  = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	g_signal_connect(window, "delete-event",    G_CALLBACK(on_delete),    NULL);
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_key_press), NULL);
 	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(viewer));
 	gtk_widget_show_all(window);
 
-	gis_plugins_load(plugins, "test", viewer, prefs);
-	gis_plugins_load(plugins, "env",  viewer, prefs);
+
+	/* elev env map sat test */
+	gis_plugins_load(plugins, "elev",  viewer, prefs);
+	gis_plugins_load(plugins, "env",   viewer, prefs);
+	gis_plugins_load(plugins, "map",   viewer, prefs);
+	gis_plugins_load(plugins, "sat",   viewer, prefs);
+	gis_plugins_load(plugins, "test",  viewer, prefs);
 
 	gtk_main();
-
-	gis_plugins_free(plugins);
-	g_object_unref(prefs);
-	gtk_widget_destroy(window);
 
 	gdk_threads_leave();
 	return 0;

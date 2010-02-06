@@ -101,7 +101,7 @@ void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
 	static int count   = 0;
 	static int version = 0;
 	if (version != sphere->view->version) {
-		g_debug("Projected %d points", count);
+		g_debug("RoamPoint: Projected %d points", count);
 		count   = 0;
 		version = sphere->view->version;
 	}
@@ -675,6 +675,7 @@ void roam_sphere_free_tri(RoamTriangle *tri)
 }
 void roam_sphere_free(RoamSphere *self)
 {
+	g_debug("RoamSphere: free");
 	/* Slow method, but it should work */
 	while (self->polys > 8)
 		roam_sphere_merge_one(self);

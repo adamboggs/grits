@@ -42,6 +42,7 @@ struct _GisOpenGL {
 	RoamSphere *sphere;
 	GMutex     *sphere_lock;
 	guint       sm_source[2];
+	guint       ue_source;
 
 	/* for testing */
 	gboolean    wireframe;

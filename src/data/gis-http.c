@@ -24,6 +24,7 @@
 
 GisHttp *gis_http_new(const gchar *prefix)
 {
+	g_debug("GisHttp: new - %s", prefix);
 	GisHttp *self = g_new0(GisHttp, 1);
 	self->soup = soup_session_sync_new();
 	self->prefix = g_strdup(prefix);
@@ -33,6 +34,8 @@ GisHttp *gis_http_new(const gchar *prefix)
 
 void gis_http_free(GisHttp *self)
 {
+	g_debug("GisHttp: free - %s", self->prefix);
+	soup_session_abort(self->soup);
 	g_object_unref(self->soup);
 	g_free(self->prefix);
 	g_free(self);
@@ -75,7 +78,8 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 gchar *gis_http_fetch(GisHttp *self, const gchar *uri, const char *local,
 		GisCacheType mode, GisChunkCallback callback, gpointer user_data)
 {
-	g_debug("GisHttp: fetch - %s >> %s  mode=%d", uri, self->prefix, mode);
+	g_debug("GisHttp: fetch - %.20s... >> %s/%s  mode=%d",
+			uri, self->prefix, local, mode);
 
 	gchar *path = g_build_filename(g_get_user_cache_dir(), PACKAGE,
 			self->prefix, local, NULL);

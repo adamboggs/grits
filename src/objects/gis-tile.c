@@ -47,8 +47,8 @@ gchar *gis_tile_get_path(GisTile *child)
 			if (parent->children[x][y] == child)
 				parts = g_list_prepend(parts, gis_tile_path_table[x][y]);
 	GString *path = g_string_new("");
-	for (; parts; parts = parts->next)
-		g_string_append(path, parts->data);
+	for (GList *cur = parts; cur; cur = cur->next)
+		g_string_append(path, cur->data);
 	g_list_free(parts);
 	return g_string_free(path, FALSE);
 }
