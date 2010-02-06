@@ -1,294 +1,228 @@
+# Andy Spencer <andy753421@gmail.com>
 #
-# Valgrind suppression file for Gtk+ 2.12
-#
-# Format specification:
-# http://valgrind.org/docs/manual/manual-core.html#manual-core.suppress
-#
+# Valgrind suppression file for Gtk+ 2.16
 
-#
-# glibc Ubuntu Edgy
-#
-
+# GLib
 {
-   libc: getpwnam_r
-   Memcheck:Addr4
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libc-*.so
-   obj:/lib/ld-*.so
-   fun:__libc_dlopen_mode
-   fun:__nss_lookup_function
-   obj:/lib/tls/i686/cmov/libc-*.so
-   fun:__nss_passwd_lookup
-   fun:getpwnam_r
-   fun:g_get_any_init_do
-   fun:g_get_home_dir
-   fun:gtk_rc_add_initial_default_files
-   fun:_gtk_rc_init
-   fun:post_parse_hook
-   fun:g_option_context_parse
-   fun:gtk_parse_args
-   fun:gtk_init_check
-   fun:gtk_init
+	g_type_register_static
+	Memcheck:Leak
+	...
+	fun:g_type_register_static
+}
+{
+	g_param_spec
+	Memcheck:Leak
+	...
+	fun:g_param_spec_*
+	...
+	fun:g_object_new
 }
 
+# GTK+
 {
-   libc: getpwnam_r
-   Memcheck:Addr4
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libc-*.so
-   obj:/lib/ld-*.so
-   fun:__libc_dlopen_mode
-   fun:__nss_lookup_function
-   obj:/lib/tls/i686/cmov/libc-*.so
-   fun:__nss_passwd_lookup
-   fun:getpwnam_r
-   fun:g_get_any_init_do
-   fun:g_get_home_dir
-   fun:gtk_rc_add_initial_default_files
-   fun:_gtk_rc_init
-   fun:post_parse_hook
-   fun:g_option_context_parse
-   fun:gtk_parse_args
-   fun:gtk_init_check
-   fun:gtk_init
+	gtk_init
+	Memcheck:Leak
+	...
+	fun:gtk_init
+}
+{
+	gtk_style_new
+	Memcheck:Leak
+	...
+	fun:gtk_style_new
+}
+{
+	gtk_rc_get_style
+	Memcheck:Leak
+	...
+	fun:gtk_rc_get_style
+}
+{
+	gtk_icon_theme_has_icon
+	Memcheck:Leak
+	...
+	fun:gtk_icon_theme_has_icon
+}
+#{
+#	gtk_icon_theme_get
+#	Memcheck:Leak
+#	...
+#	fun:gtk_icon_theme_get*
+#}
+#{
+#	gtk_icon_factory_lookup
+#	Memcheck:Leak
+#	...
+#	fun:gtk_icon_factory_lookup*
+#}
+{
+	gxk__for_display
+	Memcheck:Leak
+	...
+	fun:g?k_*_for_display
+}
+{
+	gxk__for_screen
+	Memcheck:Leak
+	...
+	fun:g?k_*_for_screen
+}
+{
+	gdk_gc_new
+	Memcheck:Leak
+	...
+	fun:gdk_gc_new
+	...
+	fun:gdk_window_end_paint
+}
+{
+	gtk_gc_get cached
+	Memcheck:Leak
+	...
+	fun:g_cache_insert
+	fun:gtk_gc_get
+}
+{
+	gdk_x11_window_set_user_time
+	Memcheck:Leak
+	...
+	fun:gdk_x11_window_set_user_time 
+}
+{
+	gdk_x11_window_set_user_time
+	Memcheck:Leak
+	...
+	fun:gdk_x11_window_set_user_time 
+}
+{
+	gtk_widget_realize 1
+	Memcheck:Leak
+	...
+	fun:g_slice_alloc
+	...
+	fun:gtk_widget_realize
+}
+{
+	gtk_widget_realize 2
+	Memcheck:Leak
+	...
+	fun:gdk_window_new
+	...
+	fun:gtk_widget_realize
+}
+{
+	gdk_window_invalidate_region
+	Memcheck:Leak
+	...
+	fun:gdk_region_*
+	fun:gdk_window_invalidate_maybe_recurse
+}
+{
+	gtk_container_check_resize
+	Memcheck:Leak
+	...
+	fun:gdk_window_process_updates
+	...
+	fun:gtk_container_check_resize
+}
+{
+	weak_pointer
+	Memcheck:Leak
+	...
+	fun:g_object_weak_ref
+	fun:g_object_add_weak_pointer
+	obj:*/libgtk-*
+	obj:*/libgtk-*
+	fun:gtk_main_do_event
+}
+{
+	gtk_window_new
+	Memcheck:Leak
+	...
+	fun:g_type_create_instance
+	fun:g_object_constructor
+	fun:g_object_newv
+	fun:g_object_new_valist
+	fun:g_object_new
+	fun:gtk_window_new
 }
 
+# Pango
 {
-   libc: getpwnam_r
-   Memcheck:Addr4
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libc-*.so
-   obj:/lib/ld-*.so
-   fun:__libc_dlopen_mode
-   fun:__nss_lookup_function
-   fun:__nss_next
-   fun:getpwnam_r
-   fun:g_get_any_init_do
-   fun:g_get_home_dir
-   fun:gtk_rc_add_initial_default_files
-   fun:_gtk_rc_init
-   fun:post_parse_hook
-   fun:g_option_context_parse
-   fun:gtk_parse_args
-   fun:gtk_init_check
-   fun:gtk_init
+	pango_ot_ruleset_new
+	Memcheck:Leak
+	...
+	fun:pango_ot_ruleset_new*
+}
+{
+	pango_font_map_load_fontset
+	Memcheck:Leak
+	...
+	fun:pango_font_map_load_fontset
+}
+{
+	pango_font_map_create_context
+	Memcheck:Leak
+	...
+	fun:pango_font_map_create_context
+}
+{
+	pango__font_glyph_extents
+	Memcheck:Leak
+	...
+	fun:pango_font_get_glyph_extents
+}
+{
+	pango_coverage_set
+	Memcheck:Leak
+	...
+	fun:pango_coverage_set
 }
 
+# Cairo
 {
-   libc: getpwnam_r
-   Memcheck:Addr4
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libc-*.so
-   obj:/lib/ld-*.so
-   fun:__libc_dlopen_mode
-   fun:__nss_lookup_function
-   fun:__nss_next
-   fun:getpwnam_r
-   fun:g_get_any_init_do
-   fun:g_get_home_dir
-   fun:gtk_rc_add_initial_default_files
-   fun:_gtk_rc_init
-   fun:post_parse_hook
-   fun:g_option_context_parse
-   fun:gtk_parse_args
-   fun:gtk_init_check
-   fun:gtk_init
+	cairo__font_create
+	Memcheck:Leak
+	...
+	fun:cairo_*_font_create
+}
+{
+	cairo__font_face_create
+	Memcheck:Leak
+	...
+	fun:cairo_*_font_face_create*
+}
+{
+	cairo__font_glyph_extents
+	Memcheck:Leak
+	...
+	fun:cairo_*_font_glyph_extents
+}
+{
+	cairo_show_glyphs
+	Memcheck:Leak
+	...
+	fun:cairo_show_glyphs
 }
 
-#
-# glibc Ubuntu feisty
-#
-
+# Fontconfig
 {
-   getpwnam_r
-   Memcheck:Leak
-   fun:malloc
-   obj:/lib/libc-2.5.so
-   fun:__nss_database_lookup
-   obj:*
-   obj:*
-   fun:getpwnam_r
+	FcFontRenderPrepare
+	Memcheck:Leak
+	...
+	fun:FcFontRenderPrepare
 }
 
-#
-# X
-#
-
-{
-   XSupportsLocale
-   Memcheck:Addr4
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libdl-*.so
-   obj:/lib/ld-*.so
-   obj:/lib/tls/i686/cmov/libdl-*.so
-   fun:dlopen
-   obj:/usr/lib/libX11.so.6.2.0
-   fun:_XlcDynamicLoad
-   fun:_XOpenLC
-   fun:_XlcCurrentLC
-   fun:XSupportsLocale
-   fun:_gdk_x11_initialize_locale
-   fun:_gdk_windowing_init
-   fun:gdk_pre_parse_libgtk_only
-   fun:pre_parse_hook
-   fun:g_option_context_parse
-   fun:gtk_parse_args
-   fun:gtk_init_check
-   fun:gtk_init
-   fun:main
-}
-
-
-{
-   Xcursor
-   Memcheck:Leak
-   fun:malloc
-   obj:/usr/lib/libXcursor.so.1.0.2
-   obj:/usr/lib/libXcursor.so.1.0.2
-   fun:XcursorXcFileLoadImages
-   fun:XcursorFileLoadImages
-   fun:XcursorLibraryLoadImages
-   fun:XcursorShapeLoadImages
-   fun:XcursorTryShapeCursor
-   fun:XCreateGlyphCursor
-   fun:XCreateFontCursor
-   fun:gdk_cursor_new_for_display
-}
-
-{
-   XcursorGetTheme
-   Memcheck:Leak
-   fun:malloc
-   fun:/usr/lib/libX11.so.6.2.0
-   fun:/usr/lib/libX11.so.6.2.0
-   fun:XrmGetStringDatabase
-   fun:XGetDefault
-   fun:_XcursorGetDisplayInfo
-   fun:XcursorGetTheme
-}
-
-{
-   XOpenDisplay
-   Memcheck:Leak
-   fun:calloc
-   fun:XOpenDisplay
-}
-
-{
-   XOpenDisplay
-   Memcheck:Leak
-   fun:malloc
-   fun:XOpenDisplay
-}
-
-#
-# fontconfig
-#
-
-{
-   fontconfig
-   Memcheck:Leak
-   fun:realloc
-   fun:FcPatternObjectInsertElt
-   fun:FcPatternObjectAddWithBinding
-}
-
-{
-   pango_fc_font_map_load_fontset
-   Memcheck:Leak
-   fun:malloc
-   fun:FcLangSetCreate
-   fun:FcLangSetCopy
-   fun:FcValueSave
-   fun:FcPatternObjectAddWithBinding
-   fun:FcPatternObjectAdd
-   fun:FcFontRenderPrepare
-   fun:pango_fc_font_map_load_fontset
-   fun:pango_font_map_load_fontset
-}
-
-{
-   pango_font_map_load_fontset
-   Memcheck:Leak
-   fun:malloc
-   fun:FcPatternObjectAddWithBinding
-   fun:FcPatternObjectAdd
-   fun:FcFontRenderPrepare
-   fun:pango_fc_font_map_load_fontset
-   fun:pango_font_map_load_fontset
-}
-
-{
-   pango_fc_font_map_load_fontset
-   Memcheck:Leak
-   fun:malloc
-   fun:FcStrStaticName
-   fun:FcPatternObjectAddWithBinding
-   fun:FcPatternObjectAdd
-   fun:FcFontRenderPrepare
-   fun:pango_fc_font_map_load_fontset
-}
-
-{
-   pango_fc_font_map_list_families
-   Memcheck:Leak
-   fun:malloc
-   fun:FcStrStaticName
-   fun:FcPatternObjectAddWithBinding
-   fun:FcPatternAdd
-   fun:FcFontSetList
-   fun:FcFontList
-   fun:pango_fc_font_map_list_families
-}
-
-#
-# freetype
-#
-
-{
-   freetype FT_Init_FreeType
-   Memcheck:Leak
-   fun:malloc
-   obj:/usr/lib/libfreetype.so.6.3.10
-   fun:ft_mem_qalloc
-   fun:ft_mem_alloc
-   fun:FT_New_Library
-   fun:FT_Init_FreeType
-}
-
-#
-# glib
-#
-
-{
-   glib g_rand_new
-   Memcheck:Leak
-   fun:calloc
-   fun:g_malloc0
-   fun:g_rand_new_with_seed_array
-   fun:g_rand_new
-   fun:g_random_int
-}
+# OpenGL
+#{
+#	OpenGL memleak
+#	Memcheck:Leak
+#	...
+#	fun:*alloc
+#	obj:*/libGL*
+#}
+#{
+#	OpenGL uninitalized
+#	Memcheck:Cond
+#	obj:*/libGL*
+#}
