@@ -3,25 +3,23 @@ Miscellaneous
 - Use VertexArrays/VertexBufferObjects/DisplayLists/etc
 - Mouse control
 - Plugins can time/location references too a tree-view
-- Consolidate data code (GisData, GisWms, [GisSlippy])
 
 GisObject:
-  - Improvie GisMarker
-  - Move GisTile/render_tile to GisObject
-  - Move to subdirctory?
+  - Improve GisMarker
+  - Add min/max LOD
+
+GisTile:
+  - Crashes in GisTile updating
+  - Prioritize tile updates
+  - Only updates visible tiles
+  - Render correct tile resolution when zooming out
+  - Integrate with GisTile?
 
 Roam:
   - Find a better way to fix great circle errors
   - Improve garbage collection (use timeout?)
   - Refactor height functions
   - Fix texture rendering at edges w/ linear filtering
-
-Data:
-  - Move to subdirectory?
-  - Create consistent way for caching data.
-  - Provide set of cachers (http, http/wms, http/slippy, etc)
-  - How to integrate these with GisObject?
-
 
 Improve plugins
 ---------------
