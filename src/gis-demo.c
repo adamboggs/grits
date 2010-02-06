@@ -30,6 +30,12 @@ static GisViewer  *viewer;
 /*************
  * Callbacks *
  *************/
+static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
+{
+	gtk_main_quit();
+	return TRUE;
+}
+
 static void on_offline(GtkToggleAction *action, gpointer _)
 {
 	gboolean active = gtk_toggle_action_get_active(action);
@@ -112,6 +118,7 @@ static GtkUIManager *setup_actions()
 			G_N_ELEMENTS(toggle_action_data), NULL);
 	gtk_ui_manager_insert_action_group(manager, actions, 0);
 	gtk_ui_manager_add_ui_from_string(manager, menu_xml, sizeof(menu_xml)-1, NULL);
+	g_object_unref(actions);
 	return manager;
 }
 
@@ -125,7 +132,7 @@ static GtkWidget *setup_window(GtkUIManager *manager, GtkWidget **_notebook)
 	gtk_box_pack_start(GTK_BOX(vbox), menu,               FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(viewer), TRUE,  TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(vbox), notebook,           FALSE, TRUE, 0);
-	g_signal_connect(window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect(window, "delete-event", G_CALLBACK(on_delete), NULL);
 	gtk_window_add_accel_group(GTK_WINDOW(window),
 			gtk_ui_manager_get_accel_group(manager));
 	*_notebook = notebook;
@@ -154,7 +161,6 @@ static void restore_states(GtkUIManager *manager)
 	GtkAction *action = gtk_ui_manager_get_action(manager, "/Menu/File/Offline");
 	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action),
 			gis_viewer_get_offline(viewer));
-	g_message("offline=%d", gis_viewer_get_offline(viewer));
 }
 
 int main(int argc, char **argv)
@@ -172,10 +178,10 @@ int main(int argc, char **argv)
 	GtkWidget    *notebook = NULL;
 	GtkUIManager *manager  = setup_actions();
 	GtkWidget    *window   = setup_window(manager, &notebook);
+	gtk_widget_show_all(window);
 	setup_plugins(manager, GTK_NOTEBOOK(notebook));
 	restore_states(manager);
 	gtk_ui_manager_ensure_update(manager);
-	gtk_widget_show_all(window);
 
 	gtk_main();
 
@@ -183,6 +189,18 @@ int main(int argc, char **argv)
 	g_object_unref(prefs);
 
 	gdk_threads_leave();
+
+	g_debug("GisDemo: main - refs=%d,%d",
+			G_OBJECT(manager)->ref_count,
+			G_OBJECT(window)->ref_count);
+	g_object_unref(manager);
+	gtk_widget_destroy(window);
+
+	prefs   = NULL;
+	plugins = NULL;
+	viewer  = NULL;
+
+	gdk_display_close(gdk_display_get_default());
 
 	return 0;
 }
