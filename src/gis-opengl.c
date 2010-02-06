@@ -394,6 +394,7 @@ static gboolean on_expose(GisOpenGL *self, GdkEventExpose *event, gpointer _)
 #else
 	g_tree_foreach(self->objects, _draw_level, self);
 	if (self->wireframe) {
+		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		roam_sphere_draw(self->sphere);
 	}

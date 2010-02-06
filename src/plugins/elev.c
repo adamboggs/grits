@@ -204,6 +204,7 @@ static void _load_tile(GisTile *tile, gpointer _self)
 		load->data->bil = _load_bil(load->path);
 		if (!load->data->bil) {
 			g_remove(load->path);
+			g_free(load->data);
 			g_free(load->path);
 			g_free(load);
 			return;

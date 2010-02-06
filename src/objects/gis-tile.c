@@ -173,7 +173,7 @@ GisTile *gis_tile_gc(GisTile *self, time_t atime,
 	//		self, (guint)self->atime, (guint)atime);
 	if (!has_children && self->atime < atime && self->data) {
 		free_func(self, user_data);
-		g_free(self);
+		g_object_unref(self);
 		return NULL;
 	}
 	return self;
