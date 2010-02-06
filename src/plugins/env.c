@@ -79,17 +79,20 @@ GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPluginEnv: new");
 	GisPluginEnv *self = g_object_new(GIS_TYPE_PLUGIN_ENV, NULL);
-	self->viewer = viewer;
+	self->viewer = g_object_ref(viewer);
 
-	/* Load blank background texture */
+	/* Create objects */
+	GisCallback *callback   = gis_callback_new(expose, self);
+	GisTile     *background = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	glGenTextures(1, &self->tex);
-	self->background = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	self->background->data = &self->tex;
+	background->data = &self->tex;
 
 	/* Add renderers */
-	GisCallback *callback = gis_callback_new(expose, self);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_BACKGROUND, 0);
-	gis_viewer_add(viewer, GIS_OBJECT(self->background), GIS_LEVEL_BACKGROUND, 0);
+	gpointer ref1, ref2;
+	ref1 = gis_viewer_add(viewer, GIS_OBJECT(callback),   GIS_LEVEL_BACKGROUND, FALSE);
+	ref2 = gis_viewer_add(viewer, GIS_OBJECT(background), GIS_LEVEL_BACKGROUND, FALSE);
+	self->refs = g_list_prepend(self->refs, ref1);
+	self->refs = g_list_prepend(self->refs, ref2);
 
 	return self;
 }
@@ -119,11 +122,19 @@ static void gis_plugin_env_dispose(GObject *gobject)
 	g_debug("GisPluginEnv: dispose");
 	GisPluginEnv *self = GIS_PLUGIN_ENV(gobject);
 	/* Drop references */
+	if (self->viewer) {
+		for (GList *cur = self->refs; cur; cur = cur->next)
+			gis_viewer_remove(self->viewer, cur->data);
+		g_list_free(self->refs);
+		g_object_unref(self->viewer);
+		glDeleteTextures(1, &self->tex);
+		self->viewer = NULL;
+	}
 	G_OBJECT_CLASS(gis_plugin_env_parent_class)->dispose(gobject);
 }
 static void gis_plugin_env_class_init(GisPluginEnvClass *klass)
 {
 	g_debug("GisPluginEnv: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_env_dispose;
+	gobject_class->dispose = gis_plugin_env_dispose;
 }

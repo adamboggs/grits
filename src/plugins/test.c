@@ -30,12 +30,12 @@ GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 {
 	g_debug("GisPluginTest: new");
 	GisPluginTest *self = g_object_new(GIS_TYPE_PLUGIN_TEST, NULL);
-	self->viewer = viewer;
+	self->viewer = g_object_ref(viewer);
 
 	GisMarker *marker = gis_marker_new("St. Charles");
 	gis_point_set_lle(gis_object_center(GIS_OBJECT(marker)), 38.841847, -90.491982, 0);
 	GIS_OBJECT(marker)->lod = EARTH_R/4;
-	gis_viewer_add(self->viewer, GIS_OBJECT(marker), GIS_LEVEL_OVERLAY, 0);
+	self->marker = gis_viewer_add(self->viewer, GIS_OBJECT(marker), GIS_LEVEL_OVERLAY, 0);
 
 	return self;
 }
@@ -59,7 +59,20 @@ static void gis_plugin_test_init(GisPluginTest *self)
 {
 	g_debug("GisPluginTest: init");
 }
+static void gis_plugin_test_dispose(GObject *_self)
+{
+	g_debug("GisPluginTest: dispose");
+	GisPluginTest *self = GIS_PLUGIN_TEST(_self);
+	if (self->viewer) {
+		gis_viewer_remove(self->viewer, self->marker);
+		g_object_unref(self->viewer);
+		self->viewer = NULL;
+	}
+	G_OBJECT_CLASS(gis_plugin_test_parent_class)->finalize(_self);
+}
 static void gis_plugin_test_class_init(GisPluginTestClass *klass)
 {
 	g_debug("GisPluginTest: class_init");
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	gobject_class->dispose = gis_plugin_test_dispose;
 }

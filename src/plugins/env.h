@@ -37,6 +37,7 @@ struct _GisPluginEnv {
 	GisViewer *viewer;
 	guint      tex;
 	GisTile   *background;
+	GList     *refs;
 };
 
 struct _GisPluginEnvClass {

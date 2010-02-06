@@ -127,6 +127,7 @@ GList *gis_plugins_available(GisPlugins *self)
 				g_strfreev(parts);
 			}
 		}
+		g_dir_close(dir);
 	}
 	return list;
 }

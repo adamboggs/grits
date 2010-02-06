@@ -179,6 +179,7 @@ GisTile *gis_tile_gc(GisTile *self, time_t atime,
 	return self;
 }
 
+/* Use GObject for this */
 void gis_tile_free(GisTile *self, GisTileFreeFunc free_func, gpointer user_data)
 {
 	if (!self)

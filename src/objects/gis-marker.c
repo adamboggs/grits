@@ -19,17 +19,9 @@
 #include "gis-marker.h"
 
 /* GisMarker */
-G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
-static void gis_marker_init(GisMarker *self) { }
-
-static void gis_marker_finalize(GObject *_self);
-static void gis_marker_class_init(GisMarkerClass *klass)
-{
-	G_OBJECT_CLASS(klass)->finalize = gis_marker_finalize;
-}
-
 GisMarker *gis_marker_new(const gchar *label)
 {
+	//g_debug("GisMarker: new - %s", label);
 	static const int RADIUS =   4;
 	static const int WIDTH  = 100;
 	static const int HEIGHT =  20;
@@ -49,11 +41,20 @@ GisMarker *gis_marker_new(const gchar *label)
 	return self;
 }
 
+G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
+static void gis_marker_init(GisMarker *self) { }
+
 static void gis_marker_finalize(GObject *_self)
 {
 	GisMarker *self = GIS_MARKER(_self);
-	cairo_surface_destroy(cairo_get_target(self->cairo));
+	//g_debug("GisMarker: finalize - %s", self->label);
+	cairo_surface_t *surface = cairo_get_target(self->cairo);
+	cairo_surface_destroy(surface);
 	cairo_destroy(self->cairo);
 	g_free(self->label);
-	g_free(self);
+}
+
+static void gis_marker_class_init(GisMarkerClass *klass)
+{
+	G_OBJECT_CLASS(klass)->finalize = gis_marker_finalize;
 }

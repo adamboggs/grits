@@ -35,6 +35,7 @@ struct _GisPluginTest {
 
 	/* instance members */
 	GisViewer *viewer;
+	gpointer   marker;
 };
 
 struct _GisPluginTestClass {
