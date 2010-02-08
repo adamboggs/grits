@@ -96,6 +96,7 @@ gchar *gis_wms_fetch(GisWms *self, GisTile *tile, GisCacheType mode,
 	gchar *uri   = _make_uri(self, tile);
 	gchar *tilep = gis_tile_get_path(tile);
 	gchar *local = g_strdup_printf("%s%s", tilep, self->extension);
+	mode = GIS_ONCE;
 	gchar *path  = gis_http_fetch(self->http, uri, local,
 			mode, callback, user_data);
 	g_free(uri);
