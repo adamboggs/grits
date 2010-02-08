@@ -15,6 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-data
+ * @short_description: Miscellaneous utilities for data access
+ * @include: glib/gstdio.h
+ *
+ * Various support routines for data access,
+ * these are mostly related to disk caching.
+ */
+
 #include <config.h>
 #include <stdio.h>
 #include <glib.h>
@@ -22,7 +31,13 @@
 #include "gis-data.h"
 
 /**
+ * fopen_p:
+ * @path: the path to the file to be opened.
+ * @mode: mode to open the file, see <function>fopen</function> for details
+ *
  * Open a file, creating parent directories if needed
+ *
+ * Returns: the opened file descriptor
  */
 FILE *fopen_p(const gchar *path, const gchar *mode)
 {

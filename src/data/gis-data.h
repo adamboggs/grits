@@ -21,25 +21,34 @@
 #include <glib.h>
 
 /**
- * Various ways to cach a file
+ * GisCacheType:
+ * @GIS_LOCAL:   Only return local files (for offline mode)
+ * @GIS_ONCE:    Download the file only if it does not exist
+ * @GIS_UPDATE:  Update the file to be like the server
+ * @GIS_REFRESH: Delete the existing file and fetch a new copy
+ *
+ * Various methods for caching data
  */
 typedef enum {
-	GIS_LOCAL,   // Only return local files (for offline mode)
-	GIS_ONCE,    // Download the file only if it does not exist
-	GIS_UPDATE,  // Update the file to be like the server
-	GIS_REFRESH, // Delete the existing file and fetch a new copy
+	GIS_LOCAL,
+	GIS_ONCE,
+	GIS_UPDATE,
+	GIS_REFRESH,
 } GisCacheType;
 
 /**
+ * GisChunkCallback:
+ * @file:      path to the file which is being fetched
+ * @cur:       current offset in the file
+ * @total:     total size of the file
+ * @user_data: the user_data argument passed to the function
+ *
  * Function called when part of a file is fetched
  * Used for updating progress bars, etc
  */
 typedef void (*GisChunkCallback)(gchar *file, goffset cur,
 		goffset total, gpointer user_data);
 
-/**
- * Open a file and create the parent directory if necessasairy
- */
 FILE *fopen_p(const gchar *path, const gchar *mode);
 
 #endif
