@@ -20,62 +20,150 @@
 
 #include <glib.h>
 
+/**
+ * EARTH_R:
+ *
+ * Radius of the earth
+ */
 #define EARTH_R (6371000)
+
+/**
+ * EARTH_C:
+ *
+ * Circumference of the earth at the equator
+ */
 #define EARTH_C (2*G_PI*EARTH_R)
+
+/**
+ * NORTH:
+ *
+ * Latitude at the north poll
+ */
 #define NORTH  90
+
+/**
+ * SOUTH:
+ *
+ * Latitude at the south poll
+ */
 #define SOUTH -90
+
+/**
+ * EAST:
+ *
+ * Eastern most longitude
+ */
 #define EAST  180
+
+/**
+ * WEST:
+ *
+ * Western most longitude
+ */
 #define WEST -180
 
+/***************
+ * Conversions *
+ ***************/
 /**
- * Terms
- * -----
- * deg    - Degrees
- * rad    - Radians, also radius
- * m      - Meters, for earth-based distances
- * px     - Pixels, for screen-based distances
+ * azim2lon:
+ * @azim: the azimuth in radians
  *
- * height - Height, the distance above the geoid (ground)
- * elev   - Elevation, the distance above the spheroid
- * rad    - Radius, the distance from the center of the earth
+ * Convert azimuth to longitude
  *
- * lat    - Latitude, amount north-south, -90 (S) .. 90 (N)
- * lon    - Longitude, amount east-west, -180 (W) .. 180 (E)
- * incl   - Inclination, polar equiv of  latitude, Pi .. 0
- * azim   - Azimuth, polar equiv of longitude, -Pi .. Pi
- *
- * x      -  0° lon is positive
- * y      - 90° lon is positive
- * z      - North pole is positive
- *
- * llh    - lat,lon,height
- * lle    - lat,lon,elev
- * llr    - lat,lon,rad
- * pol    - incl,azim,rad
- * xyz    - x,y,z
+ * Returns: the longitude 
  */
+#define azim2lon(azim) ((azim)*180/G_PI)
 
 /**
- *             lat    lon   elev ->      x      y      z
- * lle2xyz:    0.0,   0.0,   0.0 ->    0.0,   0.0,  10.0
- * lle2xyz:   90.0,   0.0,   0.0 ->    0.0,  10.0,   0.0
- * lle2xyz:    0.0,  90.0,   0.0 ->   10.0,   0.0,   0.0
+ * lon2azim:
+ * @lon: the longitude
  *
- *               x      y      z ->    lat    lon   elev
- * xyz2lle:   10.0,   0.0,   0.0 ->    0.0,  90.0,   0.0
- * xyz2lle:    0.0,  10.0,   0.0 ->   90.0,   0.0,   0.0
- * xyz2lle:    0.0,   0.0,  10.0 ->    0.0,   0.0,   0.0
+ * Convert longitude to azimuth 
+ *
+ * Returns: the azimuth in radians
  */
+#define lon2azim(lon)  ((lon)*G_PI/180)
 
+/**
+ * incl2lat:
+ * @incl: the inclination in radians
+ *
+ * Convert inclination to latitude
+ *
+ * Returns: the latitude
+ */
 #define incl2lat(incl) (90-(incl)*180/G_PI)
+
+/**
+ * lat2incl:
+ * @lat: the latitude
+ *
+ * Convert latitude to inclination
+ *
+ * Returns: the inclination in radians
+ */
 #define lat2incl(lat)  ((90-(lat))*G_PI/180)
+
+/**
+ * rad2elev:
+ * @rad: the radius in meters
+ *
+ * Convert radius to elevation
+ *
+ * Returns: the elevation in meters above the earth surface
+ */
 #define rad2elev(rad)  ((rad)-EARTH_R)
+
+/**
+ * elev2rad:
+ * @elev: the elevation in meters above the earth surface
+ *
+ * Convert elevation to radius
+ *
+ * Returns: the radius in meters
+ */
 #define elev2rad(elev) ((elev)+EARTH_R)
 
+/**
+ * deg2rad:
+ * @deg: the angle in degrees
+ *
+ * Convert degrees to radians
+ *
+ * Returns: the angle in radians
+ */
 #define deg2rad(deg) (((deg)*G_PI)/180.0)
+
+/**
+ * rad2deg:
+ * @rad: the angle in radians
+ *
+ * Convert radians to degrees
+ *
+ * Returns: the angle in degrees
+ */
 #define rad2deg(rad) (((rad)*180.0)/G_PI)
 
+
+/********
+ * Misc *
+ ********/
+/**
+ * FOV_DIST:
+ *
+ * Used by GisOpenGL to set up the drawing window
+ */
 #define FOV_DIST   2000.0
+
+/**
+ * MPPX:
+ * @dist: the distance between the eye and the point in question
+ *
+ * Get the resolution that a point would be drawn at on the screen
+ *
+ * Returns: the resolution in meters per pixel
+ */
 #define MPPX(dist) (4*dist/FOV_DIST)
 
 void lle2xyz(gdouble lat, gdouble lon, gdouble elev,
