@@ -15,6 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:test
+ * @short_description: Testing plugin
+ *
+ * #GisPluginTest is a testing plugin used during development and as an example
+ * for how to create a plugin.
+ */
+
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -26,6 +34,14 @@
 /***********
  * Methods *
  ***********/
+/**
+ * gis_plugin_test_new:
+ * @viewer: the #GisViewer to use for drawing
+ *
+ * Create a new instance of the testing plugin.
+ *
+ * Returns: the new #GisPluginTest
+ */
 GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
 {
 	g_debug("GisPluginTest: new");
