@@ -15,6 +15,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-plugin
+ * @short_description: Plugin support
+ *
+ * A plugin in libgis is a GObject which implements the GisPlugin interface. Additionally, each
+ * plugin is compiled to a separate shared object and loaded conditionally at runtime when the
+ * plugin is enabled. Each such shared object should define a GisPluginConstructor() function named
+ * gis_plugin_NAME_new which will be called when loading the plugin.
+ *
+ * Almost all libgis functionality is provided by a set of plugins. Each plugin can how however much
+ * it likes. The interface between plugins and the rest of libgis is intentionally very thin. Since
+ * libgis is the library, plugins must manually do everything. For instance, to draw something in
+ * the world, the plugin must add an object to the viewer. Likewise, plugins need to register
+ * callbacks on the viewer in order to receive updates, very little happens automagically.
+ *
+ * That being said, one thing that plugins do do automagically, is provide a configuration area.
+ * Since the plugin doesn't know what application is is being loaded form, it is better for the
+ * application to ask the plugin for it's confirmation area, not the other way around.
+ */
+
 #include <glib.h>
 #include <gmodule.h>
 
@@ -47,6 +67,15 @@ GType gis_plugin_get_type()
 	return type;
 }
 
+/**
+ * gis_plugin_get_name:
+ * @plugin: the plugin
+ *
+ * Get a short human readable name for a plugin, this is not necessarily the
+ * same as the name of the shared object.
+ *
+ * Returns: a short name for the plugin
+ */
 const gchar *gis_plugin_get_name(GisPlugin *plugin)
 {
 	if (!GIS_IS_PLUGIN(plugin))
@@ -54,6 +83,14 @@ const gchar *gis_plugin_get_name(GisPlugin *plugin)
 	return GIS_PLUGIN_GET_INTERFACE(plugin)->name;
 }
 
+/**
+ * gis_plugin_get_description:
+ * @plugin: the plugin
+ *
+ * Get a description of a plugin
+ *
+ * Returns: a description of the plugin
+ */
 const gchar *gis_plugin_get_description(GisPlugin *plugin)
 {
 	if (!GIS_IS_PLUGIN(plugin))
@@ -61,6 +98,16 @@ const gchar *gis_plugin_get_description(GisPlugin *plugin)
 	return GIS_PLUGIN_GET_INTERFACE(plugin)->description;
 }
 
+/**
+ * gis_plugin_get_config:
+ * @plugin: the plugin
+ *
+ * Each plugin can provide a configuration area. Applications using libgis
+ * should display this configuration area to the user so they can modify the
+ * behavior of the plugin.
+ *
+ * Returns: a configuration widget for the plugin
+ */
 GtkWidget *gis_plugin_get_config(GisPlugin *plugin)
 {
 	if (!GIS_IS_PLUGIN(plugin))
@@ -78,6 +125,16 @@ typedef struct {
 	GisPlugin *plugin;
 } GisPluginStore;
 
+/**
+ * gis_plugins_new:
+ * @dir:   the directory to search for plugins in
+ * @prefs: a #GisPrefs to save the state of plugins, or NULL
+ *
+ * Create a new plugin source. If @prefs is not %NULL, the state of the plugins
+ * will be saved when they are either enabled or disabled.
+ *
+ * Returns: the new plugin source
+ */
 GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: new - dir=%s", dir);
@@ -88,6 +145,12 @@ GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs)
 	return plugins;
 }
 
+/**
+ * gis_plugins_free:
+ * @plugins: the #GisPlugins to free
+ *
+ * Free data used by a plugin source
+ */
 void gis_plugins_free(GisPlugins *plugins)
 {
 	g_debug("GisPlugins: free");
@@ -106,6 +169,15 @@ void gis_plugins_free(GisPlugins *plugins)
 	g_free(plugins);
 }
 
+/**
+ * gis_plugins_available:
+ * @plugins: the plugin source
+ *
+ * Search the plugin directory for shared objects which can be loaded as
+ * plugins.
+ *
+ * Returns: the list of available plugins
+ */
 GList *gis_plugins_available(GisPlugins *plugins)
 {
 	g_debug("GisPlugins: available");
@@ -132,6 +204,21 @@ GList *gis_plugins_available(GisPlugins *plugins)
 	return list;
 }
 
+/**
+ * gis_plugins_load:
+ * @plugins: the plugins source
+ * @name:    the name of the plugin to load
+ * @viewer:  a #GisViewer to pass to the plugins constructor
+ * @prefs:   a #GisPrefs to pass to the plugins constructor
+ *
+ * @name should be the name of the shared object without the file extension.
+ * This is the same as what is returned by gis_plugins_available().
+ *
+ * When loading plugins, the @prefs argument is used, not the #GisPrefs stored
+ * in @plugins.
+ *
+ * Returns: the new plugin
+ */
 GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs)
 {
@@ -174,6 +261,20 @@ GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 	return store->plugin;
 }
 
+/**
+ * gis_plugins_enable:
+ * @plugins: the plugins source
+ * @name:    the name of the plugin to load
+ * @viewer:  a #GisViewer to pass to the plugins constructor
+ * @prefs:   a #GisPrefs to pass to the plugins constructor
+ *
+ * Load a plugin and save it's loaded/unloaded state in the #GisPrefs stored in
+ * #plugins.
+ *
+ * See also: gis_plugins_load()
+ *
+ * Returns: the new plugin
+ */
 GisPlugin *gis_plugins_enable(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs)
 {
@@ -182,6 +283,18 @@ GisPlugin *gis_plugins_enable(GisPlugins *plugins, const char *name,
 	return plugin;
 }
 
+/**
+ * gis_plugins_load_enabled:
+ * @plugins: the plugins source
+ * @viewer:  a #GisViewer to pass to the plugins constructor
+ * @prefs:   a #GisPrefs to pass to the plugins constructor
+ *
+ * Load all enabled which have previously been enabled.
+ *
+ * See also: gis_plugins_load()
+ *
+ * Returns: a list of all loaded plugins
+ */
 GList *gis_plugins_load_enabled(GisPlugins *plugins,
 		GisViewer *viewer, GisPrefs *prefs)
 {
@@ -196,6 +309,15 @@ GList *gis_plugins_load_enabled(GisPlugins *plugins,
 	return loaded;
 }
 
+/**
+ * gis_plugins_unload:
+ * @plugins: the plugins source
+ * @name:    the name of the plugin to unload
+ *
+ * Unload a plugin and free any associated data.
+ *
+ * Returns: %FALSE
+ */
 gboolean gis_plugins_unload(GisPlugins *plugins, const char *name)
 {
 	g_debug("GisPlugins: unload %s", name);
@@ -211,6 +333,18 @@ gboolean gis_plugins_unload(GisPlugins *plugins, const char *name)
 	return FALSE;
 }
 
+/**
+ * gis_plugins_disable:
+ * @plugins: the plugins source
+ * @name:    the name of the plugin to unload
+ *
+ * Unload a plugin and save it's loaded/unloaded state in the #GisPrefs stored
+ * in #plugins.
+ *
+ * See also: gis_plugins_unload()
+ *
+ * Returns: %FALSE
+ */
 gboolean gis_plugins_disable(GisPlugins *plugins, const char *name)
 {
 	gis_prefs_set_boolean_v(plugins->prefs, "plugins", name, FALSE);
@@ -218,6 +352,14 @@ gboolean gis_plugins_disable(GisPlugins *plugins, const char *name)
 	return FALSE;
 }
 
+/**
+ * gis_plugins_foreach:
+ * @plugins:   the plugins source
+ * @callback:  a function to call on each plugin
+ * @user_data: user data to pass to the function
+ *
+ * Iterate over all plugins loaded by the plugins source
+ */
 void gis_plugins_foreach(GisPlugins *plugins, GCallback _callback, gpointer user_data)
 {
 	g_debug("GisPlugins: foreach");

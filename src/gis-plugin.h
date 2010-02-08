@@ -21,6 +21,9 @@
 #include <glib-object.h>
 #include <gtk/gtk.h>
 
+/********************
+ * Plugin interface *
+ ********************/
 #define GIS_TYPE_PLUGIN                (gis_plugin_get_type())
 #define GIS_PLUGIN(obj)                (G_TYPE_CHECK_INSTANCE_CAST   ((obj),  GIS_TYPE_PLUGIN, GisPlugin))
 #define GIS_IS_PLUGIN(obj)             (G_TYPE_CHECK_INSTANCE_TYPE   ((obj),  GIS_TYPE_PLUGIN))
@@ -50,12 +53,24 @@ const gchar *gis_plugin_get_description(GisPlugin *plugin);
 
 GtkWidget *gis_plugin_get_config(GisPlugin *plugin);
 
-/* Plugins API */
+/***************
+ * Plugins API *
+ ***************/
 typedef struct _GisPlugins GisPlugins;
 
 #include "gis-viewer.h"
 #include "gis-prefs.h"
 
+/**
+ * GisPluginConstructor:
+ * @viewer: the viewer the plugin is associated with
+ * @prefs:  preferences the plugin can use for storing informtion
+ *
+ * Create a new instance of a plugin. Each plugin should supply a constructor named
+ * gis_plugin_NAME_new in it's shared object.
+ *
+ * Returns: the new plugin
+ */
 typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);
 
 struct _GisPlugins {
