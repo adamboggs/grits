@@ -15,10 +15,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-marker
+ * @short_description: Single point markers
+ *
+ * Each #GisMarker represents some point on the earth with some form of
+ * content. Commonly this is used to mark geographic features such as cities or
+ * states.
+ * 
+ * While markers represent a place in three dimensions somewhere on, below, or
+ * above the surface of the earth, they are drawn in 2 dimensions so that they
+ * look normal and readable by the user. Due to this, GisObjects should almost
+ * always be added to the GIS_LEVEL_OVERLAY level so they are drawn "above" the
+ * actual earth.
+ */
+
 #include <config.h>
 #include "gis-marker.h"
 
-/* GisMarker */
+/*************
+ * GisMarker *
+ *************/
+/**
+ * gis_marker_new:
+ * @label: a short description of the marker
+ *
+ * Create a new GisMarker which shows the given label when drawn.
+ *
+ * Returns: the new #GisMarker.
+ */
 GisMarker *gis_marker_new(const gchar *label)
 {
 	//g_debug("GisMarker: new - %s", label);
