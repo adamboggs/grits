@@ -67,8 +67,6 @@
  * xyz2lle:    0.0,   0.0,  10.0 ->    0.0,   0.0,   0.0
  */
 
-#define azim2lon(azim) ((azim)*180/G_PI)
-#define lon2azim(lon)  ((lon)*G_PI/180)
 #define incl2lat(incl) (90-(incl)*180/G_PI)
 #define lat2incl(lat)  ((90-(lat))*G_PI/180)
 #define rad2elev(rad)  ((rad)-EARTH_R)

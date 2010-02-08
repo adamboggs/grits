@@ -40,12 +40,13 @@ struct _RoamView {
  * RoamPoint *
  *************/
 struct _RoamPoint {
-	gdouble  x,y,z;     // Model coordinates
-	gdouble  px,py,pz;  // Projected coordinates
-	gint     pversion;  // Version of cached projection
+	/*< private >*/
+	gdouble  x, y, z;    /* Model coordinates */
+	gdouble  px, py, pz; /* Projected coordinates */
+	gint     pversion;   /* Version of cached projection */
 
-	gint     tris;      // Associated triangles
-	gdouble  norm[3];   // Vertex normal
+	gint     tris;       /* Count of associated triangles */
+	gdouble  norm[3];    /* Vertex normal */
 
 	/* For get_intersect */
 	gdouble  lat, lon, elev;
@@ -54,22 +55,27 @@ struct _RoamPoint {
 	RoamHeightFunc height_func;
 	gpointer       height_data;
 };
-RoamPoint *roam_point_new(double x, double y, double z);
+RoamPoint *roam_point_new(double lat, double lon, double elev);
 void roam_point_add_triangle(RoamPoint *point, RoamTriangle *triangle);
 void roam_point_remove_triangle(RoamPoint *point, RoamTriangle *triangle);
 void roam_point_update_height(RoamPoint *point);
-void roam_point_update_projection(RoamPoint *point, RoamSphere *sphere);
+void roam_point_update_projection(RoamPoint *point, RoamView *view);
 
 /****************
  * RoamTriangle *
  ****************/
 struct _RoamTriangle {
+	/*< private >*/
+	/* Left, middle and right vertices */
 	struct { RoamPoint    *l,*m,*r; } p;
+
+	/* Left, base, and right neighbor triangles */
 	struct { RoamTriangle *l,*b,*r; } t;
-	RoamPoint *split;
-	RoamDiamond *parent;
-	double norm[3];
-	double error;
+
+	RoamPoint *split;     /* Split point */
+	RoamDiamond *parent;  /* Parent diamond */
+	double norm[3];       /* Surface normal */
+	double error;         /* Screen space error */
 	GPQueueHandle handle;
 
 	/* For get_intersect */
@@ -77,22 +83,25 @@ struct _RoamTriangle {
 	RoamTriangle *kids[2];
 };
 RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r);
+void roam_triangle_free(RoamTriangle *triangle);
 void roam_triangle_add(RoamTriangle *triangle,
 		RoamTriangle *left, RoamTriangle *base, RoamTriangle *right,
 		RoamSphere *sphere);
 void roam_triangle_remove(RoamTriangle *triangle, RoamSphere *sphere);
 void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere);
 void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere);
+void roam_triangle_draw(RoamTriangle *triangle);
 void roam_triangle_draw_normal(RoamTriangle *triangle);
 
 /***************
  * RoamDiamond *
  ***************/
 struct _RoamDiamond {
-	RoamTriangle *kids[4];
-	RoamTriangle *parents[2];
-	double error;
-	gboolean active;
+	/*< private >*/
+	RoamTriangle *kids[4];    /* Child triangles */
+	RoamTriangle *parents[2]; /* Parent triangles */
+	double error;             /* Screen space error */
+	gboolean active;          /* For internal use */
 	GPQueueHandle handle;
 };
 RoamDiamond *roam_diamond_new(
@@ -108,13 +117,14 @@ void roam_diamond_update_errors(RoamDiamond *diamond, RoamSphere *sphere);
  * RoamSphere *
  **************/
 struct _RoamSphere {
-	GPQueue *triangles;
-	GPQueue *diamonds;
-	RoamView *view;
-	gint polys;
+	/*< private >*/
+	GPQueue *triangles; /* List of triangles */
+	GPQueue *diamonds;  /* List of diamonds */
+	RoamView *view;     /* Current projection */
+	gint polys;         /* Polygon count */
 
 	/* For get_intersect */
-	RoamTriangle *roots[8];
+	RoamTriangle *roots[8]; /* Original 8 triangles */
 };
 RoamSphere *roam_sphere_new();
 void roam_sphere_update_view(RoamSphere *sphere);

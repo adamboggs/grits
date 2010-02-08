@@ -92,7 +92,7 @@ gchar *gis_viewer_get_time(GisViewer *viewer);
 
 void gis_viewer_set_location(GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
 void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);
-void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble sideways, gdouble up);
+void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble right, gdouble up);
 void gis_viewer_zoom(GisViewer *viewer, gdouble  scale);
 
 void gis_viewer_set_rotation(GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);

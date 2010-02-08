@@ -16,6 +16,7 @@
  */
 
 #include <time.h>
+#include <stdlib.h>
 #include <glib/gstdio.h>
 #include <GL/gl.h>
 
@@ -27,7 +28,7 @@
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 
-const guchar colormap[][2][4] = {
+static const guchar colormap[][2][4] = {
 	{{0x73, 0x91, 0xad}, {0x73, 0x91, 0xad, 0x20}}, // Oceans
 	{{0xf6, 0xee, 0xee}, {0xf6, 0xee, 0xee, 0x00}}, // Ground
 	{{0xff, 0xff, 0xff}, {0xff, 0xff, 0xff, 0xff}}, // Borders
@@ -40,7 +41,6 @@ struct _LoadTileData {
 	GisTile      *tile;
 	GdkPixbuf    *pixbuf;
 };
-#include <stdlib.h>
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;

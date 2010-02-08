@@ -65,11 +65,11 @@ GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 }
 
 #define make_pref_type(name, c_type, g_type)                                         \
-c_type gis_prefs_get_##name##_v(GisPrefs *prefs,                                      \
+c_type gis_prefs_get_##name##_v(GisPrefs *prefs,                                     \
 		const gchar *group, const gchar *key, GError **_error)               \
 {                                                                                    \
 	GError *error = NULL;                                                        \
-	c_type value = g_key_file_get_##name(prefs->key_file, group, key, &error);    \
+	c_type value = g_key_file_get_##name(prefs->key_file, group, key, &error);   \
 	if (error && error->code != G_KEY_FILE_ERROR_GROUP_NOT_FOUND)                \
 		g_warning("GisPrefs: get_value_##name - error getting key %s: %s\n", \
 				key, error->message);                                \
@@ -77,27 +77,27 @@ c_type gis_prefs_get_##name##_v(GisPrefs *prefs,                                
 		*_error = error;                                                     \
 	return value;                                                                \
 }                                                                                    \
-c_type gis_prefs_get_##name(GisPrefs *prefs, const gchar *key, GError **error)        \
+c_type gis_prefs_get_##name(GisPrefs *prefs, const gchar *key, GError **error)       \
 {                                                                                    \
 	gchar **keys  = g_strsplit(key, "/", 2);                                     \
-	c_type value = gis_prefs_get_##name##_v(prefs, keys[0], keys[1], error);      \
+	c_type value = gis_prefs_get_##name##_v(prefs, keys[0], keys[1], error);     \
 	g_strfreev(keys);                                                            \
 	return value;                                                                \
 }                                                                                    \
                                                                                      \
-void gis_prefs_set_##name##_v(GisPrefs *prefs,                                        \
+void gis_prefs_set_##name##_v(GisPrefs *prefs,                                       \
 		const gchar *group, const gchar *key, const c_type value)            \
 {                                                                                    \
-	g_key_file_set_##name(prefs->key_file, group, key, value);                    \
+	g_key_file_set_##name(prefs->key_file, group, key, value);                   \
 	gchar *all = g_strconcat(group, "/", key, NULL);                             \
-	g_signal_emit(prefs, signals[SIG_PREF_CHANGED], 0,                            \
+	g_signal_emit(prefs, signals[SIG_PREF_CHANGED], 0,                           \
 			all, g_type, &value);                                        \
 	g_free(all);                                                                 \
 }                                                                                    \
-void gis_prefs_set_##name(GisPrefs *prefs, const gchar *key, const c_type value)      \
+void gis_prefs_set_##name(GisPrefs *prefs, const gchar *key, const c_type value)     \
 {                                                                                    \
 	gchar **keys = g_strsplit(key, "/", 2);                                      \
-	gis_prefs_set_##name##_v(prefs, keys[0], keys[1], value);                     \
+	gis_prefs_set_##name##_v(prefs, keys[0], keys[1], value);                    \
 	g_strfreev(keys);                                                            \
 }                                                                                    \
 
@@ -138,7 +138,7 @@ static void gis_prefs_class_init(GisPrefsClass *klass)
 {
 	g_debug("GisPrefs: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->dispose      = gis_prefs_dispose;
+	gobject_class->dispose = gis_prefs_dispose;
 	signals[SIG_PREF_CHANGED] = g_signal_new(
 			"pref-changed",
 			G_TYPE_FROM_CLASS(gobject_class),
@@ -148,7 +148,7 @@ static void gis_prefs_class_init(GisPrefsClass *klass)
 			NULL,
 			gis_cclosure_marshal_VOID__STRING_UINT_POINTER,
 			G_TYPE_NONE,
-			1,
+			3,
 			G_TYPE_STRING,
 			G_TYPE_UINT,
 			G_TYPE_POINTER);

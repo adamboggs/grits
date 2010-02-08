@@ -33,7 +33,7 @@
 typedef struct _GisCallback      GisCallback;
 typedef struct _GisCallbackClass GisCallbackClass;
 
-typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
+typedef void (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
 
 struct _GisCallback {
 	GisObject       parent;

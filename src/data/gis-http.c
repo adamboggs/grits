@@ -42,7 +42,7 @@ void gis_http_free(GisHttp *http)
 }
 
 /* For passing data to the chunck callback */
-struct _cache_info {
+struct _CacheInfo {
 	FILE  *fp;
 	gchar *path;
 	GisChunkCallback callback;
@@ -54,7 +54,7 @@ struct _cache_info {
  */
 static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 {
-	struct _cache_info *info = _info;
+	struct _CacheInfo *info = _info;
 
 	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
 		g_warning("GisHttp: _chunk_cb - soup failed with %d",

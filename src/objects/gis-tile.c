@@ -39,7 +39,7 @@ GisTile *gis_tile_new(GisTile *parent,
 
 gchar *gis_tile_get_path(GisTile *child)
 {
-	/* This could be easily cached if necessasairy */
+	/* This could be easily cached if necessary */
 	int x, y;
 	GList *parts = NULL;
 	for (GisTile *parent = child->parent; parent; child = parent, parent = child->parent)
@@ -53,7 +53,7 @@ gchar *gis_tile_get_path(GisTile *child)
 	return g_string_free(path, FALSE);
 }
 
-gdouble _gis_tile_get_min_dist(GisTile *tile,
+static gdouble _gis_tile_get_min_dist(GisTile *tile,
 		gdouble lat, gdouble lon, gdouble elev)
 {
 	gdouble tlat  = lat > tile->edge.n ? tile->edge.n :
@@ -69,7 +69,7 @@ gdouble _gis_tile_get_min_dist(GisTile *tile,
 	return distd(a, b);
 }
 
-gboolean _gis_tile_needs_split(GisTile *tile,
+static gboolean _gis_tile_needs_split(GisTile *tile,
 		gdouble max_res, gint width, gint height,
 		gdouble lat, gdouble lon, gdouble elev)
 {
@@ -96,29 +96,29 @@ gboolean _gis_tile_needs_split(GisTile *tile,
 	return view_res < tile_res;
 }
 
-void gis_tile_update(GisTile *tile,
+void gis_tile_update(GisTile *root,
 		gdouble res, gint width, gint height,
 		gdouble lat, gdouble lon, gdouble elev,
 		GisTileLoadFunc load_func, gpointer user_data)
 {
-	tile->atime = time(NULL);
-	//g_debug("GisTile: update - %p->atime = %u", tile, (guint)tile->atime);
-	gdouble lat_dist = tile->edge.n - tile->edge.s;
-	gdouble lon_dist = tile->edge.e - tile->edge.w;
-	if (_gis_tile_needs_split(tile, res, width, height, lat, lon, elev)) {
-		gdouble lat_step = lat_dist / G_N_ELEMENTS(tile->children);
-		gdouble lon_step = lon_dist / G_N_ELEMENTS(tile->children[0]);
+	root->atime = time(NULL);
+	//g_debug("GisTile: update - %p->atime = %u", root, (guint)root->atime);
+	gdouble lat_dist = root->edge.n - root->edge.s;
+	gdouble lon_dist = root->edge.e - root->edge.w;
+	if (_gis_tile_needs_split(root, res, width, height, lat, lon, elev)) {
+		gdouble lat_step = lat_dist / G_N_ELEMENTS(root->children);
+		gdouble lon_step = lon_dist / G_N_ELEMENTS(root->children[0]);
 		int x, y;
-		gis_tile_foreach_index(tile, x, y) {
-			if (!tile->children[x][y]) {
-				tile->children[x][y] = gis_tile_new(tile,
-						tile->edge.n-(lat_step*(x+0)),
-						tile->edge.n-(lat_step*(x+1)),
-						tile->edge.w+(lon_step*(y+1)),
-						tile->edge.w+(lon_step*(y+0)));
-				load_func(tile->children[x][y], user_data);
+		gis_tile_foreach_index(root, x, y) {
+			if (!root->children[x][y]) {
+				root->children[x][y] = gis_tile_new(root,
+						root->edge.n-(lat_step*(x+0)),
+						root->edge.n-(lat_step*(x+1)),
+						root->edge.w+(lon_step*(y+1)),
+						root->edge.w+(lon_step*(y+0)));
+				load_func(root->children[x][y], user_data);
 			}
-			gis_tile_update(tile->children[x][y],
+			gis_tile_update(root->children[x][y],
 					res, width, height,
 					lat, lon, elev,
 					load_func, user_data);
@@ -126,16 +126,16 @@ void gis_tile_update(GisTile *tile,
 	}
 }
 
-GisTile *gis_tile_find(GisTile *tile, gdouble lat, gdouble lon)
+GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
 {
-	gint    rows = G_N_ELEMENTS(tile->children);
-	gint    cols = G_N_ELEMENTS(tile->children[0]);
+	gint    rows = G_N_ELEMENTS(root->children);
+	gint    cols = G_N_ELEMENTS(root->children[0]);
 
-	gdouble lat_step = (tile->edge.n - tile->edge.s) / rows;
-	gdouble lon_step = (tile->edge.e - tile->edge.w) / cols;
+	gdouble lat_step = (root->edge.n - root->edge.s) / rows;
+	gdouble lon_step = (root->edge.e - root->edge.w) / cols;
 
-	gdouble lat_offset = tile->edge.n - lat;;
-	gdouble lon_offset = lon - tile->edge.w;
+	gdouble lat_offset = root->edge.n - lat;;
+	gdouble lon_offset = lon - root->edge.w;
 
 	gint    row = lat_offset / lat_step;
 	gint    col = lon_offset / lon_step;
@@ -149,47 +149,47 @@ GisTile *gis_tile_find(GisTile *tile, gdouble lat, gdouble lon)
 
 	if (row < 0 || row >= rows || col < 0 || col >= cols)
 		return NULL;
-	else if (tile->children[row][col] && tile->children[row][col]->data)
-		return gis_tile_find(tile->children[row][col], lat, lon);
+	else if (root->children[row][col] && root->children[row][col]->data)
+		return gis_tile_find(root->children[row][col], lat, lon);
 	else
-		return tile;
+		return root;
 }
 
-GisTile *gis_tile_gc(GisTile *tile, time_t atime,
+GisTile *gis_tile_gc(GisTile *root, time_t atime,
 		GisTileFreeFunc free_func, gpointer user_data)
 {
-	if (!tile)
+	if (!root)
 		return NULL;
 	gboolean has_children = FALSE;
 	int x, y;
-	gis_tile_foreach_index(tile, x, y) {
-		tile->children[x][y] = gis_tile_gc(
-				tile->children[x][y], atime,
+	gis_tile_foreach_index(root, x, y) {
+		root->children[x][y] = gis_tile_gc(
+				root->children[x][y], atime,
 				free_func, user_data);
-		if (tile->children[x][y])
+		if (root->children[x][y])
 			has_children = TRUE;
 	}
 	//g_debug("GisTile: gc - %p->atime=%u < atime=%u",
-	//		tile, (guint)tile->atime, (guint)atime);
-	if (!has_children && tile->atime < atime && tile->data) {
-		free_func(tile, user_data);
-		g_object_unref(tile);
+	//		root, (guint)root->atime, (guint)atime);
+	if (!has_children && root->atime < atime && root->data) {
+		free_func(root, user_data);
+		g_object_unref(root);
 		return NULL;
 	}
-	return tile;
+	return root;
 }
 
 /* Use GObject for this */
-void gis_tile_free(GisTile *tile, GisTileFreeFunc free_func, gpointer user_data)
+void gis_tile_free(GisTile *root, GisTileFreeFunc free_func, gpointer user_data)
 {
-	if (!tile)
+	if (!root)
 		return;
 	GisTile *child;
-	gis_tile_foreach(tile, child)
+	gis_tile_foreach(root, child)
 		gis_tile_free(child, free_func, user_data);
 	if (free_func)
-		free_func(tile, user_data);
-	g_object_unref(tile);
+		free_func(root, user_data);
+	g_object_unref(root);
 }
 
 /* GObject code */

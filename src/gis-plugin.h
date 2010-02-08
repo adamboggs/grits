@@ -28,7 +28,6 @@
 
 typedef struct _GisPlugin          GisPlugin;
 typedef struct _GisPluginInterface GisPluginInterface;
-typedef struct _GisPlugins         GisPlugins;
 
 struct _GisPluginInterface
 {
@@ -52,16 +51,18 @@ const gchar *gis_plugin_get_description(GisPlugin *plugin);
 GtkWidget *gis_plugin_get_config(GisPlugin *plugin);
 
 /* Plugins API */
+typedef struct _GisPlugins GisPlugins;
+
 #include "gis-viewer.h"
 #include "gis-prefs.h"
+
+typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);
 
 struct _GisPlugins {
 	gchar    *dir;
 	GList    *plugins;
 	GisPrefs *prefs;
 };
-
-typedef GisPlugin *(*GisPluginConstructor)(GisViewer *viewer, GisPrefs *prefs);
 
 GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs);
 
@@ -72,13 +73,13 @@ GList *gis_plugins_available(GisPlugins *plugins);
 GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs);
 
-GisPlugin *gis_plugins_enable(GisPlugins *plugin, const char *name,
+GisPlugin *gis_plugins_enable(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs);
 
-GList *gis_plugins_load_enabled(GisPlugins *plugin,
+GList *gis_plugins_load_enabled(GisPlugins *plugins,
 		GisViewer *viewer, GisPrefs *prefs);
 
-gboolean gis_plugins_disable(GisPlugins *plugin, const char *name);
+gboolean gis_plugins_disable(GisPlugins *plugins, const char *name);
 
 gboolean gis_plugins_unload(GisPlugins *plugins, const char *name);
 

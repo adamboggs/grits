@@ -35,7 +35,7 @@ static gboolean rotate(gpointer _teapot)
 	return TRUE;
 }
 
-static gpointer expose(GisCallback *callback, gpointer _teapot)
+static void expose(GisCallback *callback, gpointer _teapot)
 {
 	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
 	g_debug("GisPluginTeapot: expose");
@@ -60,8 +60,6 @@ static gpointer expose(GisCallback *callback, gpointer _teapot)
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
 	gdk_gl_draw_teapot(TRUE, 0.25);
-
-	return NULL;
 }
 
 

@@ -26,7 +26,7 @@
 /***********
  * Helpers *
  ***********/
-static gpointer expose(GisCallback *callback, gpointer _env)
+static void expose(GisCallback *callback, gpointer _env)
 {
 	GisPluginEnv *env = GIS_PLUGIN_ENV(_env);
 	g_debug("GisPluginEnv: expose");
@@ -67,8 +67,6 @@ static gpointer expose(GisCallback *callback, gpointer _env)
 		glPopMatrix();
 	}
 	*/
-
-	return NULL;
 }
 
 

@@ -18,10 +18,10 @@
 #include <glib.h>
 #include <math.h>
 #include <string.h>
-#include "gpqueue.h"
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "gpqueue.h"
 #include "gis-util.h"
 #include "roam.h"
 
@@ -60,7 +60,8 @@ RoamPoint *roam_point_new(gdouble lat, gdouble lon, gdouble elev)
 	lle2xyz(lat, lon, elev, &point->x, &point->y, &point->z);
 	return point;
 }
-RoamPoint *roam_point_dup(RoamPoint *point)
+
+static RoamPoint *roam_point_dup(RoamPoint *point)
 {
 	RoamPoint *new = g_memdup(point, sizeof(RoamPoint));
 	new->tris = 0;
@@ -96,22 +97,23 @@ void roam_point_update_height(RoamPoint *point)
 				&point->x, &point->y, &point->z);
 	}
 }
-void roam_point_update_projection(RoamPoint *point, RoamSphere *sphere)
+
+void roam_point_update_projection(RoamPoint *point, RoamView *view)
 {
 	static int count   = 0;
 	static int version = 0;
-	if (version != sphere->view->version) {
+	if (version != view->version) {
 		g_debug("RoamPoint: Projected %d points", count);
 		count   = 0;
-		version = sphere->view->version;
+		version = view->version;
 	}
 
-	if (point->pversion != sphere->view->version) {
+	if (point->pversion != view->version) {
 		/* Cache projection */
 		gluProject(point->x, point->y, point->z,
-			sphere->view->model, sphere->view->proj, sphere->view->view,
+			view->model, view->proj, view->view,
 			&point->px, &point->py, &point->pz);
-		point->pversion = sphere->view->version;
+		point->pversion = view->version;
 		count++;
 	}
 }
@@ -230,7 +232,7 @@ void roam_triangle_remove(RoamTriangle *triangle, RoamSphere *sphere)
 	g_pqueue_remove(sphere->triangles, triangle->handle);
 }
 
-void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTriangle *neigh)
+static void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTriangle *neigh)
 {
 	if      (neigh->t.l == old) neigh->t.l = new;
 	else if (neigh->t.b == old) neigh->t.b = new;
@@ -238,14 +240,14 @@ void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTria
 	else g_assert_not_reached();
 }
 
-gboolean roam_point_visible(RoamPoint *triangle, RoamSphere *sphere)
+static gboolean roam_point_visible(RoamPoint *triangle, RoamSphere *sphere)
 {
 	gint *view = sphere->view->view;
 	return triangle->px > view[0] && triangle->px < view[2] &&
 	       triangle->py > view[1] && triangle->py < view[3] &&
 	       triangle->pz > 0       && triangle->pz < 1;
 }
-gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
+static gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Do this with a bounding box */
 	return roam_point_visible(triangle->p.l, sphere) ||
@@ -256,15 +258,15 @@ gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
 void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Update points */
-	roam_point_update_projection(triangle->p.l, sphere);
-	roam_point_update_projection(triangle->p.m, sphere);
-	roam_point_update_projection(triangle->p.r, sphere);
+	roam_point_update_projection(triangle->p.l, sphere->view);
+	roam_point_update_projection(triangle->p.m, sphere->view);
+	roam_point_update_projection(triangle->p.r, sphere->view);
 
 	/* Not exactly correct, could be out on both sides (middle in) */
 	if (!roam_triangle_visible(triangle, sphere)) {
 		triangle->error = -1;
 	} else {
-		roam_point_update_projection(triangle->split, sphere);
+		roam_point_update_projection(triangle->split, sphere->view);
 		RoamPoint *l = triangle->p.l;
 		RoamPoint *m = triangle->p.m;
 		RoamPoint *r = triangle->p.r;
@@ -666,7 +668,8 @@ GList *roam_sphere_get_intersect(RoamSphere *sphere, gboolean all,
 				list, all, n, s, e, w);
 	return list;
 }
-void roam_sphere_free_tri(RoamTriangle *triangle)
+
+static void roam_sphere_free_tri(RoamTriangle *triangle)
 {
 	if (--triangle->p.l->tris == 0) g_free(triangle->p.l);
 	if (--triangle->p.m->tris == 0) g_free(triangle->p.m);

@@ -36,10 +36,11 @@
 #include "objects/gis-marker.h"
 #include "objects/gis-callback.h"
 
-#define FOV_DIST   2000.0
-#define MPPX(dist) (4*dist/FOV_DIST)
-
 // #define ROAM_DEBUG
+
+/* Tessellation, "finding intersecting triangles" */
+/* http://research.microsoft.com/pubs/70307/tr-2006-81.pdf */
+/* http://www.opengl.org/wiki/Alpha_Blending */
 
 /***********
  * Helpers *
@@ -198,7 +199,7 @@ static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
 
 static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
 {
-	GisPoint *point = gis_object_center(GIS_OBJECT(marker));
+	GisPoint *point = gis_object_center(marker);
 	gdouble px, py, pz;
 	gis_viewer_project(GIS_VIEWER(opengl),
 			point->lat, point->lon, point->elev,

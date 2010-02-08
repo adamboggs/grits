@@ -33,7 +33,6 @@ typedef struct _GisWms {
 	gint   height;
 } GisWms;
 
-
 GisWms *gis_wms_new(
 	const gchar *uri_prefix, const gchar *uri_layer,
 	const gchar *uri_format, const gchar *prefix,

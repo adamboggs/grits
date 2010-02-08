@@ -21,7 +21,7 @@
 
 #include "gis-data.h"
 
-/*
+/**
  * Open a file, creating parent directories if needed
  */
 FILE *fopen_p(const gchar *path, const gchar *mode)

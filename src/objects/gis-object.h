@@ -56,9 +56,7 @@ struct _GisObjectClass {
 
 GType gis_object_get_type(void);
 
-static inline GisPoint *gis_object_center(GisObject *object)
-{
-	return &GIS_OBJECT(object)->center;
-}
+#define gis_object_center(object) \
+	(&GIS_OBJECT(object)->center)
 
 #endif

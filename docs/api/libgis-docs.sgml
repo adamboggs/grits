@@ -17,6 +17,7 @@
 	<chapter>
 		<title>Data Access</title>
 		<xi:include href="xml/gis-data.xml"/>
+		<xi:include href="xml/gis-http.xml"/>
 		<xi:include href="xml/gis-wms.xml"/>
 	</chapter>
 
