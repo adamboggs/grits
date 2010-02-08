@@ -284,10 +284,6 @@ void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble sideways, gdoubl
 	gdouble angle1 = deg2rad(viewer->rotation[2]);
 	gdouble angle2 = atan2(sideways, forward);
 	gdouble angle  = angle1 + angle2;
-	g_message("pan: dist=%f, angle=%f+%f=%f move=%f,%f",
-			dist, angle1, angle2, angle,
-			dist*cos(angle),
-			dist*sin(angle));
 	/* This isn't accurate, but it's usable */
 	viewer->location[0] += dist*cos(angle);
 	viewer->location[1] += dist*sin(angle);
