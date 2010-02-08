@@ -15,6 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-http
+ * @short_description: Hyper Text Transfer Protocol
+ *
+ * #GisHttp is a small wrapper around libsoup to provide data access using the
+ * Hyper Text Transfer Protocol. Each #GisHttp should be associated with a
+ * particular server or dataset, all the files downloaded for this dataset will
+ * be cached together in $HOME.cache/libgis/
+ */
+
 #include <config.h>
 #include <glib.h>
 #include <glib/gstdio.h>
@@ -22,6 +32,15 @@
 
 #include "gis-http.h"
 
+/**
+ * gis_http_new:
+ * @prefix: The prefix in the cache to store the downloaded files.
+ *          For example: * "/nexrad/level2/".
+ *
+ * Create a new #GisHttp for the given prefix
+ *
+ * Returns: the new #GisHttp
+ */
 GisHttp *gis_http_new(const gchar *prefix)
 {
 	g_debug("GisHttp: new - %s", prefix);
@@ -32,6 +51,12 @@ GisHttp *gis_http_new(const gchar *prefix)
 	return http;
 }
 
+/**
+ * gis_http_free:
+ * @http: the #GisHttp to free
+ *
+ * Frees resources used by @http and cancels any pending requests.
+ */
 void gis_http_free(GisHttp *http)
 {
 	g_debug("GisHttp: free - %s", http->prefix);
@@ -74,6 +99,20 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 	}
 }
 
+/**
+ * gis_http_fetch:
+ * @http:      the #GisHttp connection to use
+ * @uri:       the URI to fetch
+ * @local:     the local name to give to the file
+ * @mode:      the update type to use when fetching data
+ * @callback:  callback to call when a chunk of data is received
+ * @user_data: user data to pass to the callback
+ *
+ * Fetch a file from the cache. Whether the file is actually loaded from the
+ * remote server depends on the value of @mode.
+ *
+ * Returns: The local path to the complete file
+ */
 /* TODO: use .part extentions and continue even when using GIS_ONCE */
 gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		GisCacheType mode, GisChunkCallback callback, gpointer user_data)

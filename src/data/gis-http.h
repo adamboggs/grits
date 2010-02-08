@@ -28,26 +28,10 @@ typedef struct _GisHttp {
 	gchar *prefix;
 } GisHttp;
 
-/**
- * @param prefix The cache prefix: e.g. /nexrad/level2/
- * @return The HTTP connection handle
- */
 GisHttp *gis_http_new(const gchar *prefix);
 
-/**
- * Free data associated with the GisHttp
- * @param http the GisHttp to free
- */
 void gis_http_free(GisHttp *http);
 
-/**
- * @param http      GisHttp connection to use
- * @param uri       The uri to fetch
- * @param mode      Update type
- * @param callback  Callback to call when a chunck is recieved
- * @param user_data Data to pass to callback
- * @return The local path to the complete file
- */
 gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const gchar *local,
 		GisCacheType mode,
 		GisChunkCallback callback,
