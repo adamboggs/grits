@@ -15,6 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:sat
+ * @short_description: Satellite plugin
+ *
+ * #GisPluginSat provides overlays using satellite imagery. This is mostly
+ * provided by NASA's Blue Marble Next Generation.
+ */
+
 #include <time.h>
 #include <glib/gstdio.h>
 #include <GL/gl.h>
@@ -129,6 +137,14 @@ static void _on_location_changed(GisViewer *viewer,
 /***********
  * Methods *
  ***********/
+/**
+ * gis_plugin_sat_new:
+ * @viewer: the #GisViewer to use for drawing
+ *
+ * Create a new instance of the satellite plugin.
+ *
+ * Returns: the new #GisPluginSat
+ */
 GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 {
 	g_debug("GisPluginSat: new");
