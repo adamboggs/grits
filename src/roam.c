@@ -15,6 +15,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:roam
+ * @short_description: Realtime Optimally-Adapting Meshes
+ *
+ * A spherical version of the Realtime Optimally-Adapting Meshes (ROAM)
+ * algorithm is use for drawing the surface of the planet. ROAM provide a
+ * continuous level-of-detail mesh of the planet which is used by #GisOpenGL
+ * when drawing surface textures for GisTiles.
+ *
+ * This implementation of the ROAM algorithm is based on an octahedron as the
+ * base model.
+ */
+
 #include <glib.h>
 #include <math.h>
 #include <string.h>
@@ -25,7 +38,7 @@
 #include "gis-util.h"
 #include "roam.h"
 
-/**
+/*
  * TODO:
  *   - Optimize for memory consumption
  *   - Profile for computation speed
@@ -50,6 +63,16 @@ static gint dia_cmp(RoamDiamond *a, RoamDiamond *b, gpointer data)
 /*************
  * RoamPoint *
  *************/
+/**
+ * roam_point_new:
+ * @lat:  the latitude for the point
+ * @lon:  the longitude for the point
+ * @elev: the elevation for the point
+ *
+ * Create a new point at the given locaiton
+ *
+ * Returns: the new point
+ */
 RoamPoint *roam_point_new(gdouble lat, gdouble lon, gdouble elev)
 {
 	RoamPoint *point = g_new0(RoamPoint, 1);
@@ -67,6 +90,14 @@ static RoamPoint *roam_point_dup(RoamPoint *point)
 	new->tris = 0;
 	return new;
 }
+
+/**
+ * roam_point_add_triangle:
+ * @point:    the point
+ * @triangle: the to add
+ *
+ * Associating a triangle with a point and update it's vertex normal.
+ */
 void roam_point_add_triangle(RoamPoint *point, RoamTriangle *triangle)
 {
 	for (int i = 0; i < 3; i++) {
@@ -77,6 +108,14 @@ void roam_point_add_triangle(RoamPoint *point, RoamTriangle *triangle)
 	for (int i = 0; i < 3; i++)
 		point->norm[i] /= point->tris;
 }
+
+/**
+ * roam_point_remove_triangle:
+ * @point:    the point
+ * @triangle: the to add
+ *
+ * Un-associating a triangle with a point and update it's vertex normal.
+ */
 void roam_point_remove_triangle(RoamPoint *point, RoamTriangle *triangle)
 {
 	for (int i = 0; i < 3; i++) {
@@ -88,6 +127,13 @@ void roam_point_remove_triangle(RoamPoint *point, RoamTriangle *triangle)
 		for (int i = 0; i < 3; i++)
 			point->norm[i] /= point->tris;
 }
+
+/**
+ * roam_point_update_height:
+ * @point: the point
+ *
+ * Update the height (elevation) of a point based on the current height function
+ */
 void roam_point_update_height(RoamPoint *point)
 {
 	if (point->height_func) {
@@ -98,6 +144,13 @@ void roam_point_update_height(RoamPoint *point)
 	}
 }
 
+/**
+ * roam_point_update_projection:
+ * @point: the point
+ * @view:  the view to use when projecting the point
+ *
+ * Updated the screen-space projection of a point.
+ */
 void roam_point_update_projection(RoamPoint *point, RoamView *view)
 {
 	static int count   = 0;
@@ -121,6 +174,16 @@ void roam_point_update_projection(RoamPoint *point, RoamView *view)
 /****************
  * RoamTriangle *
  ****************/
+/**
+ * roam_triangle_new:
+ * @l: the left point
+ * @m: the middle point
+ * @r: the right point
+ *
+ * Create a new triangle consisting of three points. 
+ *
+ * Returns: the new triangle
+ */
 RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 {
 	RoamTriangle *triangle = g_new0(RoamTriangle, 1);
@@ -198,12 +261,28 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 	return triangle;
 }
 
+/**
+ * roam_triangle_free:
+ * @triangle: the triangle
+ *
+ * Free data associated with a triangle
+ */
 void roam_triangle_free(RoamTriangle *triangle)
 {
 	g_free(triangle->split);
 	g_free(triangle);
 }
 
+/**
+ * roam_triangle_add:
+ * @triangle: the triangle
+ * @left:     the left neighbor
+ * @base:     the base neighbor
+ * @right:    the right neighbor
+ * @sphere:   the sphere to add the triangle to
+ *
+ * Add a triangle into the sphere's mesh using the given neighbors.
+ */
 void roam_triangle_add(RoamTriangle *triangle,
 		RoamTriangle *left, RoamTriangle *base, RoamTriangle *right,
 		RoamSphere *sphere)
@@ -222,6 +301,13 @@ void roam_triangle_add(RoamTriangle *triangle,
 	triangle->handle = g_pqueue_push(sphere->triangles, triangle);
 }
 
+/**
+ * roam_triangle_remove:
+ * @triangle: the triangle
+ * @sphere:   the sphere to remove the triangle from
+ *
+ * Remove a triangle from a sphere's mesh.
+ */
 void roam_triangle_remove(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Update vertex normals */
@@ -255,6 +341,14 @@ static gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere
 	       roam_point_visible(triangle->p.r, sphere);
 }
 
+/**
+ * roam_triangle_update_errors:
+ * @triangle: the triangle
+ * @sphere:   the sphere to use when updating errors
+ *
+ * Update the error value associated with a triangle. Called when the view
+ * changes.
+ */
 void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Update points */
@@ -290,6 +384,13 @@ void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 	}
 }
 
+/**
+ * roam_triangle_split:
+ * @triangle: the triangle
+ * @sphere:   the sphere
+ *
+ * Split a triangle into two child triangles and update the sphere.
+ */
 void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	//g_message("roam_triangle_split: %p, e=%f\n", triangle, triangle->error);
@@ -333,6 +434,12 @@ void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 	roam_diamond_remove(base->parent, sphere);
 }
 
+/**
+ * roam_triangle_draw:
+ * @triangle: the triangle
+ *
+ * Draw the triangle. Use for debugging.
+ */
 void roam_triangle_draw(RoamTriangle *triangle)
 {
 	glBegin(GL_TRIANGLES);
@@ -343,6 +450,12 @@ void roam_triangle_draw(RoamTriangle *triangle)
 	return;
 }
 
+/**
+ * roam_triangle_draw_normal:
+ * @triangle: the triangle
+ *
+ * Draw a normal vector for the triangle. Used while debugging.
+ */
 void roam_triangle_draw_normal(RoamTriangle *triangle)
 {
 	double center[] = {
@@ -364,6 +477,19 @@ void roam_triangle_draw_normal(RoamTriangle *triangle)
 /***************
  * RoamDiamond *
  ***************/
+/**
+ * roam_diamond_new:
+ * @parent0: a parent triangle
+ * @parent1: a parent triangle
+ * @kid0:    a child triangle
+ * @kid1:    a child triangle
+ * @kid2:    a child triangle
+ * @kid3:    a child triangle
+ *
+ * Create a diamond to store information about two split triangles.
+ *
+ * Returns: the new diamond
+ */
 RoamDiamond *roam_diamond_new(
 		RoamTriangle *parent0, RoamTriangle *parent1,
 		RoamTriangle *kid0, RoamTriangle *kid1,
@@ -386,12 +512,29 @@ RoamDiamond *roam_diamond_new(
 
 	return diamond;
 }
+
+/**
+ * roam_diamond_add:
+ * @diamond: the diamond
+ * @sphere:  the sphere to add the diamond to
+ *
+ * Add a diamond into the sphere's pool of diamonds. It will be check for
+ * possible merges.
+ */
 void roam_diamond_add(RoamDiamond *diamond, RoamSphere *sphere)
 {
 	diamond->active = TRUE;
 	diamond->error  = MAX(diamond->parents[0]->error, diamond->parents[1]->error);
 	diamond->handle = g_pqueue_push(sphere->diamonds, diamond);
 }
+
+/**
+ * roam_diamond_remove:
+ * @diamond: the diamond
+ * @sphere:  the sphere to remove the diamond from
+ *
+ * Remove a diamond from the sphere's pool of diamonds.
+ */
 void roam_diamond_remove(RoamDiamond *diamond, RoamSphere *sphere)
 {
 	if (diamond && diamond->active) {
@@ -399,6 +542,16 @@ void roam_diamond_remove(RoamDiamond *diamond, RoamSphere *sphere)
 		g_pqueue_remove(sphere->diamonds, diamond->handle);
 	}
 }
+
+/**
+ * roam_diamond_merge:
+ * @diamond: the diamond
+ * @sphere:  the sphere
+ *
+ * "Merge" a diamond back into two parent triangles. The original two triangles
+ * are added back into the sphere and the four child triangles as well as the
+ * diamond are removed.
+ */
 void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 {
 	//g_message("roam_diamond_merge: %p, e=%f\n", diamond, diamond->error);
@@ -455,6 +608,15 @@ void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 	roam_triangle_free(diamond->kids[3]);
 	g_free(diamond);
 }
+
+/**
+ * roam_diamond_update_errors:
+ * @diamond: the diamond
+ * @sphere:  the sphere to use when updating errors
+ *
+ * Update the error value associated with a diamond. Called when the view
+ * changes.
+ */
 void roam_diamond_update_errors(RoamDiamond *diamond, RoamSphere *sphere)
 {
 	roam_triangle_update_errors(diamond->parents[0], sphere);
@@ -465,6 +627,13 @@ void roam_diamond_update_errors(RoamDiamond *diamond, RoamSphere *sphere)
 /**************
  * RoamSphere *
  **************/
+/**
+ * roam_sphere_new:
+ *
+ * Create a new sphere
+ *
+ * Returns: the sphere
+ */
 RoamSphere *roam_sphere_new()
 {
 	RoamSphere *sphere = g_new0(RoamSphere, 1);
@@ -514,6 +683,13 @@ RoamSphere *roam_sphere_new()
 
 	return sphere;
 }
+
+/**
+ * roam_sphere_update_view
+ * @sphere: the sphere
+ *
+ * Recreate the sphere's view matrices based on the current OpenGL state.
+ */
 void roam_sphere_update_view(RoamSphere *sphere)
 {
 	if (!sphere->view)
@@ -523,6 +699,13 @@ void roam_sphere_update_view(RoamSphere *sphere)
 	glGetIntegerv(GL_VIEWPORT,          sphere->view->view);
 	sphere->view->version++;
 }
+
+/**
+ * roam_sphere_update_errors
+ * @sphere: the sphere
+ *
+ * Update triangle and diamond errors in the sphere.
+ */
 void roam_sphere_update_errors(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: update_errors - polys=%d", sphere->polys);
@@ -547,18 +730,40 @@ void roam_sphere_update_errors(RoamSphere *sphere)
 	g_ptr_array_free(dias, TRUE);
 }
 
+/**
+ * roam_sphere_split_one
+ * @sphere: the sphere
+ *
+ * Split the triangle with the greatest error.
+ */
 void roam_sphere_split_one(RoamSphere *sphere)
 {
 	RoamTriangle *to_split = g_pqueue_peek(sphere->triangles);
 	if (!to_split) return;
 	roam_triangle_split(to_split, sphere);
 }
+
+/**
+ * roam_sphere_merge_one
+ * @sphere: the sphere
+ *
+ * Merge the diamond with the lowest error.
+ */
 void roam_sphere_merge_one(RoamSphere *sphere)
 {
 	RoamDiamond *to_merge = g_pqueue_peek(sphere->diamonds);
 	if (!to_merge) return;
 	roam_diamond_merge(to_merge, sphere);
 }
+
+/**
+ * roam_sphere_split_merge
+ * @sphere: the sphere
+ *
+ * Perform a predetermined number split-merge iterations.
+ *
+ * Returns: the number splits and merges done
+ */
 gint roam_sphere_split_merge(RoamSphere *sphere)
 {
 	gint iters = 0, max_iters = 500;
@@ -594,16 +799,31 @@ gint roam_sphere_split_merge(RoamSphere *sphere)
 
 	return iters;
 }
+
+/**
+ * roam_sphere_draw:
+ * @sphere: the sphere
+ *
+ * Draw the sphere. Use for debugging.
+ */
 void roam_sphere_draw(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: draw");
 	g_pqueue_foreach(sphere->triangles, (GFunc)roam_triangle_draw, NULL);
 }
+
+/**
+ * roam_sphere_draw_normals
+ * @sphere: the sphere
+ *
+ * Draw all the surface normal vectors for the sphere. Used while debugging.
+ */
 void roam_sphere_draw_normals(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: draw_normal");
 	g_pqueue_foreach(sphere->triangles, (GFunc)roam_triangle_draw_normal, NULL);
 }
+
 static GList *_roam_sphere_get_leaves(RoamTriangle *triangle, GList *list, gboolean all)
 {
 	if (triangle->kids[0] && triangle->kids[1]) {
@@ -615,6 +835,7 @@ static GList *_roam_sphere_get_leaves(RoamTriangle *triangle, GList *list, gbool
 		return g_list_prepend(list, triangle);
 	}
 }
+
 static GList *_roam_sphere_get_intersect_rec(RoamTriangle *triangle, GList *list,
 		gboolean all, gdouble n, gdouble s, gdouble e, gdouble w)
 {
@@ -652,6 +873,20 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *triangle, GList *list
 		return g_list_prepend(list, triangle);
 	}
 }
+
+/**
+ * roam_sphere_get_intersect
+ * @sphere: the sphere
+ * @all: TRUE if non-leaf triangle should be returned as well
+ * @n: the northern edge 
+ * @s: the southern edge 
+ * @e: the eastern edge 
+ * @w: the western edge 
+ *
+ * Lookup triangles withing the sphere that intersect a given lat-lon box.
+ *
+ * Returns: the list of intersecting triangles.
+ */
 /* Warning: This grabs pointers to triangles which can be changed by other
  * calls, e.g. split_merge. If you use this, you need to do some locking to
  * prevent the returned list from becomming stale. */
@@ -676,6 +911,13 @@ static void roam_sphere_free_tri(RoamTriangle *triangle)
 	if (--triangle->p.r->tris == 0) g_free(triangle->p.r);
 	roam_triangle_free(triangle);
 }
+
+/**
+ * roam_sphere_free
+ * @sphere: the sphere
+ *
+ * Free data associated with a sphere
+ */
 void roam_sphere_free(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: free");
