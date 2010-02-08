@@ -15,6 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-callback
+ * @short_description: Custom callback objects
+ *
+ * #GisCallback objects are used for custom drawing functions. A common example
+ * of this would be to render something which does not easily fit into a normal
+ * object. For instance, a Heads-Up-Display overlay.
+ */
+
 #include <config.h>
 #include "gis-callback.h"
 
@@ -28,6 +37,15 @@ static void gis_callback_class_init(GisCallbackClass *klass)
 {
 }
 
+/**
+ * gis_callback_new:
+ * @callback:  the function to call to draw the object
+ * @user_data: user data to pass to the drawing function
+ *
+ * Create a #GisCallback object with an associated function and user data.
+ *
+ * Returns: the new #GisCallback
+ */
 GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
 {
 	GisCallback *cb = g_object_new(GIS_TYPE_CALLBACK, NULL);

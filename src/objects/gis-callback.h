@@ -33,6 +33,13 @@
 typedef struct _GisCallback      GisCallback;
 typedef struct _GisCallbackClass GisCallbackClass;
 
+/**
+ * GisCallbackFunc:
+ * @callback:  the callback object to be drawn
+ * @user_data: the user data associated with the callback 
+ *
+ * A function to be called when the callback object is being rendered
+ */
 typedef void (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
 
 struct _GisCallback {
