@@ -211,13 +211,23 @@ void gis_viewer_get_location(GisViewer *self, gdouble *lat, gdouble *lon, gdoubl
 	*elev = self->location[2];
 }
 
-void gis_viewer_pan(GisViewer *self, gdouble lat, gdouble lon, gdouble elev)
+void gis_viewer_pan(GisViewer *self, gdouble forward, gdouble sideways, gdouble up)
 {
 	g_assert(GIS_IS_VIEWER(self));
-	g_debug("GisViewer: pan - lat=%8.3f, lon=%8.3f, elev=%8.3f", lat, lon, elev);
-	self->location[0] += lat;
-	self->location[1] += lon;
-	self->location[2] += elev;
+	g_debug("GisViewer: pan - forward=%8.3f, sideways=%8.3f, up=%8.3f",
+			forward, sideways, up);
+	gdouble dist   = sqrt(forward*forward + sideways*sideways);
+	gdouble angle1 = deg2rad(self->rotation[2]);
+	gdouble angle2 = atan2(sideways, forward);
+	gdouble angle  = angle1 + angle2;
+	g_message("pan: dist=%f, angle=%f+%f=%f move=%f,%f",
+			dist, angle1, angle2, angle,
+			dist*cos(angle),
+			dist*sin(angle));
+	/* This isn't accurate, but it's usable */
+	self->location[0] += dist*cos(angle);
+	self->location[1] += dist*sin(angle);
+	self->location[2] += up;
 	_gis_viewer_fix_location(self);
 	_gis_viewer_emit_location_changed(self);
 }
