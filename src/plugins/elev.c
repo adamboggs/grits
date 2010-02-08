@@ -306,7 +306,7 @@ static void gis_plugin_elev_init(GisPluginElev *self)
 	self->mutex = g_mutex_new();
 	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	self->wms   = gis_wms_new(
-		"http://www.nasa.network.com/srtm", "srtm30", "application/bil",
+		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
 		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_elev_dispose(GObject *gobject)
