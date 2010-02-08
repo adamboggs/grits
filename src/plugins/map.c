@@ -15,6 +15,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:map
+ * @short_description: Map plugin
+ *
+ * #GisPluginMap provides map overlays. Much of this data is obtained from the
+ * OpenStreetMap project.
+ */
+
 #include <time.h>
 #include <stdlib.h>
 #include <glib/gstdio.h>
@@ -151,6 +159,14 @@ static void _on_location_changed(GisViewer *viewer,
 /***********
  * Methods *
  ***********/
+/**
+ * gis_plugin_map_new:
+ * @viewer: the #GisViewer to use for drawing
+ *
+ * Create a new instance of the map plugin.
+ *
+ * Returns: the new #GisPluginMap
+ */
 GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 {
 	g_debug("GisPluginMap: new");
