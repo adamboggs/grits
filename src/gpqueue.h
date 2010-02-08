@@ -1,7 +1,3 @@
-#if defined(G_DISABLE_SINGLE_INCLUDES) && !defined (__GLIB_H_INSIDE__) && !defined (GLIB_COMPILATION)
-#error "Only <glib.h> can be included directly."
-#endif
-
 #ifndef __G_PQUEUE_H__
 #define __G_PQUEUE_H__
 

@@ -2,9 +2,8 @@
 #include "gpqueue.h"
 
 /**
- * SECTION:priority_queues
- * @short_description: a collection of data entries with associated priority
- * values that returns entries one by one in order of priority
+ * SECTION:gpqueue
+ * @short_description: Priority queue implemention
  *
  * <para>
  * The #GPQueue structure and its associated functions provide a sorted
