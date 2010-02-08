@@ -15,6 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-tile
+ * @short_description: Latitude/longitude overlays
+ *
+ * Each #GisTile corresponds to a latitude/longitude box on the surface of the
+ * earth. When drawn, the #GisTile renders an images associated with it to the
+ * surface of the earth. This is primarily used to draw ground overlays.
+ *
+ * Each GisTile can be split into subtiles in order to draw higher resolution
+ * overlays. Pointers to subtitles are stored in the parent tile and a parent
+ * pointer is stored in each child.
+ *
+ * Each #GisTile has a data filed which must be set by the user in order for
+ * the tile to be drawn. When used with GisOpenGL the data must be an integer
+ * representing the OpenGL texture to use when drawing the tile.
+ */
+
 #include <config.h>
 #include "gis-util.h"
 #include "gis-tile.h"
@@ -24,6 +41,18 @@ gchar *gis_tile_path_table[2][2] = {
 	{"10.", "11."},
 };
 
+/**
+ * gis_tile_new:
+ * @parent: the parent for the tile, or NULL
+ * @n:      the northern border of the tile
+ * @s:      the southern border of the tile
+ * @e:      the eastern border of the tile
+ * @w:      the western border of the tile
+ *
+ * Create a tile associated with a particular latitude/longitude box.
+ *
+ * Returns: the new #GisTile
+ */
 GisTile *gis_tile_new(GisTile *parent,
 	gdouble n, gdouble s, gdouble e, gdouble w)
 {
@@ -37,6 +66,17 @@ GisTile *gis_tile_new(GisTile *parent,
 	return tile;
 }
 
+/**
+ * gis_tile_get_path:
+ * @child: the tile to generate a path for
+ *
+ * Generate a string representation of a tiles location in a group of nested
+ * tiles. The string returned consists of groups of two digits separated by a
+ * delimiter. Each group of digits the tiles location with respect to it's
+ * parent tile.
+ *
+ * Returns: the path representing the tiles's location
+ */
 gchar *gis_tile_get_path(GisTile *child)
 {
 	/* This could be easily cached if necessary */
@@ -96,6 +136,24 @@ static gboolean _gis_tile_needs_split(GisTile *tile,
 	return view_res < tile_res;
 }
 
+/**
+ * gis_tile_update:
+ * @root:      the root tile to split
+ * @res:       a maximum resolution in meters per pixel to split tiles to
+ * @width:     width in pixels of the image associated with the tile
+ * @height:    height in pixels of the image associated with the tile
+ * @lat:       latitude of the eye point
+ * @lon:       longitude of the eye point
+ * @elev:      elevation of the eye point
+ * @load_func: function used to load the image when a new tile is created
+ * @user_data: user data to past to the load function
+ *
+ * Recursively split a tile into children of appropriate detail. The resolution
+ * of the tile in pixels per meter is compared to the resolution which the tile
+ * is being drawn at on the screen. If the screen resolution is insufficient
+ * the tile is recursively subdivided until a sufficient resolution is
+ * achieved.
+ */
 void gis_tile_update(GisTile *root,
 		gdouble res, gint width, gint height,
 		gdouble lat, gdouble lon, gdouble elev,
@@ -126,6 +184,17 @@ void gis_tile_update(GisTile *root,
 	}
 }
 
+/**
+ * gis_tile_find:
+ * @root: the root tile to search from
+ * @lat:  target latitude
+ * @lon:  target longitude
+ *
+ * Locate the subtile with the highest resolution which contains the given
+ * lat/lon point.
+ * 
+ * Returns: the child tile
+ */
 GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
 {
 	gint    rows = G_N_ELEMENTS(root->children);
@@ -155,6 +224,18 @@ GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
 		return root;
 }
 
+/**
+ * gis_tile_gc:
+ * @root:      the root tile to start garbage collection at
+ * @atime:     most recent time at which tiles will be kept
+ * @free_func: function used to free the image when a new tile is collected
+ * @user_data: user data to past to the free function
+ *
+ * Garbage collect old tiles. This removes and deallocate tiles that have not
+ * been used since before @atime.
+ *
+ * Returns: a pointer to the original tile, or NULL if it was garbage collected
+ */
 GisTile *gis_tile_gc(GisTile *root, time_t atime,
 		GisTileFreeFunc free_func, gpointer user_data)
 {
@@ -180,6 +261,14 @@ GisTile *gis_tile_gc(GisTile *root, time_t atime,
 }
 
 /* Use GObject for this */
+/**
+ * gis_tile_free:
+ * @root:      the root tile to free
+ * @free_func: function used to free the image when a new tile is collected
+ * @user_data: user data to past to the free function
+ *
+ * Recursively free a tile and all it's children.
+ */
 void gis_tile_free(GisTile *root, GisTileFreeFunc free_func, gpointer user_data)
 {
 	if (!root)

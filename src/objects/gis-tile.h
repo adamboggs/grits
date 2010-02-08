@@ -55,15 +55,46 @@ struct _GisTileClass {
 	GisObjectClass parent_class;
 };
 
+/**
+ * GisTileLoadFunc:
+ * @tile:      the tile to load
+ * @user_data: data paseed to the function
+ *
+ * Used to load the image data associated with a tile. For GisOpenGL, this
+ * function should store the OpenGL texture number in the tiles data field.
+ */
 typedef void (*GisTileLoadFunc)(GisTile *tile, gpointer user_data);
+
+/**
+ * GisTileFreeFunc:
+ * @tile:      the tile to free
+ * @user_data: data paseed to the function
+ *
+ * Used to free the image data associated with a tile
+ */
 typedef void (*GisTileFreeFunc)(GisTile *tile, gpointer user_data);
 
 /* Forech functions */
+/**
+ * gis_tile_foreach:
+ * @parent: the #GisTile to iterate over
+ * @child:  a pointer to a #GisTile to store the current subtile 
+ *
+ * Iterate over each imediate subtile of @parent. 
+ */
 #define gis_tile_foreach(parent, child) \
 	for (int _x = 0; _x < G_N_ELEMENTS(parent->children); _x++) \
 	for (int _y = 0; child = parent->children[_x][_y], \
 		_y < G_N_ELEMENTS(parent->children[_x]); _y++)
 
+/**
+ * gis_tile_foreach_index:
+ * @parent: the #GisTile to iterate over
+ * @x:      integer to store the x index of the current subtile
+ * @y:      integer to store the y index of the current subtile
+ *
+ * Iterate over each imediate subtile of @parent. 
+ */
 #define gis_tile_foreach_index(parent, x, y) \
 	for (x = 0; x < G_N_ELEMENTS(parent->children); x++) \
 	for (y = 0; y < G_N_ELEMENTS(parent->children[x]); y++)
