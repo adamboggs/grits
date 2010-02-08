@@ -15,6 +15,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:gis-prefs
+ * @short_description: Persistent preference handing
+ *
+ * #GisPrefs is used to store and access preferences in libgis. It is mostly a
+ * wrapper around a #GKeyFile. Preferences can be stored for the application
+ * using libgis, but may also be stored by libgis itself. An example of this are
+ * whether libgis is in online or offline mode. Many #GisPlugin<!-- -->s also
+ * store preferences.
+ *
+ * There are two variants of preference functions. The normal variant takes
+ * group and a key separated by a "/" as they key to the preference. The "_v"
+ * variant takes the group and the key as separate parameters.
+ */
+
 #include <config.h>
 
 #include <glib.h>
@@ -30,6 +45,16 @@ static guint signals[NUM_SIGNALS];
 /***********
  * Methods *
  ***********/
+/**
+ * gis_prefs_new:
+ * @config:   the path to the config file
+ * @defaults: the path to the default config file
+ *
+ * Create a new preference object for the given @config. If the config does not
+ * exist the @defaults file is loaded.
+ *
+ * Returns: the new #GisPrefs
+ */
 GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 {
 	g_debug("GisPrefs: new - %s, %s", config, defaults);
@@ -139,6 +164,17 @@ static void gis_prefs_class_init(GisPrefsClass *klass)
 	g_debug("GisPrefs: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
 	gobject_class->dispose = gis_prefs_dispose;
+
+	/**
+	 * GisPrefs::pref-changed:
+	 * @prefs: the preference store.
+	 * @key:   the key to the preference.
+	 * @type:  the type of the preference that changed.
+	 * @value: a pointer to the value of the preference.
+	 *
+	 * The ::pref-changed signal is emitted each time a preference is
+	 * changed.
+	 */
 	signals[SIG_PREF_CHANGED] = g_signal_new(
 			"pref-changed",
 			G_TYPE_FROM_CLASS(gobject_class),
