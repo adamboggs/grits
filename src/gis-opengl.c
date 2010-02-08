@@ -15,9 +15,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/* Tessellation, "finding intersecting triangles" */
-/* http://research.microsoft.com/pubs/70307/tr-2006-81.pdf */
-/* http://www.opengl.org/wiki/Alpha_Blending */
+/**
+ * SECTION:gis-opengl
+ * @short_description: OpenGL based virtual globe
+ *
+ * #GisOpenGL is the core rendering engine used by libgis. Theoretically other
+ * renderers could be writte, but they have not been. GisOpenGL uses the ROAM
+ * algorithm for updating surface mesh the planet. The only thing GisOpenGL can
+ * actually render on it's own is a wireframe of a sphere.
+ *
+ * GisOpenGL relies on #GtkGlExt and requires (at least) OpenGL 2.0.
+ */
 
 #include <config.h>
 #include <math.h>
@@ -466,6 +474,15 @@ static gboolean on_idle(GisOpenGL *opengl)
 /*********************
  * GisViewer methods *
  *********************/
+/**
+ * gis_opengl_new:
+ * @plugins: the plugins store to use
+ * @prefs:   the preferences object to use
+ *
+ * Create a new OpenGL renderer.
+ *
+ * Returns: the new #GisOpenGL
+ */
 GisViewer *gis_opengl_new(GisPlugins *plugins, GisPrefs *prefs)
 {
 	g_debug("GisOpenGL: new");
