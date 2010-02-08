@@ -56,6 +56,14 @@ struct _GisObjectClass {
 
 GType gis_object_get_type(void);
 
+/**
+ * gis_object_center:
+ * @object: The #GisObject to get the center of
+ * 
+ * Get the #GisPoint representing the center of an object
+ *
+ * Returns: the center point
+ */
 #define gis_object_center(object) \
 	(&GIS_OBJECT(object)->center)
 
