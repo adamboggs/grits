@@ -22,9 +22,37 @@
 #include <glib-object.h>
 
 /* Rendering levels */
+/**
+ * GIS_LEVEL_BACKGROUND: 
+ *
+ * The level used to draw background objects (stars, atmosphere, etc).
+ */
 #define GIS_LEVEL_BACKGROUND -100
+
+/**
+ * GIS_LEVEL_WORLD: 
+ *
+ * The level used to draw world objects. This is for both surface data as well
+ * as things in the air or underground. Most objects should use
+ * %GIS_LEVEL_WORLD;
+ */
 #define GIS_LEVEL_WORLD         0
+
+/**
+ * GIS_LEVEL_OVERLAY: 
+ *
+ * The level used to draw screen overlays. These will be drawn in front of most
+ * of ther objects. Text and markers should use %GIS_LEVEL_OVERLAY.
+ */
 #define GIS_LEVEL_OVERLAY     100
+
+/**
+ * GIS_LEVEL_HUD: 
+ *
+ * The level used to draw the Heads Up Display. This is for things that are not
+ * anchored at all the the world. They should be drawn in front of everything
+ * else.
+ */
 #define GIS_LEVEL_HUD         200
 
 /* Type macros */
@@ -38,6 +66,16 @@
 typedef struct _GisViewer      GisViewer;
 typedef struct _GisViewerClass GisViewerClass;
 
+/**
+ * GisHeightFunc:
+ * @lat:       the target latitude
+ * @lon:       the target longitude
+ * @user_data: user data passed to the function
+ *
+ * Determine the surface elevation (ground level) at a given point.
+ *
+ * Returns: the elevation in meters above sea level
+ */
 typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
 #include "gis-plugin.h"
