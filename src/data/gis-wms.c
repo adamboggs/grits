@@ -16,46 +16,57 @@
  */
 
 /**
- * Metacarte
- * ---------
- * http://labs.metacarta.com/wms/vmap0?
- * LAYERS=basic&
- * SERVICE=WMS&
- * VERSION=1.1.1&
- * REQUEST=GetMap&
- * STYLES=&
- * EXCEPTIONS=application/vnd.ogc.se_inimage&
- * FORMAT=image/jpeg&
- * SRS=EPSG:4326&
- * BBOX=0,-90,180,90&
- * WIDTH=256&
- * HEIGHT=256
+ * SECTION:gis-wms
+ * @short_description: Web Map Service
+ *
+ * Provides an API for accessing image tiles form a Web Map Service (WMS)
+ * server. #GisWms integrates closely with #GisTile. The remote server must
+ * support the EPSG:4326 cartographic projection.
  */
 
-/**
- * http://www.nasa.network.com/elev?
- * SERVICE=WMS&
- * VERSION=1.1.0&
- * REQUEST=GetMap&
- * LAYERS=bmng200406&
- * STYLES=&
- * SRS=EPSG:4326&
- * BBOX=-180,-90,180,90&
- * FORMAT=image/jpeg&
- * WIDTH=600&
- * HEIGHT=300
+/*
+ * Example WMS URLS
+ * ----------------
  *
- * http://www.nasa.network.com/elev?
- * SERVICE=WMS&
- * VERSION=1.1.0&
- * REQUEST=GetMap&
- * LAYERS=srtm30&
- * STYLES=&
- * SRS=EPSG:4326&
- * BBOX=-180,-90,180,90&
- * FORMAT=application/bil32&
- * WIDTH=600&
- * HEIGHT=300
+ * Metacarte Open Street Map:
+ *   http://labs.metacarta.com/wms/vmap0?
+ *   LAYERS=basic&
+ *   SERVICE=WMS&
+ *   VERSION=1.1.1&
+ *   REQUEST=GetMap&
+ *   STYLES=&
+ *   EXCEPTIONS=application/vnd.ogc.se_inimage&
+ *   FORMAT=image/jpeg&
+ *   SRS=EPSG:4326&
+ *   BBOX=0,-90,180,90&
+ *   WIDTH=256&
+ *   HEIGHT=256
+ *
+ * NASA Blue Marble Next Generation:
+ *   http://www.nasa.network.com/elev?
+ *   SERVICE=WMS&
+ *   VERSION=1.1.0&
+ *   REQUEST=GetMap&
+ *   LAYERS=bmng200406&
+ *   STYLES=&
+ *   SRS=EPSG:4326&
+ *   BBOX=-180,-90,180,90&
+ *   FORMAT=image/jpeg&
+ *   WIDTH=600&
+ *   HEIGHT=300
+ *
+ * NASA Shuttle Radar Topography Mission:
+ *   http://www.nasa.network.com/elev?
+ *   SERVICE=WMS&
+ *   VERSION=1.1.0&
+ *   REQUEST=GetMap&
+ *   LAYERS=srtm30&
+ *   STYLES=&
+ *   SRS=EPSG:4326&
+ *   BBOX=-180,-90,180,90&
+ *   FORMAT=application/bil32&
+ *   WIDTH=600&
+ *   HEIGHT=300
  */
 
 #include <config.h>
@@ -90,6 +101,18 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 		tile->edge.n);
 }
 
+/**
+ * gis_wms_fetch:
+ * @wms:       the #GisWms to fetch the data from 
+ * @tile:      a #GisTile representing the area to be fetched 
+ * @mode:      the update type to use when fetching data
+ * @callback:  callback to call when a chunk of data is received
+ * @user_data: user data to pass to the callback
+ *
+ * Fetch a image coresponding to a #GisTile from a WMS server. 
+ *
+ * Returns: the path to the local file.
+ */
 gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
 		GisChunkCallback callback, gpointer user_data)
 {
@@ -105,6 +128,22 @@ gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
 	return path;
 }
 
+/**
+ * gis_wms_new:
+ * @uri_prefix: the base URL for the WMS server
+ * @uri_layer:  the layer the images should be fetched from (wms LAYERS)
+ * @uri_format: the format the images should be fetch in (wms FORMAT)
+ * @prefix:     prefix to use for local files
+ * @extension:  file extension for local files, should correspond to @uri_format
+ * @width:      width in pixels for downloaded images (wms WIDTH)
+ * @height:     height in pixels for downloaded images (wms HEIGHT)
+ *
+ * Creates a #GisWms for some layer on a WMS server. The returned #GisWms
+ * stores information about the images so it does not need to be entered each
+ * time a images is fetched.
+ *
+ * Returns: the new #GisWms
+ */
 GisWms *gis_wms_new(
 	const gchar *uri_prefix, const gchar *uri_layer,
 	const gchar *uri_format, const gchar *prefix,
@@ -122,6 +161,12 @@ GisWms *gis_wms_new(
 	return wms;
 }
 
+/**
+ * gis_wms_free:
+ * @wms: the #GisWms to free
+ *
+ * Free resources used by @wms and cancel any pending requests.
+ */
 void gis_wms_free(GisWms *wms)
 {
 	g_debug("GisWms: free - %s", wms->uri_prefix);
