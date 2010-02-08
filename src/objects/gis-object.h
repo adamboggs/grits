@@ -21,45 +21,6 @@
 #include <glib.h>
 #include <glib-object.h>
 
-/* Take that GLib boilerplate! */
-#define GOBJECT_HEAD( \
-		MAM, BAR, \
-		Mam, Bar, \
-		mam, bar) \
-GType mam##_##bar##_get_type(void); \
-typedef struct _##Mam##Bar Mam##Bar; \
-typedef struct _##Mam##Bar##Class Mam##Bar##Class; \
-static inline Mam##Bar *MAM##_##BAR(gpointer obj) { \
-	return G_TYPE_CHECK_INSTANCE_CAST(obj, MAM##_TYPE_##BAR, Mam##Bar); \
-} \
-static inline gboolean MAM##_IS_##BAR(gpointer obj) { \
-	return G_TYPE_CHECK_INSTANCE_TYPE(obj, MAM##_TYPE_##BAR); \
-} \
-static inline Mam##Bar##Class *MAM##_##BAR##_CLASS(gpointer klass) { \
-	return G_TYPE_CHECK_CLASS_CAST(klass, MAM##_TYPE_##BAR, Mam##Bar##Class); \
-} \
-static inline gboolean MAM##_IS_##BAR##_CLASS(gpointer klass) { \
-	return G_TYPE_CHECK_CLASS_TYPE(klass, MAM##_TYPE_##BAR); \
-} \
-static inline Mam##Bar##Class *MAM##_##BAR##_GET_CLASS(gpointer obj) { \
-	return G_TYPE_INSTANCE_GET_CLASS(obj, MAM##_TYPE_##BAR, Mam##Bar##Class); \
-}
-
-#define GOBJECT_BODY( \
-		parent_type, \
-		MAM, BAR, \
-		Mam, Bar, \
-		mam, bar) \
-G_DEFINE_TYPE(Mam##Bar, mam##_##bar, parent_type); \
-static void mam##_##bar##_init(Mam##Bar *mambar) { \
-} \
-static void mam##_##bar##_class_init(Mam##Bar##Class *klass) { \
-} \
-static Mam##Bar *mam##_##bar##_new() { \
-	return g_object_new(MAM##_TYPE_##BAR, NULL); \
-}
-
-
 /* GisPoint */
 typedef struct _GisPoint GisPoint;
 
@@ -73,15 +34,18 @@ void gis_point_free(GisPoint *point);
 
 
 /* GisObject */
-#define GIS_TYPE_OBJECT (gis_object_get_type())
+#define GIS_TYPE_OBJECT            (gis_object_get_type())
+#define GIS_OBJECT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_OBJECT, GisObject))
+#define GIS_IS_OBJECT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_OBJECT))
+#define GIS_OBJECT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_OBJECT, GisObjectClass))
+#define GIS_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_OBJECT))
+#define GIS_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_OBJECT, GisObjectClass))
 
-GOBJECT_HEAD(
-	GIS, OBJECT,
-	Gis, Object,
-	gis, object);
+typedef struct _GisObject      GisObject;
+typedef struct _GisObjectClass GisObjectClass;
 
 struct _GisObject {
-	GObject parent_instance;
+	GObject  parent_instance;
 	GisPoint center;
 	gdouble  lod;
 };
@@ -89,6 +53,8 @@ struct _GisObject {
 struct _GisObjectClass {
 	GObjectClass parent_class;
 };
+
+GType gis_object_get_type(void);
 
 static inline GisPoint *gis_object_center(GisObject *object)
 {

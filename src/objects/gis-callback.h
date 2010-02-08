@@ -23,12 +23,15 @@
 #include "gis-object.h"
 
 /* GisCallback */
-#define GIS_TYPE_CALLBACK (gis_callback_get_type())
+#define GIS_TYPE_CALLBACK            (gis_callback_get_type())
+#define GIS_CALLBACK(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_CALLBACK, GisCallback))
+#define GIS_IS_CALLBACK(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_CALLBACK))
+#define GIS_CALLBACK_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_CALLBACK, GisCallbackClass))
+#define GIS_IS_CALLBACK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_CALLBACK))
+#define GIS_CALLBACK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_CALLBACK, GisCallbackClass))
 
-GOBJECT_HEAD(
-	GIS, CALLBACK,
-	Gis, Callback,
-	gis, callback);
+typedef struct _GisCallback      GisCallback;
+typedef struct _GisCallbackClass GisCallbackClass;
 
 typedef gpointer (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
 
@@ -41,6 +44,8 @@ struct _GisCallback {
 struct _GisCallbackClass {
 	GisObjectClass parent_class;
 };
+
+GType gis_callback_get_type(void);
 
 GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
 

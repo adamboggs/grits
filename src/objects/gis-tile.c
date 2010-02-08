@@ -194,5 +194,10 @@ void gis_tile_free(GisTile *tile, GisTileFreeFunc free_func, gpointer user_data)
 
 /* GObject code */
 G_DEFINE_TYPE(GisTile, gis_tile, GIS_TYPE_OBJECT);
-static void gis_tile_init(GisTile *tile) { }
-static void gis_tile_class_init(GisTileClass *klass) { }
+static void gis_tile_init(GisTile *tile)
+{
+}
+
+static void gis_tile_class_init(GisTileClass *klass)
+{
+}

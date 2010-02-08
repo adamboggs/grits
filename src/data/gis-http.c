@@ -97,7 +97,7 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		FILE *fp = fopen_p(path, "a");
 
 		/* Make temp data */
-		struct _cache_info info = {
+		struct _CacheInfo info = {
 			.fp        = fp,
 			.path      = path,
 			.callback  = callback,

@@ -24,12 +24,15 @@
 #include "gis-object.h"
 
 /* GisMarker */
-#define GIS_TYPE_MARKER (gis_marker_get_type())
+#define GIS_TYPE_MARKER            (gis_marker_get_type())
+#define GIS_MARKER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_MARKER, GisMarker))
+#define GIS_IS_MARKER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_MARKER))
+#define GIS_MARKER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_MARKER, GisMarkerClass))
+#define GIS_IS_MARKER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_MARKER))
+#define GIS_MARKER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_MARKER, GisMarkerClass))
 
-GOBJECT_HEAD(
-	GIS, MARKER,
-	Gis, Marker,
-	gis, marker);
+typedef struct _GisMarker      GisMarker;
+typedef struct _GisMarkerClass GisMarkerClass;
 
 struct _GisMarker {
 	GisObject  parent_instance;
@@ -42,6 +45,8 @@ struct _GisMarker {
 struct _GisMarkerClass {
 	GisObjectClass parent_class;
 };
+
+GType gis_marker_get_type(void);
 
 GisMarker *gis_marker_new(const gchar *label);
 

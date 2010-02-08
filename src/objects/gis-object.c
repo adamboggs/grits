@@ -18,6 +18,7 @@
 #include <config.h>
 #include "gis-object.h"
 
+
 /* GisPoint */
 GisPoint *gis_point_new()
 {
@@ -38,6 +39,11 @@ void gis_point_free(GisPoint *point)
 
 
 /* GisObject */
-G_DEFINE_TYPE(GisObject, gis_object, G_TYPE_OBJECT);
-static void gis_object_init(GisObject *object) { }
-static void gis_object_class_init(GisObjectClass *klass) { }
+G_DEFINE_ABSTRACT_TYPE(GisObject, gis_object, G_TYPE_OBJECT);
+static void gis_object_init(GisObject *object)
+{
+}
+
+static void gis_object_class_init(GisObjectClass *klass)
+{
+}

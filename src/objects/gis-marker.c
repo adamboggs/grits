@@ -42,7 +42,9 @@ GisMarker *gis_marker_new(const gchar *label)
 }
 
 G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
-static void gis_marker_init(GisMarker *marker) { }
+static void gis_marker_init(GisMarker *marker)
+{
+}
 
 static void gis_marker_finalize(GObject *_marker)
 {

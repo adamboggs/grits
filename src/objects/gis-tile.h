@@ -22,12 +22,15 @@
 #include <glib-object.h>
 #include "gis-object.h"
 
-#define GIS_TYPE_TILE (gis_tile_get_type())
+#define GIS_TYPE_TILE            (gis_tile_get_type())
+#define GIS_TILE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_TILE, GisTile))
+#define GIS_IS_TILE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_TILE))
+#define GIS_TILE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_TILE, GisTileClass))
+#define GIS_IS_TILE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_TILE))
+#define GIS_TILE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_TILE, GisTileClass))
 
-GOBJECT_HEAD(
-	GIS, TILE,
-	Gis, Tile,
-	gis, tile);
+typedef struct _GisTile      GisTile;
+typedef struct _GisTileClass GisTileClass;
 
 struct _GisTile {
 	GisObject  parent_instance;
@@ -67,6 +70,8 @@ typedef void (*GisTileFreeFunc)(GisTile *tile, gpointer user_data);
 
 /* Path to string table, keep in sync with tile->children */
 extern gchar *gis_tile_path_table[2][2];
+
+GType gis_tile_get_type(void);
 
 /* Allocate a new Tile */
 GisTile *gis_tile_new(GisTile *parent,
