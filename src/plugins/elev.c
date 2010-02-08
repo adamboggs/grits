@@ -15,6 +15,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:elev
+ * @short_description: Elevation plugin
+ *
+ * #GisPluginElev provides access to ground elevation. It does this in two ways:
+ * First, it provides a height function used by the viewer when drawing the
+ * world. Second, it can load the elevation data into an image and draw a
+ * greyscale elevation overlay on the planets surface.
+ */
+
 #include <gtk/gtkgl.h>
 #include <glib/gstdio.h>
 #include <GL/gl.h>
@@ -261,6 +271,14 @@ static void _on_location_changed(GisViewer *viewer,
 /***********
  * Methods *
  ***********/
+/**
+ * gis_plugin_elev_new:
+ * @viewer: the #GisViewer to use for drawing
+ *
+ * Create a new instance of the elevation plugin.
+ *
+ * Returns: the new #GisPluginElev
+ */
 GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 {
 	g_debug("GisPluginElev: new");
