@@ -15,6 +15,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * SECTION:env
+ * @short_description: Environment plugin
+ *
+ * #GisPluginEnv provides environmental information such as sky images. It can
+ * also paint a blank overlay on the surface so that other plugins can draw
+ * transparent overlays nicely.
+ */
+
 #include <math.h>
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
@@ -73,6 +82,15 @@ static void expose(GisCallback *callback, gpointer _env)
 /***********
  * Methods *
  ***********/
+/**
+ * gis_plugin_env_new:
+ * @viewer: the #GisViewer to use for drawing
+ * @prefs:  the #GisPrefs for storing configurations
+ *
+ * Create a new instance of the environment plugin.
+ *
+ * Returns: the new #GisPluginEnv
+ */
 GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPluginEnv: new");
