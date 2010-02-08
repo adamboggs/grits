@@ -6,12 +6,20 @@ Miscellaneous
 GisObject:
   - Improve GisMarker
   - Add min/max LOD
+  mabye: ?
+    - Add linked list node to GisObject for add/remove
+    - Move rendering code to objects intead of GisOpenGL
+    	- How to work with non-opengl renders, do we care?
 
 GisTile:
   - Prioritize tile updates
   - Only updates visible tiles
   - Render correct tile resolution when zooming out
   - Integrate with GisTile?
+  how:
+    - Update tiles after each render
+    - Use backfaces to only fetch rendered triangles for each tile
+    - Only split/update/load tiles that are used
 
 Roam:
   - Find a better way to fix great circle errors
