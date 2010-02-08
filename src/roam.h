@@ -102,7 +102,7 @@ RoamDiamond *roam_diamond_new(
 void roam_diamond_add(RoamDiamond *diamond, RoamSphere *sphere);
 void roam_diamond_remove(RoamDiamond *diamond, RoamSphere *sphere);
 void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere);
-void roam_diamond_update_errors(RoamDiamond *self, RoamSphere *sphere);
+void roam_diamond_update_errors(RoamDiamond *diamond, RoamSphere *sphere);
 
 /**************
  * RoamSphere *

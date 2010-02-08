@@ -26,13 +26,13 @@
 /***********
  * Helpers *
  ***********/
-static gpointer expose(GisCallback *callback, gpointer _self)
+static gpointer expose(GisCallback *callback, gpointer _env)
 {
-	GisPluginEnv *self = GIS_PLUGIN_ENV(_self);
+	GisPluginEnv *env = GIS_PLUGIN_ENV(_env);
 	g_debug("GisPluginEnv: expose");
 
 	gdouble lat, lon, elev;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
+	gis_viewer_get_location(env->viewer, &lat, &lon, &elev);
 
 	/* Misc */
 	gdouble rg   = MAX(0, 1-(elev/20000));
@@ -54,7 +54,7 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 	for (elev = -EARTH_R; elev < 0; elev += EARTH_R/10) {
 		glPushMatrix();
 		glColor4f(0.3, 0.3, 1.0, 0.2);
-		gis_viewer_center_position(self->viewer, lat, lon, elev);
+		gis_viewer_center_position(env->viewer, lat, lon, elev);
 
 		glBegin(GL_TRIANGLE_FAN);
 		glVertex3f(0, 0, 0);
@@ -78,23 +78,23 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPluginEnv: new");
-	GisPluginEnv *self = g_object_new(GIS_TYPE_PLUGIN_ENV, NULL);
-	self->viewer = g_object_ref(viewer);
+	GisPluginEnv *env = g_object_new(GIS_TYPE_PLUGIN_ENV, NULL);
+	env->viewer = g_object_ref(viewer);
 
 	/* Create objects */
-	GisCallback *callback   = gis_callback_new(expose, self);
+	GisCallback *callback   = gis_callback_new(expose, env);
 	GisTile     *background = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	glGenTextures(1, &self->tex);
-	background->data = &self->tex;
+	glGenTextures(1, &env->tex);
+	background->data = &env->tex;
 
 	/* Add renderers */
 	gpointer ref1, ref2;
 	ref1 = gis_viewer_add(viewer, GIS_OBJECT(callback),   GIS_LEVEL_BACKGROUND, FALSE);
 	ref2 = gis_viewer_add(viewer, GIS_OBJECT(background), GIS_LEVEL_BACKGROUND, FALSE);
-	self->refs = g_list_prepend(self->refs, ref1);
-	self->refs = g_list_prepend(self->refs, ref2);
+	env->refs = g_list_prepend(env->refs, ref1);
+	env->refs = g_list_prepend(env->refs, ref2);
 
-	return self;
+	return env;
 }
 
 
@@ -112,7 +112,7 @@ static void gis_plugin_env_plugin_init(GisPluginInterface *iface)
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_env_init(GisPluginEnv *self)
+static void gis_plugin_env_init(GisPluginEnv *env)
 {
 	g_debug("GisPluginEnv: init");
 	/* Set defaults */
@@ -120,15 +120,15 @@ static void gis_plugin_env_init(GisPluginEnv *self)
 static void gis_plugin_env_dispose(GObject *gobject)
 {
 	g_debug("GisPluginEnv: dispose");
-	GisPluginEnv *self = GIS_PLUGIN_ENV(gobject);
+	GisPluginEnv *env = GIS_PLUGIN_ENV(gobject);
 	/* Drop references */
-	if (self->viewer) {
-		for (GList *cur = self->refs; cur; cur = cur->next)
-			gis_viewer_remove(self->viewer, cur->data);
-		g_list_free(self->refs);
-		g_object_unref(self->viewer);
-		glDeleteTextures(1, &self->tex);
-		self->viewer = NULL;
+	if (env->viewer) {
+		for (GList *cur = env->refs; cur; cur = cur->next)
+			gis_viewer_remove(env->viewer, cur->data);
+		g_list_free(env->refs);
+		g_object_unref(env->viewer);
+		glDeleteTextures(1, &env->tex);
+		env->viewer = NULL;
 	}
 	G_OBJECT_CLASS(gis_plugin_env_parent_class)->dispose(gobject);
 }

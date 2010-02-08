@@ -24,20 +24,20 @@ GisPoint *gis_point_new()
 	return g_new0(GisPoint, 1);
 }
 
-void gis_point_set_lle(GisPoint *self, gdouble lat, gdouble lon, gdouble elev)
+void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
 {
-	self->lat  = lat;
-	self->lon  = lon;
-	self->elev = elev;
+	point->lat  = lat;
+	point->lon  = lon;
+	point->elev = elev;
 }
 
-void gis_point_free(GisPoint *self)
+void gis_point_free(GisPoint *point)
 {
-	g_free(self);
+	g_free(point);
 }
 
 
 /* GisObject */
 G_DEFINE_TYPE(GisObject, gis_object, G_TYPE_OBJECT);
-static void gis_object_init(GisObject *self) { }
+static void gis_object_init(GisObject *object) { }
 static void gis_object_class_init(GisObjectClass *klass) { }

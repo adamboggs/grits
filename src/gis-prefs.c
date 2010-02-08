@@ -33,43 +33,43 @@ static guint signals[NUM_SIGNALS];
 GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults)
 {
 	g_debug("GisPrefs: new - %s, %s", config, defaults);
-	GisPrefs *self = g_object_new(GIS_TYPE_PREFS, NULL);
+	GisPrefs *prefs = g_object_new(GIS_TYPE_PREFS, NULL);
 	if (config)
-		self->key_path = g_strdup(config);
+		prefs->key_path = g_strdup(config);
 	else
-		self->key_path = g_build_filename(g_get_user_config_dir(),
+		prefs->key_path = g_build_filename(g_get_user_config_dir(),
 				PACKAGE, "config.ini", NULL);
 	GError *error = NULL;
-	g_key_file_load_from_file(self->key_file, self->key_path,
+	g_key_file_load_from_file(prefs->key_file, prefs->key_path,
 			G_KEY_FILE_KEEP_COMMENTS, &error);
 	if (error && defaults) {
 		g_debug("GisPrefs: new - Trying defaults");
 		g_clear_error(&error);
-		g_key_file_load_from_file(self->key_file, defaults,
+		g_key_file_load_from_file(prefs->key_file, defaults,
 				G_KEY_FILE_KEEP_COMMENTS, &error);
 	}
 	if (error) {
 		g_debug("GisPrefs: new - Trying GIS defaults");
 		g_clear_error(&error);
 		gchar *tmp = g_build_filename(PKGDATADIR, "defaults.ini", NULL);
-		g_key_file_load_from_file(self->key_file, tmp,
+		g_key_file_load_from_file(prefs->key_file, tmp,
 				G_KEY_FILE_KEEP_COMMENTS, &error);
 		g_free(tmp);
 	}
 	if (error) {
 		g_debug("GisPrefs: new - Unable to load key file `%s': %s",
-			self->key_path, error->message);
+			prefs->key_path, error->message);
 	}
-	g_debug("GisPrefs: new - using %s", self->key_path);
-	return self;
+	g_debug("GisPrefs: new - using %s", prefs->key_path);
+	return prefs;
 }
 
 #define make_pref_type(name, c_type, g_type)                                         \
-c_type gis_prefs_get_##name##_v(GisPrefs *self,                                      \
+c_type gis_prefs_get_##name##_v(GisPrefs *prefs,                                      \
 		const gchar *group, const gchar *key, GError **_error)               \
 {                                                                                    \
 	GError *error = NULL;                                                        \
-	c_type value = g_key_file_get_##name(self->key_file, group, key, &error);    \
+	c_type value = g_key_file_get_##name(prefs->key_file, group, key, &error);    \
 	if (error && error->code != G_KEY_FILE_ERROR_GROUP_NOT_FOUND)                \
 		g_warning("GisPrefs: get_value_##name - error getting key %s: %s\n", \
 				key, error->message);                                \
@@ -77,27 +77,27 @@ c_type gis_prefs_get_##name##_v(GisPrefs *self,                                 
 		*_error = error;                                                     \
 	return value;                                                                \
 }                                                                                    \
-c_type gis_prefs_get_##name(GisPrefs *self, const gchar *key, GError **error)        \
+c_type gis_prefs_get_##name(GisPrefs *prefs, const gchar *key, GError **error)        \
 {                                                                                    \
 	gchar **keys  = g_strsplit(key, "/", 2);                                     \
-	c_type value = gis_prefs_get_##name##_v(self, keys[0], keys[1], error);      \
+	c_type value = gis_prefs_get_##name##_v(prefs, keys[0], keys[1], error);      \
 	g_strfreev(keys);                                                            \
 	return value;                                                                \
 }                                                                                    \
                                                                                      \
-void gis_prefs_set_##name##_v(GisPrefs *self,                                        \
+void gis_prefs_set_##name##_v(GisPrefs *prefs,                                        \
 		const gchar *group, const gchar *key, const c_type value)            \
 {                                                                                    \
-	g_key_file_set_##name(self->key_file, group, key, value);                    \
+	g_key_file_set_##name(prefs->key_file, group, key, value);                    \
 	gchar *all = g_strconcat(group, "/", key, NULL);                             \
-	g_signal_emit(self, signals[SIG_PREF_CHANGED], 0,                            \
+	g_signal_emit(prefs, signals[SIG_PREF_CHANGED], 0,                            \
 			all, g_type, &value);                                        \
 	g_free(all);                                                                 \
 }                                                                                    \
-void gis_prefs_set_##name(GisPrefs *self, const gchar *key, const c_type value)      \
+void gis_prefs_set_##name(GisPrefs *prefs, const gchar *key, const c_type value)      \
 {                                                                                    \
 	gchar **keys = g_strsplit(key, "/", 2);                                      \
-	gis_prefs_set_##name##_v(self, keys[0], keys[1], value);                     \
+	gis_prefs_set_##name##_v(prefs, keys[0], keys[1], value);                     \
 	g_strfreev(keys);                                                            \
 }                                                                                    \
 
@@ -111,28 +111,28 @@ make_pref_type(double,  gdouble,  G_TYPE_DOUBLE)
  * GObject code *
  ****************/
 G_DEFINE_TYPE(GisPrefs, gis_prefs, G_TYPE_OBJECT);
-static void gis_prefs_init(GisPrefs *self)
+static void gis_prefs_init(GisPrefs *prefs)
 {
 	g_debug("GisPrefs: init");
-	self->key_file = g_key_file_new();
+	prefs->key_file = g_key_file_new();
 }
-static void gis_prefs_dispose(GObject *_self)
+static void gis_prefs_dispose(GObject *_prefs)
 {
 	g_debug("GisPrefs: dispose");
-	GisPrefs *self = GIS_PREFS(_self);
-	if (self->key_file) {
+	GisPrefs *prefs = GIS_PREFS(_prefs);
+	if (prefs->key_file) {
 		gsize length;
-		gchar *dir = g_path_get_dirname(self->key_path);
+		gchar *dir = g_path_get_dirname(prefs->key_path);
 		g_mkdir_with_parents(dir, 0755);
-		gchar *data = g_key_file_to_data(self->key_file, &length, NULL);
-		g_file_set_contents(self->key_path, data, length, NULL);
-		g_key_file_free(self->key_file);
-		g_free(self->key_path);
+		gchar *data = g_key_file_to_data(prefs->key_file, &length, NULL);
+		g_file_set_contents(prefs->key_path, data, length, NULL);
+		g_key_file_free(prefs->key_file);
+		g_free(prefs->key_path);
 		g_free(dir);
 		g_free(data);
-		self->key_file = NULL;
+		prefs->key_file = NULL;
 	}
-	G_OBJECT_CLASS(gis_prefs_parent_class)->dispose(_self);
+	G_OBJECT_CLASS(gis_prefs_parent_class)->dispose(_prefs);
 }
 static void gis_prefs_class_init(GisPrefsClass *klass)
 {

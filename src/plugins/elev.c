@@ -34,12 +34,12 @@ struct _TileData {
 	guint16   *bil;
 };
 
-static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
+static gdouble _height_func(gdouble lat, gdouble lon, gpointer _elev)
 {
-	GisPluginElev *self = _self;
-	if (!self) return 0;
+	GisPluginElev *elev = _elev;
+	if (!elev) return 0;
 
-	GisTile *tile = gis_tile_find(self->tiles, lat, lon);
+	GisTile *tile = gis_tile_find(elev->tiles, lat, lon);
 	if (!tile) return 0;
 
 	struct _TileData *data = tile->data;
@@ -79,12 +79,10 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 	gint16 px01 = bil[MIN((y_flr+1),h-1)*w + MIN((x_flr  ),w-1)];
 	gint16 px11 = bil[MIN((y_flr+1),h-1)*w + MIN((x_flr+1),w-1)];
 
-	gdouble elev =
-		px00 * (1-x_rem) * (1-y_rem) +
-		px10 * (  x_rem) * (1-y_rem) +
-		px01 * (1-x_rem) * (  y_rem) +
-		px11 * (  x_rem) * (  y_rem);
-	return elev;
+	return px00 * (1-x_rem) * (1-y_rem) +
+	       px10 * (  x_rem) * (1-y_rem) +
+	       px01 * (1-x_rem) * (  y_rem) +
+	       px11 * (  x_rem) * (  y_rem);
 }
 
 /**********************
@@ -93,7 +91,7 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _self)
 #define LOAD_BIL    TRUE
 #define LOAD_OPENGL FALSE
 struct _LoadTileData {
-	GisPluginElev    *self;
+	GisPluginElev    *elev;
 	gchar            *path;
 	GisTile          *tile;
 	GdkPixbuf        *pixbuf;
@@ -165,7 +163,7 @@ static gboolean _load_tile_cb(gpointer _load)
 {
 	struct _LoadTileData *load = _load;
 	g_debug("GisPluginElev: _load_tile_cb: %s", load->path);
-	GisPluginElev    *self   = load->self;
+	GisPluginElev    *elev   = load->elev;
 	GisTile          *tile   = load->tile;
 	GdkPixbuf        *pixbuf = load->pixbuf;
 	struct _TileData *data   = load->data;
@@ -178,9 +176,9 @@ static gboolean _load_tile_cb(gpointer _load)
 	tile->data = data;
 
 	/* Do necessasairy processing */
-	/* TODO: Lock this and move to thread, can remove self from _load then */
+	/* TODO: Lock this and move to thread, can remove elev from _load then */
 	if (LOAD_BIL)
-		gis_viewer_set_height_func(self->viewer, tile, _height_func, self, TRUE);
+		gis_viewer_set_height_func(elev->viewer, tile, _height_func, elev, TRUE);
 
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)
@@ -190,14 +188,14 @@ static gboolean _load_tile_cb(gpointer _load)
 
 	return FALSE;
 }
-static void _load_tile(GisTile *tile, gpointer _self)
+static void _load_tile(GisTile *tile, gpointer _elev)
 {
-	GisPluginElev *self = _self;
+	GisPluginElev *elev = _elev;
 
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
-	load->path = gis_wms_fetch(self->wms, tile, GIS_ONCE, NULL, NULL);
+	load->path = gis_wms_fetch(elev->wms, tile, GIS_ONCE, NULL, NULL);
 	g_debug("GisPluginElev: _load_tile: %s", load->path);
-	load->self = self;
+	load->elev = elev;
 	load->tile = tile;
 	load->data = g_new0(struct _TileData, 1);
 	if (LOAD_BIL || LOAD_OPENGL) {
@@ -227,27 +225,27 @@ static gboolean _free_tile_cb(gpointer _data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _self)
+static void _free_tile(GisTile *tile, gpointer _elev)
 {
-	GisPluginElev *self = _self;
+	GisPluginElev *elev = _elev;
 	g_debug("GisPluginElev: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
-static gpointer _update_tiles(gpointer _self)
+static gpointer _update_tiles(gpointer _elev)
 {
-	GisPluginElev *self = _self;
-	g_mutex_lock(self->mutex);
-	gdouble lat, lon, elev;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
-	gis_tile_update(self->tiles,
+	GisPluginElev *elev = _elev;
+	g_mutex_lock(elev->mutex);
+	gdouble lat, lon, elevation;
+	gis_viewer_get_location(elev->viewer, &lat, &lon, &elevation);
+	gis_tile_update(elev->tiles,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
-			lat, lon, elev,
-			_load_tile, self);
-	gis_tile_gc(self->tiles, time(NULL)-10,
-			_free_tile, self);
-	g_mutex_unlock(self->mutex);
+			lat, lon, elevation,
+			_load_tile, elev);
+	gis_tile_gc(elev->tiles, time(NULL)-10,
+			_free_tile, elev);
+	g_mutex_unlock(elev->mutex);
 	return NULL;
 }
 
@@ -255,9 +253,9 @@ static gpointer _update_tiles(gpointer _self)
  * Callbacks *
  *************/
 static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginElev *self)
+		gdouble lat, gdouble lon, gdouble elevation, GisPluginElev *elev)
 {
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	g_thread_create(_update_tiles, elev, FALSE, NULL);
 }
 
 /***********
@@ -266,22 +264,22 @@ static void _on_location_changed(GisViewer *viewer,
 GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 {
 	g_debug("GisPluginElev: new");
-	GisPluginElev *self = g_object_new(GIS_TYPE_PLUGIN_ELEV, NULL);
-	self->viewer = g_object_ref(viewer);
+	GisPluginElev *elev = g_object_new(GIS_TYPE_PLUGIN_ELEV, NULL);
+	elev->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(self->tiles, self);
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	_load_tile(elev->tiles, elev);
+	g_thread_create(_update_tiles, elev, FALSE, NULL);
 
 	/* Connect signals */
-	self->sigid = g_signal_connect(self->viewer, "location-changed",
-			G_CALLBACK(_on_location_changed), self);
+	elev->sigid = g_signal_connect(elev->viewer, "location-changed",
+			G_CALLBACK(_on_location_changed), elev);
 
 	/* Add renderers */
 	if (LOAD_OPENGL)
-		gis_viewer_add(viewer, GIS_OBJECT(self->tiles), GIS_LEVEL_WORLD, 0);
+		gis_viewer_add(viewer, GIS_OBJECT(elev->tiles), GIS_LEVEL_WORLD, 0);
 
-	return self;
+	return elev;
 }
 
 
@@ -299,38 +297,38 @@ static void gis_plugin_elev_plugin_init(GisPluginInterface *iface)
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_elev_init(GisPluginElev *self)
+static void gis_plugin_elev_init(GisPluginElev *elev)
 {
 	g_debug("GisPluginElev: init");
 	/* Set defaults */
-	self->mutex = g_mutex_new();
-	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	self->wms   = gis_wms_new(
+	elev->mutex = g_mutex_new();
+	elev->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	elev->wms   = gis_wms_new(
 		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
 		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_elev_dispose(GObject *gobject)
 {
 	g_debug("GisPluginElev: dispose");
-	GisPluginElev *self = GIS_PLUGIN_ELEV(gobject);
+	GisPluginElev *elev = GIS_PLUGIN_ELEV(gobject);
 	/* Drop references */
 	if (LOAD_BIL)
-		gis_viewer_clear_height_func(self->viewer);
-	if (self->viewer) {
-		g_signal_handler_disconnect(self->viewer, self->sigid);
-		g_object_unref(self->viewer);
-		self->viewer = NULL;
+		gis_viewer_clear_height_func(elev->viewer);
+	if (elev->viewer) {
+		g_signal_handler_disconnect(elev->viewer, elev->sigid);
+		g_object_unref(elev->viewer);
+		elev->viewer = NULL;
 	}
 	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->dispose(gobject);
 }
 static void gis_plugin_elev_finalize(GObject *gobject)
 {
 	g_debug("GisPluginElev: finalize");
-	GisPluginElev *self = GIS_PLUGIN_ELEV(gobject);
+	GisPluginElev *elev = GIS_PLUGIN_ELEV(gobject);
 	/* Free data */
-	gis_tile_free(self->tiles, _free_tile, self);
-	gis_wms_free(self->wms);
-	g_mutex_free(self->mutex);
+	gis_tile_free(elev->tiles, _free_tile, elev);
+	gis_wms_free(elev->wms);
+	g_mutex_free(elev->mutex);
 	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->finalize(gobject);
 
 }

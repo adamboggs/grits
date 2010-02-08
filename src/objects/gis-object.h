@@ -51,7 +51,7 @@ static inline Mam##Bar##Class *MAM##_##BAR##_GET_CLASS(gpointer obj) { \
 		Mam, Bar, \
 		mam, bar) \
 G_DEFINE_TYPE(Mam##Bar, mam##_##bar, parent_type); \
-static void mam##_##bar##_init(Mam##Bar *self) { \
+static void mam##_##bar##_init(Mam##Bar *mambar) { \
 } \
 static void mam##_##bar##_class_init(Mam##Bar##Class *klass) { \
 } \

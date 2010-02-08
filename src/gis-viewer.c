@@ -42,68 +42,68 @@ static guint signals[NUM_SIGNALS];
  * Helpers *
  ***********/
 /* Misc helpers */
-static void _gis_viewer_fix_location(GisViewer *self)
+static void _gis_viewer_fix_location(GisViewer *viewer)
 {
-	while (self->location[0] <  -90) self->location[0] += 180;
-	while (self->location[0] >   90) self->location[0] -= 180;
-	while (self->location[1] < -180) self->location[1] += 360;
-	while (self->location[1] >  180) self->location[1] -= 360;
-	self->location[2] = ABS(self->location[2]);
+	while (viewer->location[0] <  -90) viewer->location[0] += 180;
+	while (viewer->location[0] >   90) viewer->location[0] -= 180;
+	while (viewer->location[1] < -180) viewer->location[1] += 360;
+	while (viewer->location[1] >  180) viewer->location[1] -= 360;
+	viewer->location[2] = ABS(viewer->location[2]);
 }
 
 /* Signal helpers */
-static void _gis_viewer_emit_location_changed(GisViewer *self)
+static void _gis_viewer_emit_location_changed(GisViewer *viewer)
 {
-	g_signal_emit(self, signals[SIG_LOCATION_CHANGED], 0,
-			self->location[0],
-			self->location[1],
-			self->location[2]);
+	g_signal_emit(viewer, signals[SIG_LOCATION_CHANGED], 0,
+			viewer->location[0],
+			viewer->location[1],
+			viewer->location[2]);
 }
-static void _gis_viewer_emit_rotation_changed(GisViewer *self)
+static void _gis_viewer_emit_rotation_changed(GisViewer *viewer)
 {
-	g_signal_emit(self, signals[SIG_ROTATION_CHANGED], 0,
-			self->rotation[0],
-			self->rotation[1],
-			self->rotation[2]);
+	g_signal_emit(viewer, signals[SIG_ROTATION_CHANGED], 0,
+			viewer->rotation[0],
+			viewer->rotation[1],
+			viewer->rotation[2]);
 }
-static void _gis_viewer_emit_time_changed(GisViewer *self)
+static void _gis_viewer_emit_time_changed(GisViewer *viewer)
 {
-	g_signal_emit(self, signals[SIG_TIME_CHANGED], 0,
-			self->time);
+	g_signal_emit(viewer, signals[SIG_TIME_CHANGED], 0,
+			viewer->time);
 }
-static void _gis_viewer_emit_refresh(GisViewer *self)
+static void _gis_viewer_emit_refresh(GisViewer *viewer)
 {
-	g_signal_emit(self, signals[SIG_REFRESH], 0);
+	g_signal_emit(viewer, signals[SIG_REFRESH], 0);
 }
-static void _gis_viewer_emit_offline(GisViewer *self)
+static void _gis_viewer_emit_offline(GisViewer *viewer)
 {
-	g_signal_emit(self, signals[SIG_OFFLINE], 0,
-			self->offline);
+	g_signal_emit(viewer, signals[SIG_OFFLINE], 0,
+			viewer->offline);
 }
 
 /*************
  * Callbacks *
  *************/
-static gboolean on_key_press(GisViewer *self, GdkEventKey *event, gpointer _)
+static gboolean on_key_press(GisViewer *viewer, GdkEventKey *event, gpointer _)
 {
 	g_debug("GisViewer: on_key_press - key=%x, state=%x, plus=%x",
 			event->keyval, event->state, GDK_plus);
 
 	double lat, lon, elev, pan;
-	gis_viewer_get_location(self, &lat, &lon, &elev);
+	gis_viewer_get_location(viewer, &lat, &lon, &elev);
 	pan = MIN(elev/(EARTH_R/2), 30);
 	guint kv = event->keyval;
 	gdk_threads_leave();
-	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(self,  0,  -pan, 0);
-	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(self, -pan, 0,   0);
-	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(self,  pan, 0,   0);
-	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(self,  0,   pan, 0);
-	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(self, 10./9);
-	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(self, 9./10);
-	else if (kv == GDK_H) gis_viewer_rotate(self,  0, 0, -2);
-	else if (kv == GDK_J) gis_viewer_rotate(self,  2, 0,  0);
-	else if (kv == GDK_K) gis_viewer_rotate(self, -2, 0,  0);
-	else if (kv == GDK_L) gis_viewer_rotate(self,  0, 0,  2);
+	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(viewer,  0,  -pan, 0);
+	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(viewer, -pan, 0,   0);
+	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(viewer,  pan, 0,   0);
+	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(viewer,  0,   pan, 0);
+	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(viewer, 10./9);
+	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(viewer, 9./10);
+	else if (kv == GDK_H) gis_viewer_rotate(viewer,  0, 0, -2);
+	else if (kv == GDK_J) gis_viewer_rotate(viewer,  2, 0,  0);
+	else if (kv == GDK_K) gis_viewer_rotate(viewer, -2, 0,  0);
+	else if (kv == GDK_L) gis_viewer_rotate(viewer,  0, 0,  2);
 	return FALSE;
 }
 
@@ -114,110 +114,110 @@ enum {
 	GIS_DRAG_TILT,
 };
 
-static gboolean on_button_press(GisViewer *self, GdkEventButton *event, gpointer _)
+static gboolean on_button_press(GisViewer *viewer, GdkEventButton *event, gpointer _)
 {
 	g_debug("GisViewer: on_button_press - %d", event->button);
-	gtk_widget_grab_focus(GTK_WIDGET(self));
+	gtk_widget_grab_focus(GTK_WIDGET(viewer));
 	switch (event->button) {
-	case 1:  self->drag_mode = GIS_DRAG_PAN;  break;
-	case 2:  self->drag_mode = GIS_DRAG_ZOOM; break;
-	case 3:  self->drag_mode = GIS_DRAG_TILT; break;
-	defualt: self->drag_mode = GIS_DRAG_NONE; break;
+	case 1:  viewer->drag_mode = GIS_DRAG_PAN;  break;
+	case 2:  viewer->drag_mode = GIS_DRAG_ZOOM; break;
+	case 3:  viewer->drag_mode = GIS_DRAG_TILT; break;
+	defualt: viewer->drag_mode = GIS_DRAG_NONE; break;
 	}
-	self->drag_x = event->x;
-	self->drag_y = event->y;
+	viewer->drag_x = event->x;
+	viewer->drag_y = event->y;
 	return FALSE;
 }
 
-static gboolean on_button_release(GisViewer *self, GdkEventButton *event, gpointer _)
+static gboolean on_button_release(GisViewer *viewer, GdkEventButton *event, gpointer _)
 {
 	g_debug("GisViewer: on_button_release");
-	self->drag_mode = GIS_DRAG_NONE;
+	viewer->drag_mode = GIS_DRAG_NONE;
 	return FALSE;
 }
 
-static gboolean on_motion_notify(GisViewer *self, GdkEventMotion *event, gpointer _)
+static gboolean on_motion_notify(GisViewer *viewer, GdkEventMotion *event, gpointer _)
 {
-	gdouble x_dist = self->drag_x - event->x;
-	gdouble y_dist = self->drag_y - event->y;
+	gdouble x_dist = viewer->drag_x - event->x;
+	gdouble y_dist = viewer->drag_y - event->y;
 	gdouble lat, lon, elev, scale;
-	gis_viewer_get_location(GIS_VIEWER(self), &lat, &lon, &elev);
+	gis_viewer_get_location(GIS_VIEWER(viewer), &lat, &lon, &elev);
 	scale = elev/EARTH_R/15;
-	switch (self->drag_mode) {
+	switch (viewer->drag_mode) {
 	case GIS_DRAG_PAN:
-		gis_viewer_pan(self, -y_dist*scale, x_dist*scale, 0);
+		gis_viewer_pan(viewer, -y_dist*scale, x_dist*scale, 0);
 		break;
 	case GIS_DRAG_ZOOM:
-		gis_viewer_zoom(self, pow(2, -y_dist/500));
+		gis_viewer_zoom(viewer, pow(2, -y_dist/500));
 		break;
 	case GIS_DRAG_TILT:
-		gis_viewer_rotate(self, y_dist/10, 0, x_dist/10);
+		gis_viewer_rotate(viewer, y_dist/10, 0, x_dist/10);
 		break;
 	}
-	self->drag_x = event->x;
-	self->drag_y = event->y;
+	viewer->drag_x = event->x;
+	viewer->drag_y = event->y;
 	return FALSE;
 }
 
-static void on_view_changed(GisViewer *self,
+static void on_view_changed(GisViewer *viewer,
 		gdouble _1, gdouble _2, gdouble _3)
 {
-	gtk_widget_queue_draw(GTK_WIDGET(self));
+	gtk_widget_queue_draw(GTK_WIDGET(viewer));
 }
 
 /***********
  * Methods *
  ***********/
-void gis_viewer_setup(GisViewer *self, GisPlugins *plugins, GisPrefs *prefs)
+void gis_viewer_setup(GisViewer *viewer, GisPlugins *plugins, GisPrefs *prefs)
 {
-	self->plugins = plugins;
-	self->prefs   = prefs;
-	self->offline = gis_prefs_get_boolean(prefs, "gis/offline", NULL);
+	viewer->plugins = plugins;
+	viewer->prefs   = prefs;
+	viewer->offline = gis_prefs_get_boolean(prefs, "gis/offline", NULL);
 }
 
-void gis_viewer_set_time(GisViewer *self, const char *time)
+void gis_viewer_set_time(GisViewer *viewer, const char *time)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: set_time - time=%s", time);
-	g_free(self->time);
-	self->time = g_strdup(time);
-	_gis_viewer_emit_time_changed(self);
+	g_free(viewer->time);
+	viewer->time = g_strdup(time);
+	_gis_viewer_emit_time_changed(viewer);
 }
 
-gchar *gis_viewer_get_time(GisViewer *self)
+gchar *gis_viewer_get_time(GisViewer *viewer)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: get_time");
-	return self->time;
+	return viewer->time;
 }
 
-void gis_viewer_set_location(GisViewer *self, gdouble lat, gdouble lon, gdouble elev)
+void gis_viewer_set_location(GisViewer *viewer, gdouble lat, gdouble lon, gdouble elev)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: set_location");
-	self->location[0] = lat;
-	self->location[1] = lon;
-	self->location[2] = elev;
-	_gis_viewer_fix_location(self);
-	_gis_viewer_emit_location_changed(self);
+	viewer->location[0] = lat;
+	viewer->location[1] = lon;
+	viewer->location[2] = elev;
+	_gis_viewer_fix_location(viewer);
+	_gis_viewer_emit_location_changed(viewer);
 }
 
-void gis_viewer_get_location(GisViewer *self, gdouble *lat, gdouble *lon, gdouble *elev)
+void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	//g_debug("GisViewer: get_location");
-	*lat  = self->location[0];
-	*lon  = self->location[1];
-	*elev = self->location[2];
+	*lat  = viewer->location[0];
+	*lon  = viewer->location[1];
+	*elev = viewer->location[2];
 }
 
-void gis_viewer_pan(GisViewer *self, gdouble forward, gdouble sideways, gdouble up)
+void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble sideways, gdouble up)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: pan - forward=%8.3f, sideways=%8.3f, up=%8.3f",
 			forward, sideways, up);
 	gdouble dist   = sqrt(forward*forward + sideways*sideways);
-	gdouble angle1 = deg2rad(self->rotation[2]);
+	gdouble angle1 = deg2rad(viewer->rotation[2]);
 	gdouble angle2 = atan2(sideways, forward);
 	gdouble angle  = angle1 + angle2;
 	g_message("pan: dist=%f, angle=%f+%f=%f move=%f,%f",
@@ -225,164 +225,164 @@ void gis_viewer_pan(GisViewer *self, gdouble forward, gdouble sideways, gdouble 
 			dist*cos(angle),
 			dist*sin(angle));
 	/* This isn't accurate, but it's usable */
-	self->location[0] += dist*cos(angle);
-	self->location[1] += dist*sin(angle);
-	self->location[2] += up;
-	_gis_viewer_fix_location(self);
-	_gis_viewer_emit_location_changed(self);
+	viewer->location[0] += dist*cos(angle);
+	viewer->location[1] += dist*sin(angle);
+	viewer->location[2] += up;
+	_gis_viewer_fix_location(viewer);
+	_gis_viewer_emit_location_changed(viewer);
 }
 
-void gis_viewer_zoom(GisViewer *self, gdouble scale)
+void gis_viewer_zoom(GisViewer *viewer, gdouble scale)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: zoom");
-	self->location[2] *= scale;
-	_gis_viewer_emit_location_changed(self);
+	viewer->location[2] *= scale;
+	_gis_viewer_emit_location_changed(viewer);
 }
 
-void gis_viewer_set_rotation(GisViewer *self, gdouble x, gdouble y, gdouble z)
+void gis_viewer_set_rotation(GisViewer *viewer, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: set_rotation");
-	self->rotation[0] = x;
-	self->rotation[1] = y;
-	self->rotation[2] = z;
-	_gis_viewer_emit_rotation_changed(self);
+	viewer->rotation[0] = x;
+	viewer->rotation[1] = y;
+	viewer->rotation[2] = z;
+	_gis_viewer_emit_rotation_changed(viewer);
 }
 
-void gis_viewer_get_rotation(GisViewer *self, gdouble *x, gdouble *y, gdouble *z)
+void gis_viewer_get_rotation(GisViewer *viewer, gdouble *x, gdouble *y, gdouble *z)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: get_rotation");
-	*x = self->rotation[0];
-	*y = self->rotation[1];
-	*z = self->rotation[2];
+	*x = viewer->rotation[0];
+	*y = viewer->rotation[1];
+	*z = viewer->rotation[2];
 }
 
-void gis_viewer_rotate(GisViewer *self, gdouble x, gdouble y, gdouble z)
+void gis_viewer_rotate(GisViewer *viewer, gdouble x, gdouble y, gdouble z)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: rotate - x=%.0f, y=%.0f, z=%.0f", x, y, z);
-	self->rotation[0] += x;
-	self->rotation[1] += y;
-	self->rotation[2] += z;
-	_gis_viewer_emit_rotation_changed(self);
+	viewer->rotation[0] += x;
+	viewer->rotation[1] += y;
+	viewer->rotation[2] += z;
+	_gis_viewer_emit_rotation_changed(viewer);
 }
 
-void gis_viewer_refresh(GisViewer *self)
+void gis_viewer_refresh(GisViewer *viewer)
 {
 	g_debug("GisViewer: refresh");
-	_gis_viewer_emit_refresh(self);
+	_gis_viewer_emit_refresh(viewer);
 }
 
-void gis_viewer_set_offline(GisViewer *self, gboolean offline)
+void gis_viewer_set_offline(GisViewer *viewer, gboolean offline)
 {
-	g_assert(GIS_IS_VIEWER(self));
+	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: set_offline - %d", offline);
-	gis_prefs_set_boolean(self->prefs, "gis/offline", offline);
-	self->offline = offline;
-	_gis_viewer_emit_offline(self);
+	gis_prefs_set_boolean(viewer->prefs, "gis/offline", offline);
+	viewer->offline = offline;
+	_gis_viewer_emit_offline(viewer);
 }
 
-gboolean gis_viewer_get_offline(GisViewer *self)
+gboolean gis_viewer_get_offline(GisViewer *viewer)
 {
-	g_assert(GIS_IS_VIEWER(self));
-	g_debug("GisViewer: get_offline - %d", self->offline);
-	return self->offline;
+	g_assert(GIS_IS_VIEWER(viewer));
+	g_debug("GisViewer: get_offline - %d", viewer->offline);
+	return viewer->offline;
 }
 
 /* To be implemented by subclasses */
-void gis_viewer_center_position(GisViewer *self,
+void gis_viewer_center_position(GisViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->center_position)
 		g_warning("GisViewer: center_position - Unimplemented");
-	klass->center_position(self, lat, lon, elev);
+	klass->center_position(viewer, lat, lon, elev);
 }
 
-void gis_viewer_project(GisViewer *self,
+void gis_viewer_project(GisViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev,
 		gdouble *px, gdouble *py, gdouble *pz)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->project)
 		g_warning("GisViewer: project - Unimplemented");
-	klass->project(self, lat, lon, elev, px, py, pz);
+	klass->project(viewer, lat, lon, elev, px, py, pz);
 }
 
-void gis_viewer_clear_height_func(GisViewer *self)
+void gis_viewer_clear_height_func(GisViewer *viewer)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->clear_height_func)
 		g_warning("GisViewer: clear_height_func - Unimplemented");
-	klass->clear_height_func(self);
+	klass->clear_height_func(viewer);
 }
 
-void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
+void gis_viewer_set_height_func(GisViewer *viewer, GisTile *tile,
 		GisHeightFunc height_func, gpointer user_data,
 		gboolean update)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->set_height_func)
 		g_warning("GisViewer: set_height_func - Unimplemented");
-	klass->set_height_func(self, tile, height_func, user_data, update);
+	klass->set_height_func(viewer, tile, height_func, user_data, update);
 }
 
-gpointer gis_viewer_add(GisViewer *self, GisObject *object,
+gpointer gis_viewer_add(GisViewer *viewer, GisObject *object,
 		gint level, gboolean sort)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->add)
 		g_warning("GisViewer: add - Unimplemented");
-	return klass->add(self, object, level, sort);
+	return klass->add(viewer, object, level, sort);
 }
 
-GisObject *gis_viewer_remove(GisViewer *self, gpointer ref)
+GisObject *gis_viewer_remove(GisViewer *viewer, gpointer ref)
 {
-	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(self);
+	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->remove)
 		g_warning("GisViewer: remove - Unimplemented");
-	return klass->remove(self, ref);
+	return klass->remove(viewer, ref);
 }
 
 /****************
  * GObject code *
  ****************/
 G_DEFINE_ABSTRACT_TYPE(GisViewer, gis_viewer, GTK_TYPE_DRAWING_AREA);
-static void gis_viewer_init(GisViewer *self)
+static void gis_viewer_init(GisViewer *viewer)
 {
 	g_debug("GisViewer: init");
 	/* Default values */
-	self->time = g_strdup("");
-	self->location[0] = 40;
-	self->location[1] = -100;
-	self->location[2] = 1.5*EARTH_R;
-	self->rotation[0] = 0;
-	self->rotation[1] = 0;
-	self->rotation[2] = 0;
+	viewer->time = g_strdup("");
+	viewer->location[0] = 40;
+	viewer->location[1] = -100;
+	viewer->location[2] = 1.5*EARTH_R;
+	viewer->rotation[0] = 0;
+	viewer->rotation[1] = 0;
+	viewer->rotation[2] = 0;
 
-	g_object_set(self, "can-focus", TRUE, NULL);
-	gtk_widget_add_events(GTK_WIDGET(self),
+	g_object_set(viewer, "can-focus", TRUE, NULL);
+	gtk_widget_add_events(GTK_WIDGET(viewer),
 			GDK_BUTTON_PRESS_MASK |
 			GDK_BUTTON_RELEASE_MASK |
 			GDK_POINTER_MOTION_MASK |
 			GDK_KEY_PRESS_MASK);
 
-	g_signal_connect(self, "key-press-event",      G_CALLBACK(on_key_press),      NULL);
+	g_signal_connect(viewer, "key-press-event",      G_CALLBACK(on_key_press),      NULL);
 
-	g_signal_connect(self, "button-press-event",   G_CALLBACK(on_button_press),   NULL);
-	g_signal_connect(self, "button-release-event", G_CALLBACK(on_button_release), NULL);
-	g_signal_connect(self, "motion-notify-event",  G_CALLBACK(on_motion_notify),  NULL);
+	g_signal_connect(viewer, "button-press-event",   G_CALLBACK(on_button_press),   NULL);
+	g_signal_connect(viewer, "button-release-event", G_CALLBACK(on_button_release), NULL);
+	g_signal_connect(viewer, "motion-notify-event",  G_CALLBACK(on_motion_notify),  NULL);
 
-	g_signal_connect(self, "location-changed",     G_CALLBACK(on_view_changed),   NULL);
-	g_signal_connect(self, "rotation-changed",     G_CALLBACK(on_view_changed),   NULL);
+	g_signal_connect(viewer, "location-changed",     G_CALLBACK(on_view_changed),   NULL);
+	g_signal_connect(viewer, "rotation-changed",     G_CALLBACK(on_view_changed),   NULL);
 }
 static void gis_viewer_finalize(GObject *gobject)
 {
 	g_debug("GisViewer: finalize");
-	GisViewer *self = GIS_VIEWER(gobject);
-	g_free(self->time);
+	GisViewer *viewer = GIS_VIEWER(gobject);
+	g_free(viewer->time);
 	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
 static void gis_viewer_class_init(GisViewerClass *klass)

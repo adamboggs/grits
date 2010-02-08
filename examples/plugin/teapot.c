@@ -25,19 +25,19 @@
 /***********
  * Helpers *
  ***********/
-static gboolean rotate(gpointer _self)
+static gboolean rotate(gpointer _teapot)
 {
-	GisPluginTeapot *self = _self;
-	if (gtk_toggle_button_get_active(self->button)) {
-		self->rotation += 1.0;
-		gtk_widget_queue_draw(GTK_WIDGET(self->viewer));
+	GisPluginTeapot *teapot = _teapot;
+	if (gtk_toggle_button_get_active(teapot->button)) {
+		teapot->rotation += 1.0;
+		gtk_widget_queue_draw(GTK_WIDGET(teapot->viewer));
 	}
 	return TRUE;
 }
 
-static gpointer expose(GisCallback *callback, gpointer _self)
+static gpointer expose(GisCallback *callback, gpointer _teapot)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
+	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
 	g_debug("GisPluginTeapot: expose");
 
 	glMatrixMode(GL_PROJECTION);
@@ -56,7 +56,7 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 	glEnable(GL_COLOR_MATERIAL);
 
 	glTranslatef(-0.5, -0.5, -2);
-	glRotatef(self->rotation, 1, 1, 0);
+	glRotatef(teapot->rotation, 1, 1, 0);
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
 	gdk_gl_draw_teapot(TRUE, 0.25);
@@ -71,20 +71,20 @@ static gpointer expose(GisCallback *callback, gpointer _self)
 GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPluginTeapot: new");
-	GisPluginTeapot *self = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
-	self->viewer = viewer;
+	GisPluginTeapot *teapot = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
+	teapot->viewer = viewer;
 
 	/* Add renderers */
-	GisCallback *callback = gis_callback_new(expose, self);
+	GisCallback *callback = gis_callback_new(expose, teapot);
 	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
 
-	return self;
+	return teapot;
 }
 
-static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_self)
+static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_teapot)
 {
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(_self);
-	return GTK_WIDGET(self->button);
+	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
+	return GTK_WIDGET(teapot->button);
 }
 
 
@@ -103,19 +103,19 @@ static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface)
 	iface->get_config = gis_plugin_teapot_get_config;
 }
 /* Class/Object init */
-static void gis_plugin_teapot_init(GisPluginTeapot *self)
+static void gis_plugin_teapot_init(GisPluginTeapot *teapot)
 {
 	g_debug("GisPluginTeapot: init");
 	/* Set defaults */
-	self->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
-	self->rotate_id = g_timeout_add(1000/60, rotate, self);
-	self->rotation  = 30.0;
+	teapot->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
+	teapot->rotate_id = g_timeout_add(1000/60, rotate, teapot);
+	teapot->rotation  = 30.0;
 }
 static void gis_plugin_teapot_dispose(GObject *gobject)
 {
 	g_debug("GisPluginTeapot: dispose");
-	GisPluginTeapot *self = GIS_PLUGIN_TEAPOT(gobject);
-	g_source_remove(self->rotate_id);
+	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(gobject);
+	g_source_remove(teapot->rotate_id);
 	/* Drop references */
 	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->dispose(gobject);
 }

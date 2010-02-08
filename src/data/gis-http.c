@@ -25,20 +25,20 @@
 GisHttp *gis_http_new(const gchar *prefix)
 {
 	g_debug("GisHttp: new - %s", prefix);
-	GisHttp *self = g_new0(GisHttp, 1);
-	self->soup = soup_session_sync_new();
-	self->prefix = g_strdup(prefix);
-	g_object_set(self->soup, "user-agent", PACKAGE_STRING, NULL);
-	return self;
+	GisHttp *http = g_new0(GisHttp, 1);
+	http->soup = soup_session_sync_new();
+	http->prefix = g_strdup(prefix);
+	g_object_set(http->soup, "user-agent", PACKAGE_STRING, NULL);
+	return http;
 }
 
-void gis_http_free(GisHttp *self)
+void gis_http_free(GisHttp *http)
 {
-	g_debug("GisHttp: free - %s", self->prefix);
-	soup_session_abort(self->soup);
-	g_object_unref(self->soup);
-	g_free(self->prefix);
-	g_free(self);
+	g_debug("GisHttp: free - %s", http->prefix);
+	soup_session_abort(http->soup);
+	g_object_unref(http->soup);
+	g_free(http->prefix);
+	g_free(http);
 }
 
 /* For passing data to the chunck callback */
@@ -75,14 +75,14 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 }
 
 /* TODO: use .part extentions and continue even when using GIS_ONCE */
-gchar *gis_http_fetch(GisHttp *self, const gchar *uri, const char *local,
+gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		GisCacheType mode, GisChunkCallback callback, gpointer user_data)
 {
 	g_debug("GisHttp: fetch - %.20s... >> %s/%s  mode=%d",
-			uri, self->prefix, local, mode);
+			uri, http->prefix, local, mode);
 
 	gchar *path = g_build_filename(g_get_user_cache_dir(), PACKAGE,
-			self->prefix, local, NULL);
+			http->prefix, local, NULL);
 
 	/* Unlink the file if we're refreshing it */
 	if (mode == GIS_REFRESH)
@@ -110,7 +110,7 @@ gchar *gis_http_fetch(GisHttp *self, const gchar *uri, const char *local,
 			g_error("message is null, cannot parse uri");
 		g_signal_connect(message, "got-chunk", G_CALLBACK(_chunk_cb), &info);
 		soup_message_headers_set_range(message->request_headers, ftell(fp), -1);
-		soup_session_send_message(self->soup, message);
+		soup_session_send_message(http->soup, message);
 
 		/* Finished */
 		if (message->status_code == 416) {

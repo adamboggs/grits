@@ -72,8 +72,8 @@ struct _GisViewerClass {
 	                          gdouble lat, gdouble lon, gdouble elev,
 	                          gdouble *px, gdouble *py, gdouble *pz);
 
-	void (*clear_height_func)(GisViewer *self);
-	void (*set_height_func)  (GisViewer *self, GisTile *tile,
+	void (*clear_height_func)(GisViewer *viewer);
+	void (*set_height_func)  (GisViewer *viewer, GisTile *tile,
 	                          GisHeightFunc height_func, gpointer user_data,
 	                          gboolean update);
 
@@ -92,7 +92,7 @@ gchar *gis_viewer_get_time(GisViewer *viewer);
 
 void gis_viewer_set_location(GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
 void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);
-void gis_viewer_pan(GisViewer *self, gdouble forward, gdouble sideways, gdouble up);
+void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble sideways, gdouble up);
 void gis_viewer_zoom(GisViewer *viewer, gdouble  scale);
 
 void gis_viewer_set_rotation(GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
@@ -112,13 +112,13 @@ void gis_viewer_project(GisViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev,
 		gdouble *px, gdouble *py, gdouble *pz);
 
-void gis_viewer_clear_height_func(GisViewer *self);
-void gis_viewer_set_height_func(GisViewer *self, GisTile *tile,
+void gis_viewer_clear_height_func(GisViewer *viewer);
+void gis_viewer_set_height_func(GisViewer *viewer, GisTile *tile,
 		GisHeightFunc height_func, gpointer user_data,
 		gboolean update);
 
-gpointer gis_viewer_add(GisViewer *self, GisObject *object,
+gpointer gis_viewer_add(GisViewer *viewer, GisObject *object,
 		gint level, gboolean sort);
-GisObject *gis_viewer_remove(GisViewer *self, gpointer ref);
+GisObject *gis_viewer_remove(GisViewer *viewer, gpointer ref);
 
 #endif

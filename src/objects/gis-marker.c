@@ -26,32 +26,32 @@ GisMarker *gis_marker_new(const gchar *label)
 	static const int WIDTH  = 100;
 	static const int HEIGHT =  20;
 
-	GisMarker *self = g_object_new(GIS_TYPE_MARKER, NULL);
-	self->xoff  = RADIUS;
-	self->yoff  = HEIGHT-RADIUS;
-	self->label = g_strdup(label);
-	self->cairo = cairo_create(cairo_image_surface_create(
+	GisMarker *marker = g_object_new(GIS_TYPE_MARKER, NULL);
+	marker->xoff  = RADIUS;
+	marker->yoff  = HEIGHT-RADIUS;
+	marker->label = g_strdup(label);
+	marker->cairo = cairo_create(cairo_image_surface_create(
 				CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT));
-	cairo_set_source_rgba(self->cairo, 1, 1, 1, 1);
-	cairo_arc(self->cairo, self->xoff, self->yoff, RADIUS, 0, 2*G_PI);
-	cairo_fill(self->cairo);
-	cairo_move_to(self->cairo, self->xoff+4, self->yoff-8);
-	cairo_set_font_size(self->cairo, 10);
-	cairo_show_text(self->cairo, self->label);
-	return self;
+	cairo_set_source_rgba(marker->cairo, 1, 1, 1, 1);
+	cairo_arc(marker->cairo, marker->xoff, marker->yoff, RADIUS, 0, 2*G_PI);
+	cairo_fill(marker->cairo);
+	cairo_move_to(marker->cairo, marker->xoff+4, marker->yoff-8);
+	cairo_set_font_size(marker->cairo, 10);
+	cairo_show_text(marker->cairo, marker->label);
+	return marker;
 }
 
 G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
-static void gis_marker_init(GisMarker *self) { }
+static void gis_marker_init(GisMarker *marker) { }
 
-static void gis_marker_finalize(GObject *_self)
+static void gis_marker_finalize(GObject *_marker)
 {
-	GisMarker *self = GIS_MARKER(_self);
-	//g_debug("GisMarker: finalize - %s", self->label);
-	cairo_surface_t *surface = cairo_get_target(self->cairo);
+	GisMarker *marker = GIS_MARKER(_marker);
+	//g_debug("GisMarker: finalize - %s", marker->label);
+	cairo_surface_t *surface = cairo_get_target(marker->cairo);
 	cairo_surface_destroy(surface);
-	cairo_destroy(self->cairo);
-	g_free(self->label);
+	cairo_destroy(marker->cairo);
+	g_free(marker->label);
 }
 
 static void gis_marker_class_init(GisMarkerClass *klass)

@@ -47,26 +47,26 @@ GType gis_plugin_get_type()
 	return type;
 }
 
-const gchar *gis_plugin_get_name(GisPlugin *self)
+const gchar *gis_plugin_get_name(GisPlugin *plugin)
 {
-	if (!GIS_IS_PLUGIN(self))
+	if (!GIS_IS_PLUGIN(plugin))
 		return NULL;
-	return GIS_PLUGIN_GET_INTERFACE(self)->name;
+	return GIS_PLUGIN_GET_INTERFACE(plugin)->name;
 }
 
-const gchar *gis_plugin_get_description(GisPlugin *self)
+const gchar *gis_plugin_get_description(GisPlugin *plugin)
 {
-	if (!GIS_IS_PLUGIN(self))
+	if (!GIS_IS_PLUGIN(plugin))
 		return NULL;
-	return GIS_PLUGIN_GET_INTERFACE(self)->description;
+	return GIS_PLUGIN_GET_INTERFACE(plugin)->description;
 }
 
-GtkWidget *gis_plugin_get_config(GisPlugin *self)
+GtkWidget *gis_plugin_get_config(GisPlugin *plugin)
 {
-	if (!GIS_IS_PLUGIN(self))
+	if (!GIS_IS_PLUGIN(plugin))
 		return NULL;
-	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(self);
-	return iface->get_config ? iface->get_config(self) : NULL;
+	GisPluginInterface *iface = GIS_PLUGIN_GET_INTERFACE(plugin);
+	return iface->get_config ? iface->get_config(plugin) : NULL;
 }
 
 
@@ -81,17 +81,17 @@ typedef struct {
 GisPlugins *gis_plugins_new(const gchar *dir, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: new - dir=%s", dir);
-	GisPlugins *self = g_new0(GisPlugins, 1);
-	self->prefs = prefs;
+	GisPlugins *plugins = g_new0(GisPlugins, 1);
+	plugins->prefs = prefs;
 	if (dir)
-		self->dir = g_strdup(dir);
-	return self;
+		plugins->dir = g_strdup(dir);
+	return plugins;
 }
 
-void gis_plugins_free(GisPlugins *self)
+void gis_plugins_free(GisPlugins *plugins)
 {
 	g_debug("GisPlugins: free");
-	for (GList *cur = self->plugins; cur; cur = cur->next) {
+	for (GList *cur = plugins->plugins; cur; cur = cur->next) {
 		GisPluginStore *store = cur->data;
 		g_debug("GisPlugin: freeing %s refs=%d->%d", store->name,
 			G_OBJECT(store->plugin)->ref_count,
@@ -100,17 +100,17 @@ void gis_plugins_free(GisPlugins *self)
 		g_free(store->name);
 		g_free(store);
 	}
-	g_list_free(self->plugins);
-	if (self->dir)
-		g_free(self->dir);
-	g_free(self);
+	g_list_free(plugins->plugins);
+	if (plugins->dir)
+		g_free(plugins->dir);
+	g_free(plugins);
 }
 
-GList *gis_plugins_available(GisPlugins *self)
+GList *gis_plugins_available(GisPlugins *plugins)
 {
 	g_debug("GisPlugins: available");
 	GList *list = NULL;
-	gchar *dirs[] = {self->dir, PLUGINSDIR};
+	gchar *dirs[] = {plugins->dir, PLUGINSDIR};
 	g_debug("pluginsdir=%s", PLUGINSDIR);
 	for (int i = 0; i<2; i++) {
 		if (dirs[i] == NULL)
@@ -132,11 +132,11 @@ GList *gis_plugins_available(GisPlugins *self)
 	return list;
 }
 
-GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
+GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs)
 {
 	g_debug("GisPlugins: load %s", name);
-	gchar *path = g_strdup_printf("%s/%s.%s", self->dir, name, G_MODULE_SUFFIX);
+	gchar *path = g_strdup_printf("%s/%s.%s", plugins->dir, name, G_MODULE_SUFFIX);
 	g_debug("GisPlugins: load - trying %s", path);
 	if (!g_file_test(path, G_FILE_TEST_EXISTS)) {
 		g_free(path);
@@ -170,62 +170,62 @@ GisPlugin *gis_plugins_load(GisPlugins *self, const char *name,
 	GisPluginStore *store = g_new0(GisPluginStore, 1);
 	store->name = g_strdup(name);
 	store->plugin = constructor(viewer, prefs);
-	self->plugins = g_list_prepend(self->plugins, store);
+	plugins->plugins = g_list_prepend(plugins->plugins, store);
 	return store->plugin;
 }
 
-GisPlugin *gis_plugins_enable(GisPlugins *self, const char *name,
+GisPlugin *gis_plugins_enable(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs)
 {
-	GisPlugin *plugin = gis_plugins_load(self, name, viewer, prefs);
-	gis_prefs_set_boolean_v(self->prefs, "plugins", name, TRUE);
+	GisPlugin *plugin = gis_plugins_load(plugins, name, viewer, prefs);
+	gis_prefs_set_boolean_v(plugins->prefs, "plugins", name, TRUE);
 	return plugin;
 }
 
-GList *gis_plugins_load_enabled(GisPlugins *self,
+GList *gis_plugins_load_enabled(GisPlugins *plugins,
 		GisViewer *viewer, GisPrefs *prefs)
 {
 	GList *loaded = NULL;
-	for (GList *cur = gis_plugins_available(self); cur; cur = cur->next) {
+	for (GList *cur = gis_plugins_available(plugins); cur; cur = cur->next) {
 		gchar *name = cur->data;
-		if (gis_prefs_get_boolean_v(self->prefs, "plugins", name, NULL)) {
-			GisPlugin *plugin = gis_plugins_load(self, name, viewer, prefs);
+		if (gis_prefs_get_boolean_v(plugins->prefs, "plugins", name, NULL)) {
+			GisPlugin *plugin = gis_plugins_load(plugins, name, viewer, prefs);
 			loaded = g_list_prepend(loaded, plugin);
 		}
 	}
 	return loaded;
 }
 
-gboolean gis_plugins_unload(GisPlugins *self, const char *name)
+gboolean gis_plugins_unload(GisPlugins *plugins, const char *name)
 {
 	g_debug("GisPlugins: unload %s", name);
-	for (GList *cur = self->plugins; cur; cur = cur->next) {
+	for (GList *cur = plugins->plugins; cur; cur = cur->next) {
 		GisPluginStore *store = cur->data;
 		if (g_str_equal(store->name, name)) {
 			g_object_unref(store->plugin);
 			g_free(store->name);
 			g_free(store);
-			self->plugins = g_list_delete_link(self->plugins, cur);
+			plugins->plugins = g_list_delete_link(plugins->plugins, cur);
 		}
 	}
 	return FALSE;
 }
 
-gboolean gis_plugins_disable(GisPlugins *self, const char *name)
+gboolean gis_plugins_disable(GisPlugins *plugins, const char *name)
 {
-	gis_prefs_set_boolean_v(self->prefs, "plugins", name, FALSE);
-	gis_plugins_unload(self, name);
+	gis_prefs_set_boolean_v(plugins->prefs, "plugins", name, FALSE);
+	gis_plugins_unload(plugins, name);
 	return FALSE;
 }
 
-void gis_plugins_foreach(GisPlugins *self, GCallback _callback, gpointer user_data)
+void gis_plugins_foreach(GisPlugins *plugins, GCallback _callback, gpointer user_data)
 {
 	g_debug("GisPlugins: foreach");
-	if (self == NULL)
+	if (plugins == NULL)
 		return;
 	typedef void (*CBFunc)(GisPlugin *, const gchar *, gpointer);
 	CBFunc callback = (CBFunc)_callback;
-	for (GList *cur = self->plugins; cur; cur = cur->next) {
+	for (GList *cur = plugins->plugins; cur; cur = cur->next) {
 		GisPluginStore *store = cur->data;
 		callback(store->plugin, store->name, user_data);
 	}

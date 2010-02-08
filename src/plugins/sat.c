@@ -28,14 +28,14 @@
 #define TILE_HEIGHT    512
 
 struct _LoadTileData {
-	GisPluginSat *self;
+	GisPluginSat *sat;
 	GisTile      *tile;
 	GdkPixbuf    *pixbuf;
 };
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginSat *self   = data->self;
+	GisPluginSat *sat    = data->sat;
 	GisTile      *tile   = data->tile;
 	GdkPixbuf    *pixbuf = data->pixbuf;
 	g_free(data);
@@ -62,18 +62,18 @@ static gboolean _load_tile_cb(gpointer _data)
 	glFlush();
 
 	tile->data = tex;
-	gtk_widget_queue_draw(GTK_WIDGET(self->viewer));
+	gtk_widget_queue_draw(GTK_WIDGET(sat->viewer));
 	g_object_unref(pixbuf);
 	return FALSE;
 }
 
-static void _load_tile(GisTile *tile, gpointer _self)
+static void _load_tile(GisTile *tile, gpointer _sat)
 {
-	GisPluginSat *self = _self;
+	GisPluginSat *sat = _sat;
 	g_debug("GisPluginSat: _load_tile start %p", g_thread_self());
-	char *path = gis_wms_fetch(self->wms, tile, GIS_ONCE, NULL, NULL);
+	char *path = gis_wms_fetch(sat->wms, tile, GIS_ONCE, NULL, NULL);
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
-	data->self   = self;
+	data->sat   = sat;
 	data->tile   = tile;
 	data->pixbuf = gdk_pixbuf_new_from_file(path, NULL);
 	if (data->pixbuf) {
@@ -93,27 +93,27 @@ static gboolean _free_tile_cb(gpointer data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _self)
+static void _free_tile(GisTile *tile, gpointer _sat)
 {
-	GisPluginSat *self = _self;
+	GisPluginSat *sat = _sat;
 	g_debug("GisPluginSat: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
 	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
-static gpointer _update_tiles(gpointer _self)
+static gpointer _update_tiles(gpointer _sat)
 {
 	g_debug("GisPluginSat: _update_tiles");
-	GisPluginSat *self = _self;
-	g_mutex_lock(self->mutex);
+	GisPluginSat *sat = _sat;
+	g_mutex_lock(sat->mutex);
 	gdouble lat, lon, elev;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
-	gis_tile_update(self->tiles,
+	gis_viewer_get_location(sat->viewer, &lat, &lon, &elev);
+	gis_tile_update(sat->tiles,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			lat, lon, elev,
-			_load_tile, self);
-	gis_tile_gc(self->tiles, time(NULL)-10,
-			_free_tile, self);
-	g_mutex_unlock(self->mutex);
+			_load_tile, sat);
+	gis_tile_gc(sat->tiles, time(NULL)-10,
+			_free_tile, sat);
+	g_mutex_unlock(sat->mutex);
 	return NULL;
 }
 
@@ -121,9 +121,9 @@ static gpointer _update_tiles(gpointer _self)
  * Callbacks *
  *************/
 static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginSat *self)
+		gdouble lat, gdouble lon, gdouble elev, GisPluginSat *sat)
 {
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	g_thread_create(_update_tiles, sat, FALSE, NULL);
 }
 
 /***********
@@ -132,21 +132,21 @@ static void _on_location_changed(GisViewer *viewer,
 GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 {
 	g_debug("GisPluginSat: new");
-	GisPluginSat *self = g_object_new(GIS_TYPE_PLUGIN_SAT, NULL);
-	self->viewer = g_object_ref(viewer);
+	GisPluginSat *sat = g_object_new(GIS_TYPE_PLUGIN_SAT, NULL);
+	sat->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(self->tiles, self);
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	_load_tile(sat->tiles, sat);
+	g_thread_create(_update_tiles, sat, FALSE, NULL);
 
 	/* Connect signals */
-	self->sigid = g_signal_connect(self->viewer, "location-changed",
-			G_CALLBACK(_on_location_changed), self);
+	sat->sigid = g_signal_connect(sat->viewer, "location-changed",
+			G_CALLBACK(_on_location_changed), sat);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(self->tiles), GIS_LEVEL_WORLD, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(sat->tiles), GIS_LEVEL_WORLD, 0);
 
-	return self;
+	return sat;
 }
 
 
@@ -164,36 +164,36 @@ static void gis_plugin_sat_plugin_init(GisPluginInterface *iface)
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_sat_init(GisPluginSat *self)
+static void gis_plugin_sat_init(GisPluginSat *sat)
 {
 	g_debug("GisPluginSat: init");
 	/* Set defaults */
-	self->mutex = g_mutex_new();
-	self->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	self->wms   = gis_wms_new(
+	sat->mutex = g_mutex_new();
+	sat->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	sat->wms   = gis_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng/", "jpg", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_sat_dispose(GObject *gobject)
 {
 	g_debug("GisPluginSat: dispose");
-	GisPluginSat *self = GIS_PLUGIN_SAT(gobject);
+	GisPluginSat *sat = GIS_PLUGIN_SAT(gobject);
 	/* Drop references */
-	if (self->viewer) {
-		g_signal_handler_disconnect(self->viewer, self->sigid);
-		g_object_unref(self->viewer);
-		self->viewer = NULL;
+	if (sat->viewer) {
+		g_signal_handler_disconnect(sat->viewer, sat->sigid);
+		g_object_unref(sat->viewer);
+		sat->viewer = NULL;
 	}
 	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->dispose(gobject);
 }
 static void gis_plugin_sat_finalize(GObject *gobject)
 {
 	g_debug("GisPluginSat: finalize");
-	GisPluginSat *self = GIS_PLUGIN_SAT(gobject);
+	GisPluginSat *sat = GIS_PLUGIN_SAT(gobject);
 	/* Free data */
-	gis_tile_free(self->tiles, _free_tile, self);
-	gis_wms_free(self->wms);
-	g_mutex_free(self->mutex);
+	gis_tile_free(sat->tiles, _free_tile, sat);
+	gis_wms_free(sat->wms);
+	g_mutex_free(sat->mutex);
 	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->finalize(gobject);
 
 }

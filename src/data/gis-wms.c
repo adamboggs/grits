@@ -90,14 +90,14 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 		tile->edge.n);
 }
 
-gchar *gis_wms_fetch(GisWms *self, GisTile *tile, GisCacheType mode,
+gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
 		GisChunkCallback callback, gpointer user_data)
 {
-	gchar *uri   = _make_uri(self, tile);
+	gchar *uri   = _make_uri(wms, tile);
 	gchar *tilep = gis_tile_get_path(tile);
-	gchar *local = g_strdup_printf("%s%s", tilep, self->extension);
+	gchar *local = g_strdup_printf("%s%s", tilep, wms->extension);
 	mode = GIS_ONCE;
-	gchar *path  = gis_http_fetch(self->http, uri, local,
+	gchar *path  = gis_http_fetch(wms->http, uri, local,
 			mode, callback, user_data);
 	g_free(uri);
 	g_free(tilep);
@@ -111,24 +111,24 @@ GisWms *gis_wms_new(
 	const gchar *extension, gint width, gint height)
 {
 	g_debug("GisWms: new - %s", uri_prefix);
-	GisWms *self = g_new0(GisWms, 1);
-	self->http         = gis_http_new(prefix);
-	self->uri_prefix   = g_strdup(uri_prefix);
-	self->uri_layer    = g_strdup(uri_layer);
-	self->uri_format   = g_strdup(uri_format);
-	self->extension    = g_strdup(extension);
-	self->width        = width;
-	self->height       = height;
-	return self;
+	GisWms *wms = g_new0(GisWms, 1);
+	wms->http         = gis_http_new(prefix);
+	wms->uri_prefix   = g_strdup(uri_prefix);
+	wms->uri_layer    = g_strdup(uri_layer);
+	wms->uri_format   = g_strdup(uri_format);
+	wms->extension    = g_strdup(extension);
+	wms->width        = width;
+	wms->height       = height;
+	return wms;
 }
 
-void gis_wms_free(GisWms *self)
+void gis_wms_free(GisWms *wms)
 {
-	g_debug("GisWms: free - %s", self->uri_prefix);
-	gis_http_free(self->http);
-	g_free(self->uri_prefix);
-	g_free(self->uri_layer);
-	g_free(self->uri_format);
-	g_free(self->extension);
-	g_free(self);
+	g_debug("GisWms: free - %s", wms->uri_prefix);
+	gis_http_free(wms->http);
+	g_free(wms->uri_prefix);
+	g_free(wms->uri_layer);
+	g_free(wms->uri_format);
+	g_free(wms->extension);
+	g_free(wms);
 }

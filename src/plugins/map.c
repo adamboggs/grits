@@ -36,7 +36,7 @@ const guchar colormap[][2][4] = {
 };
 
 struct _LoadTileData {
-	GisPluginMap *self;
+	GisPluginMap *map;
 	GisTile      *tile;
 	GdkPixbuf    *pixbuf;
 };
@@ -44,7 +44,7 @@ struct _LoadTileData {
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginMap *self   = data->self;
+	GisPluginMap *map    = data->map;
 	GisTile      *tile   = data->tile;
 	GdkPixbuf    *pixbuf = data->pixbuf;
 	g_free(data);
@@ -85,18 +85,18 @@ static gboolean _load_tile_cb(gpointer _data)
 	glFlush();
 
 	tile->data = tex;
-	gtk_widget_queue_draw(GTK_WIDGET(self->viewer));
+	gtk_widget_queue_draw(GTK_WIDGET(map->viewer));
 	g_object_unref(pixbuf);
 	return FALSE;
 }
 
-static void _load_tile(GisTile *tile, gpointer _self)
+static void _load_tile(GisTile *tile, gpointer _map)
 {
-	GisPluginMap *self = _self;
+	GisPluginMap *map = _map;
 	g_debug("GisPluginMap: _load_tile start %p", g_thread_self());
-	char *path = gis_wms_fetch(self->wms, tile, GIS_ONCE, NULL, NULL);
+	char *path = gis_wms_fetch(map->wms, tile, GIS_ONCE, NULL, NULL);
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
-	data->self   = self;
+	data->map    = map;
 	data->tile   = tile;
 	data->pixbuf = gdk_pixbuf_new_from_file(path, NULL);
 	if (data->pixbuf) {
@@ -115,27 +115,27 @@ static gboolean _free_tile_cb(gpointer data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _self)
+static void _free_tile(GisTile *tile, gpointer _map)
 {
-	GisPluginMap *self = _self;
+	GisPluginMap *map = _map;
 	g_debug("GisPluginMap: _free_tile: %p", tile->data);
 	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
-static gpointer _update_tiles(gpointer _self)
+static gpointer _update_tiles(gpointer _map)
 {
 	g_debug("GisPluginMap: _update_tiles");
-	GisPluginMap *self = _self;
-	g_mutex_lock(self->mutex);
+	GisPluginMap *map = _map;
+	g_mutex_lock(map->mutex);
 	gdouble lat, lon, elev;
-	gis_viewer_get_location(self->viewer, &lat, &lon, &elev);
-	gis_tile_update(self->tiles,
+	gis_viewer_get_location(map->viewer, &lat, &lon, &elev);
+	gis_tile_update(map->tiles,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			lat, lon, elev,
-			_load_tile, self);
-	gis_tile_gc(self->tiles, time(NULL)-10,
-			_free_tile, self);
-	g_mutex_unlock(self->mutex);
+			_load_tile, map);
+	gis_tile_gc(map->tiles, time(NULL)-10,
+			_free_tile, map);
+	g_mutex_unlock(map->mutex);
 	return NULL;
 }
 
@@ -143,9 +143,9 @@ static gpointer _update_tiles(gpointer _self)
  * Callbacks *
  *************/
 static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginMap *self)
+		gdouble lat, gdouble lon, gdouble elev, GisPluginMap *map)
 {
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	g_thread_create(_update_tiles, map, FALSE, NULL);
 }
 
 /***********
@@ -154,21 +154,21 @@ static void _on_location_changed(GisViewer *viewer,
 GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 {
 	g_debug("GisPluginMap: new");
-	GisPluginMap *self = g_object_new(GIS_TYPE_PLUGIN_MAP, NULL);
-	self->viewer = g_object_ref(viewer);
+	GisPluginMap *map = g_object_new(GIS_TYPE_PLUGIN_MAP, NULL);
+	map->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(self->tiles, self);
-	g_thread_create(_update_tiles, self, FALSE, NULL);
+	_load_tile(map->tiles, map);
+	g_thread_create(_update_tiles, map, FALSE, NULL);
 
 	/* Connect signals */
-	self->sigid = g_signal_connect(self->viewer, "location-changed",
-			G_CALLBACK(_on_location_changed), self);
+	map->sigid = g_signal_connect(map->viewer, "location-changed",
+			G_CALLBACK(_on_location_changed), map);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(self->tiles), GIS_LEVEL_OVERLAY, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(map->tiles), GIS_LEVEL_OVERLAY, 0);
 
-	return self;
+	return map;
 }
 
 
@@ -186,36 +186,36 @@ static void gis_plugin_map_plugin_init(GisPluginInterface *iface)
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_map_init(GisPluginMap *self)
+static void gis_plugin_map_init(GisPluginMap *map)
 {
 	g_debug("GisPluginMap: init");
 	/* Set defaults */
-	self->mutex  = g_mutex_new();
-	self->tiles  = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	self->wms    = gis_wms_new(
+	map->mutex  = g_mutex_new();
+	map->tiles  = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	map->wms    = gis_wms_new(
 		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
 		"osm/", "png", TILE_WIDTH, TILE_HEIGHT);
 }
 static void gis_plugin_map_dispose(GObject *gobject)
 {
 	g_debug("GisPluginMap: dispose");
-	GisPluginMap *self = GIS_PLUGIN_MAP(gobject);
+	GisPluginMap *map = GIS_PLUGIN_MAP(gobject);
 	/* Drop references */
-	if (self->viewer) {
-		g_signal_handler_disconnect(self->viewer, self->sigid);
-		g_object_unref(self->viewer);
-		self->viewer = NULL;
+	if (map->viewer) {
+		g_signal_handler_disconnect(map->viewer, map->sigid);
+		g_object_unref(map->viewer);
+		map->viewer = NULL;
 	}
 	G_OBJECT_CLASS(gis_plugin_map_parent_class)->dispose(gobject);
 }
 static void gis_plugin_map_finalize(GObject *gobject)
 {
 	g_debug("GisPluginMap: finalize");
-	GisPluginMap *self = GIS_PLUGIN_MAP(gobject);
+	GisPluginMap *map = GIS_PLUGIN_MAP(gobject);
 	/* Free data */
-	gis_tile_free(self->tiles, _free_tile, self);
-	gis_wms_free(self->wms);
-	g_mutex_free(self->mutex);
+	gis_tile_free(map->tiles, _free_tile, map);
+	gis_wms_free(map->wms);
+	g_mutex_free(map->mutex);
 	G_OBJECT_CLASS(gis_plugin_map_parent_class)->finalize(gobject);
 
 }

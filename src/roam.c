@@ -52,51 +52,51 @@ static gint dia_cmp(RoamDiamond *a, RoamDiamond *b, gpointer data)
  *************/
 RoamPoint *roam_point_new(gdouble lat, gdouble lon, gdouble elev)
 {
-	RoamPoint *self = g_new0(RoamPoint, 1);
-	self->lat  = lat;
-	self->lon  = lon;
-	self->elev = elev;
+	RoamPoint *point = g_new0(RoamPoint, 1);
+	point->lat  = lat;
+	point->lon  = lon;
+	point->elev = elev;
 	/* For get_intersect */
-	lle2xyz(lat, lon, elev, &self->x, &self->y, &self->z);
-	return self;
+	lle2xyz(lat, lon, elev, &point->x, &point->y, &point->z);
+	return point;
 }
-RoamPoint *roam_point_dup(RoamPoint *self)
+RoamPoint *roam_point_dup(RoamPoint *point)
 {
-	RoamPoint *new = g_memdup(self, sizeof(RoamPoint));
+	RoamPoint *new = g_memdup(point, sizeof(RoamPoint));
 	new->tris = 0;
 	return new;
 }
-void roam_point_add_triangle(RoamPoint *self, RoamTriangle *triangle)
+void roam_point_add_triangle(RoamPoint *point, RoamTriangle *triangle)
 {
 	for (int i = 0; i < 3; i++) {
-		self->norm[i] *= self->tris;
-		self->norm[i] += triangle->norm[i];
+		point->norm[i] *= point->tris;
+		point->norm[i] += triangle->norm[i];
 	}
-	self->tris++;
+	point->tris++;
 	for (int i = 0; i < 3; i++)
-		self->norm[i] /= self->tris;
+		point->norm[i] /= point->tris;
 }
-void roam_point_remove_triangle(RoamPoint *self, RoamTriangle *triangle)
+void roam_point_remove_triangle(RoamPoint *point, RoamTriangle *triangle)
 {
 	for (int i = 0; i < 3; i++) {
-		self->norm[i] *= self->tris;
-		self->norm[i] -= triangle->norm[i];
+		point->norm[i] *= point->tris;
+		point->norm[i] -= triangle->norm[i];
 	}
-	self->tris--;
-	if (self->tris)
+	point->tris--;
+	if (point->tris)
 		for (int i = 0; i < 3; i++)
-			self->norm[i] /= self->tris;
+			point->norm[i] /= point->tris;
 }
-void roam_point_update_height(RoamPoint *self)
+void roam_point_update_height(RoamPoint *point)
 {
-	if (self->height_func) {
-		gdouble elev = self->height_func(
-				self->lat, self->lon, self->height_data);
-		lle2xyz(self->lat, self->lon, elev,
-				&self->x, &self->y, &self->z);
+	if (point->height_func) {
+		gdouble elev = point->height_func(
+				point->lat, point->lon, point->height_data);
+		lle2xyz(point->lat, point->lon, elev,
+				&point->x, &point->y, &point->z);
 	}
 }
-void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
+void roam_point_update_projection(RoamPoint *point, RoamSphere *sphere)
 {
 	static int count   = 0;
 	static int version = 0;
@@ -106,12 +106,12 @@ void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
 		version = sphere->view->version;
 	}
 
-	if (self->pversion != sphere->view->version) {
+	if (point->pversion != sphere->view->version) {
 		/* Cache projection */
-		gluProject(self->x, self->y, self->z,
+		gluProject(point->x, point->y, point->z,
 			sphere->view->model, sphere->view->proj, sphere->view->view,
-			&self->px, &self->py, &self->pz);
-		self->pversion = sphere->view->version;
+			&point->px, &point->py, &point->pz);
+		point->pversion = sphere->view->version;
 		count++;
 	}
 }
@@ -121,113 +121,113 @@ void roam_point_update_projection(RoamPoint *self, RoamSphere *sphere)
  ****************/
 RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
 {
-	RoamTriangle *self = g_new0(RoamTriangle, 1);
+	RoamTriangle *triangle = g_new0(RoamTriangle, 1);
 
-	self->error = 0;
-	self->p.l = l;
-	self->p.m = m;
-	self->p.r = r;
-	self->split = roam_point_new(
+	triangle->error = 0;
+	triangle->p.l = l;
+	triangle->p.m = m;
+	triangle->p.r = r;
+	triangle->split = roam_point_new(
 		(l->lat + r->lat)/2,
 		(ABS(l->lat) == 90 ? r->lon :
 		 ABS(r->lat) == 90 ? l->lon :
 		 lon_avg(l->lon, r->lon)),
 		(l->elev + r->elev)/2);
 	/* TODO: Move this back to sphere, or actually use the nesting */
-	self->split->height_func = m->height_func;
-	self->split->height_data = m->height_data;
-	roam_point_update_height(self->split);
-	//if ((float)self->split->lat > 44 && (float)self->split->lat < 46)
+	triangle->split->height_func = m->height_func;
+	triangle->split->height_data = m->height_data;
+	roam_point_update_height(triangle->split);
+	//if ((float)triangle->split->lat > 44 && (float)triangle->split->lat < 46)
 	//	g_debug("RoamTriangle: new - (l,m,r,split).lats = %7.2f %7.2f %7.2f %7.2f",
-	//			l->lat, m->lat, r->lat, self->split->lat);
+	//			l->lat, m->lat, r->lat, triangle->split->lat);
 	//if ((float)l->lat == (float)r->lat &&
-	//    (float)self->split->lat != (float)l->lat)
+	//    (float)triangle->split->lat != (float)l->lat)
 	//	g_warning("RoamTriangle: new - split.lat=%f != (l=r).lat=%f",
-	//		self->split->lat, l->lat);
+	//		triangle->split->lat, l->lat);
 
 	/* Update normal */
 	double pa[3];
 	double pb[3];
-	pa[0] = self->p.l->x - self->p.m->x;
-	pa[1] = self->p.l->y - self->p.m->y;
-	pa[2] = self->p.l->z - self->p.m->z;
+	pa[0] = triangle->p.l->x - triangle->p.m->x;
+	pa[1] = triangle->p.l->y - triangle->p.m->y;
+	pa[2] = triangle->p.l->z - triangle->p.m->z;
 
-	pb[0] = self->p.r->x - self->p.m->x;
-	pb[1] = self->p.r->y - self->p.m->y;
-	pb[2] = self->p.r->z - self->p.m->z;
+	pb[0] = triangle->p.r->x - triangle->p.m->x;
+	pb[1] = triangle->p.r->y - triangle->p.m->y;
+	pb[2] = triangle->p.r->z - triangle->p.m->z;
 
-	self->norm[0] = pa[1] * pb[2] - pa[2] * pb[1];
-	self->norm[1] = pa[2] * pb[0] - pa[0] * pb[2];
-	self->norm[2] = pa[0] * pb[1] - pa[1] * pb[0];
+	triangle->norm[0] = pa[1] * pb[2] - pa[2] * pb[1];
+	triangle->norm[1] = pa[2] * pb[0] - pa[0] * pb[2];
+	triangle->norm[2] = pa[0] * pb[1] - pa[1] * pb[0];
 
-	double total = sqrt(self->norm[0] * self->norm[0] +
-	                    self->norm[1] * self->norm[1] +
-	                    self->norm[2] * self->norm[2]);
+	double total = sqrt(triangle->norm[0] * triangle->norm[0] +
+	                    triangle->norm[1] * triangle->norm[1] +
+	                    triangle->norm[2] * triangle->norm[2]);
 
-	self->norm[0] /= total;
-	self->norm[1] /= total;
-	self->norm[2] /= total;
+	triangle->norm[0] /= total;
+	triangle->norm[1] /= total;
+	triangle->norm[2] /= total;
 
 	/* Store bounding box, for get_intersect */
 	RoamPoint *p[] = {l,m,r};
-	self->edge.n =  -90; self->edge.s =  90;
-	self->edge.e = -180; self->edge.w = 180;
+	triangle->edge.n =  -90; triangle->edge.s =  90;
+	triangle->edge.e = -180; triangle->edge.w = 180;
 	gboolean maxed = FALSE;
 	for (int i = 0; i < G_N_ELEMENTS(p); i++) {
-		self->edge.n = MAX(self->edge.n, p[i]->lat);
-		self->edge.s = MIN(self->edge.s, p[i]->lat);
+		triangle->edge.n = MAX(triangle->edge.n, p[i]->lat);
+		triangle->edge.s = MIN(triangle->edge.s, p[i]->lat);
 		if (p[i]->lat == 90 || p[i]->lat == -90)
 			continue;
 		if (p[i]->lon == 180) {
 			maxed = TRUE;
 			continue;
 		}
-		self->edge.e = MAX(self->edge.e, p[i]->lon);
-		self->edge.w = MIN(self->edge.w, p[i]->lon);
+		triangle->edge.e = MAX(triangle->edge.e, p[i]->lon);
+		triangle->edge.w = MIN(triangle->edge.w, p[i]->lon);
 	}
 	if (maxed) {
-		if (self->edge.e < 0)
-			self->edge.w = -180;
+		if (triangle->edge.e < 0)
+			triangle->edge.w = -180;
 		else
-			self->edge.e =  180;
+			triangle->edge.e =  180;
 	}
 
-	//g_message("roam_triangle_new: %p", self);
-	return self;
+	//g_message("roam_triangle_new: %p", triangle);
+	return triangle;
 }
 
-void roam_triangle_free(RoamTriangle *self)
+void roam_triangle_free(RoamTriangle *triangle)
 {
-	g_free(self->split);
-	g_free(self);
+	g_free(triangle->split);
+	g_free(triangle);
 }
 
-void roam_triangle_add(RoamTriangle *self,
+void roam_triangle_add(RoamTriangle *triangle,
 		RoamTriangle *left, RoamTriangle *base, RoamTriangle *right,
 		RoamSphere *sphere)
 {
-	self->t.l = left;
-	self->t.b = base;
-	self->t.r = right;
+	triangle->t.l = left;
+	triangle->t.b = base;
+	triangle->t.r = right;
 
-	roam_point_add_triangle(self->p.l, self);
-	roam_point_add_triangle(self->p.m, self);
-	roam_point_add_triangle(self->p.r, self);
+	roam_point_add_triangle(triangle->p.l, triangle);
+	roam_point_add_triangle(triangle->p.m, triangle);
+	roam_point_add_triangle(triangle->p.r, triangle);
 
 	if (sphere->view)
-		roam_triangle_update_errors(self, sphere);
+		roam_triangle_update_errors(triangle, sphere);
 
-	self->handle = g_pqueue_push(sphere->triangles, self);
+	triangle->handle = g_pqueue_push(sphere->triangles, triangle);
 }
 
-void roam_triangle_remove(RoamTriangle *self, RoamSphere *sphere)
+void roam_triangle_remove(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Update vertex normals */
-	roam_point_remove_triangle(self->p.l, self);
-	roam_point_remove_triangle(self->p.m, self);
-	roam_point_remove_triangle(self->p.r, self);
+	roam_point_remove_triangle(triangle->p.l, triangle);
+	roam_point_remove_triangle(triangle->p.m, triangle);
+	roam_point_remove_triangle(triangle->p.r, triangle);
 
-	g_pqueue_remove(sphere->triangles, self->handle);
+	g_pqueue_remove(sphere->triangles, triangle->handle);
 }
 
 void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTriangle *neigh)
@@ -238,43 +238,43 @@ void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTria
 	else g_assert_not_reached();
 }
 
-gboolean roam_point_visible(RoamPoint *self, RoamSphere *sphere)
+gboolean roam_point_visible(RoamPoint *triangle, RoamSphere *sphere)
 {
 	gint *view = sphere->view->view;
-	return self->px > view[0] && self->px < view[2] &&
-	       self->py > view[1] && self->py < view[3] &&
-	       self->pz > 0       && self->pz < 1;
+	return triangle->px > view[0] && triangle->px < view[2] &&
+	       triangle->py > view[1] && triangle->py < view[3] &&
+	       triangle->pz > 0       && triangle->pz < 1;
 }
-gboolean roam_triangle_visible(RoamTriangle *self, RoamSphere *sphere)
+gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Do this with a bounding box */
-	return roam_point_visible(self->p.l, sphere) ||
-	       roam_point_visible(self->p.m, sphere) ||
-	       roam_point_visible(self->p.r, sphere);
+	return roam_point_visible(triangle->p.l, sphere) ||
+	       roam_point_visible(triangle->p.m, sphere) ||
+	       roam_point_visible(triangle->p.r, sphere);
 }
 
-void roam_triangle_update_errors(RoamTriangle *self, RoamSphere *sphere)
+void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 {
 	/* Update points */
-	roam_point_update_projection(self->p.l, sphere);
-	roam_point_update_projection(self->p.m, sphere);
-	roam_point_update_projection(self->p.r, sphere);
+	roam_point_update_projection(triangle->p.l, sphere);
+	roam_point_update_projection(triangle->p.m, sphere);
+	roam_point_update_projection(triangle->p.r, sphere);
 
 	/* Not exactly correct, could be out on both sides (middle in) */
-	if (!roam_triangle_visible(self, sphere)) {
-		self->error = -1;
+	if (!roam_triangle_visible(triangle, sphere)) {
+		triangle->error = -1;
 	} else {
-		roam_point_update_projection(self->split, sphere);
-		RoamPoint *l = self->p.l;
-		RoamPoint *m = self->p.m;
-		RoamPoint *r = self->p.r;
-		RoamPoint *split = self->split;
+		roam_point_update_projection(triangle->split, sphere);
+		RoamPoint *l = triangle->p.l;
+		RoamPoint *m = triangle->p.m;
+		RoamPoint *r = triangle->p.r;
+		RoamPoint *split = triangle->split;
 
 		/*               l-r midpoint        projected l-r midpoint */
 		gdouble pxdist = (l->px + r->px)/2 - split->px;
 		gdouble pydist = (l->py + r->py)/2 - split->py;
 
-		self->error = sqrt(pxdist*pxdist + pydist*pydist);
+		triangle->error = sqrt(pxdist*pxdist + pydist*pydist);
 
 		/* Multiply by size of triangle */
 		double size = -( l->px * (m->py - r->py) +
@@ -283,75 +283,75 @@ void roam_triangle_update_errors(RoamTriangle *self, RoamSphere *sphere)
 
 		/* Size < 0 == backface */
 		//if (size < 0)
-		//	self->error *= -1;
-		self->error *= size;
+		//	triangle->error *= -1;
+		triangle->error *= size;
 	}
 }
 
-void roam_triangle_split(RoamTriangle *self, RoamSphere *sphere)
+void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 {
-	//g_message("roam_triangle_split: %p, e=%f\n", self, self->error);
+	//g_message("roam_triangle_split: %p, e=%f\n", triangle, triangle->error);
 
 	sphere->polys += 2;
 
-	if (self != self->t.b->t.b)
-		roam_triangle_split(self->t.b, sphere);
-	if (self != self->t.b->t.b)
+	if (triangle != triangle->t.b->t.b)
+		roam_triangle_split(triangle->t.b, sphere);
+	if (triangle != triangle->t.b->t.b)
 		g_assert_not_reached();
 
-	RoamTriangle *base = self->t.b;
+	RoamTriangle *base = triangle->t.b;
 
 	/* Add new triangles */
-	RoamPoint *mid = self->split;
-	RoamTriangle *sl = self->kids[0] = roam_triangle_new(self->p.m, mid, self->p.l); // Self Left
-	RoamTriangle *sr = self->kids[1] = roam_triangle_new(self->p.r, mid, self->p.m); // Self Right
+	RoamPoint *mid = triangle->split;
+	RoamTriangle *sl = triangle->kids[0] = roam_triangle_new(triangle->p.m, mid, triangle->p.l); // triangle Left
+	RoamTriangle *sr = triangle->kids[1] = roam_triangle_new(triangle->p.r, mid, triangle->p.m); // triangle Right
 	RoamTriangle *bl = base->kids[0] = roam_triangle_new(base->p.m, mid, base->p.l); // Base Left
 	RoamTriangle *br = base->kids[1] = roam_triangle_new(base->p.r, mid, base->p.m); // Base Right
 
-	/*                tri,l,  base,      r,  sphere */
-	roam_triangle_add(sl, sr, self->t.l, br, sphere);
-	roam_triangle_add(sr, bl, self->t.r, sl, sphere);
+	/*                triangle,l,  base,      r,  sphere */
+	roam_triangle_add(sl, sr, triangle->t.l, br, sphere);
+	roam_triangle_add(sr, bl, triangle->t.r, sl, sphere);
 	roam_triangle_add(bl, br, base->t.l, sr, sphere);
 	roam_triangle_add(br, sl, base->t.r, bl, sphere);
 
-	roam_triangle_sync_neighbors(sl, self, self->t.l);
-	roam_triangle_sync_neighbors(sr, self, self->t.r);
+	roam_triangle_sync_neighbors(sl, triangle, triangle->t.l);
+	roam_triangle_sync_neighbors(sr, triangle, triangle->t.r);
 	roam_triangle_sync_neighbors(bl, base, base->t.l);
 	roam_triangle_sync_neighbors(br, base, base->t.r);
 
 	/* Remove old triangles */
-	roam_triangle_remove(self, sphere);
+	roam_triangle_remove(triangle, sphere);
 	roam_triangle_remove(base, sphere);
 
 	/* Add/Remove diamonds */
-	RoamDiamond *diamond = roam_diamond_new(self, base, sl, sr, bl, br);
+	RoamDiamond *diamond = roam_diamond_new(triangle, base, sl, sr, bl, br);
 	roam_diamond_update_errors(diamond, sphere);
 	roam_diamond_add(diamond, sphere);
-	roam_diamond_remove(self->parent, sphere);
+	roam_diamond_remove(triangle->parent, sphere);
 	roam_diamond_remove(base->parent, sphere);
 }
 
-void roam_triangle_draw(RoamTriangle *self)
+void roam_triangle_draw(RoamTriangle *triangle)
 {
 	glBegin(GL_TRIANGLES);
-	glNormal3dv(self->p.r->norm); glVertex3dv((double*)self->p.r);
-	glNormal3dv(self->p.m->norm); glVertex3dv((double*)self->p.m);
-	glNormal3dv(self->p.l->norm); glVertex3dv((double*)self->p.l);
+	glNormal3dv(triangle->p.r->norm); glVertex3dv((double*)triangle->p.r);
+	glNormal3dv(triangle->p.m->norm); glVertex3dv((double*)triangle->p.m);
+	glNormal3dv(triangle->p.l->norm); glVertex3dv((double*)triangle->p.l);
 	glEnd();
 	return;
 }
 
-void roam_triangle_draw_normal(RoamTriangle *self)
+void roam_triangle_draw_normal(RoamTriangle *triangle)
 {
 	double center[] = {
-		(self->p.l->x + self->p.m->x + self->p.r->x)/3.0,
-		(self->p.l->y + self->p.m->y + self->p.r->y)/3.0,
-		(self->p.l->z + self->p.m->z + self->p.r->z)/3.0,
+		(triangle->p.l->x + triangle->p.m->x + triangle->p.r->x)/3.0,
+		(triangle->p.l->y + triangle->p.m->y + triangle->p.r->y)/3.0,
+		(triangle->p.l->z + triangle->p.m->z + triangle->p.r->z)/3.0,
 	};
 	double end[] = {
-		center[0]+self->norm[0]*2000000,
-		center[1]+self->norm[1]*2000000,
-		center[2]+self->norm[2]*2000000,
+		center[0]+triangle->norm[0]*2000000,
+		center[1]+triangle->norm[1]*2000000,
+		center[2]+triangle->norm[2]*2000000,
 	};
 	glBegin(GL_LINES);
 	glVertex3dv(center);
@@ -367,54 +367,54 @@ RoamDiamond *roam_diamond_new(
 		RoamTriangle *kid0, RoamTriangle *kid1,
 		RoamTriangle *kid2, RoamTriangle *kid3)
 {
-	RoamDiamond *self = g_new0(RoamDiamond, 1);
+	RoamDiamond *diamond = g_new0(RoamDiamond, 1);
 
-	self->kids[0] = kid0;
-	self->kids[1] = kid1;
-	self->kids[2] = kid2;
-	self->kids[3] = kid3;
+	diamond->kids[0] = kid0;
+	diamond->kids[1] = kid1;
+	diamond->kids[2] = kid2;
+	diamond->kids[3] = kid3;
 
-	kid0->parent = self;
-	kid1->parent = self;
-	kid2->parent = self;
-	kid3->parent = self;
+	kid0->parent = diamond;
+	kid1->parent = diamond;
+	kid2->parent = diamond;
+	kid3->parent = diamond;
 
-	self->parents[0] = parent0;
-	self->parents[1] = parent1;
+	diamond->parents[0] = parent0;
+	diamond->parents[1] = parent1;
 
-	return self;
+	return diamond;
 }
-void roam_diamond_add(RoamDiamond *self, RoamSphere *sphere)
+void roam_diamond_add(RoamDiamond *diamond, RoamSphere *sphere)
 {
-	self->active = TRUE;
-	self->error  = MAX(self->parents[0]->error, self->parents[1]->error);
-	self->handle = g_pqueue_push(sphere->diamonds, self);
+	diamond->active = TRUE;
+	diamond->error  = MAX(diamond->parents[0]->error, diamond->parents[1]->error);
+	diamond->handle = g_pqueue_push(sphere->diamonds, diamond);
 }
-void roam_diamond_remove(RoamDiamond *self, RoamSphere *sphere)
+void roam_diamond_remove(RoamDiamond *diamond, RoamSphere *sphere)
 {
-	if (self && self->active) {
-		self->active = FALSE;
-		g_pqueue_remove(sphere->diamonds, self->handle);
+	if (diamond && diamond->active) {
+		diamond->active = FALSE;
+		g_pqueue_remove(sphere->diamonds, diamond->handle);
 	}
 }
-void roam_diamond_merge(RoamDiamond *self, RoamSphere *sphere)
+void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 {
-	//g_message("roam_diamond_merge: %p, e=%f\n", self, self->error);
+	//g_message("roam_diamond_merge: %p, e=%f\n", diamond, diamond->error);
 
 	sphere->polys -= 2;
 
 	/* TODO: pick the best split */
-	RoamTriangle **kids = self->kids;
+	RoamTriangle **kids = diamond->kids;
 
 	/* Create triangles */
-	RoamTriangle *tri  = self->parents[0];
-	RoamTriangle *base = self->parents[1];
+	RoamTriangle *triangle  = diamond->parents[0];
+	RoamTriangle *base = diamond->parents[1];
 
-	roam_triangle_add(tri,  kids[0]->t.b, base, kids[1]->t.b, sphere);
-	roam_triangle_add(base, kids[2]->t.b, tri,  kids[3]->t.b, sphere);
+	roam_triangle_add(triangle,  kids[0]->t.b, base, kids[1]->t.b, sphere);
+	roam_triangle_add(base, kids[2]->t.b, triangle,  kids[3]->t.b, sphere);
 
-	roam_triangle_sync_neighbors(tri,  kids[0], kids[0]->t.b);
-	roam_triangle_sync_neighbors(tri,  kids[1], kids[1]->t.b);
+	roam_triangle_sync_neighbors(triangle,  kids[0], kids[0]->t.b);
+	roam_triangle_sync_neighbors(triangle,  kids[1], kids[1]->t.b);
 	roam_triangle_sync_neighbors(base, kids[2], kids[2]->t.b);
 	roam_triangle_sync_neighbors(base, kids[3], kids[3]->t.b);
 
@@ -425,14 +425,14 @@ void roam_diamond_merge(RoamDiamond *self, RoamSphere *sphere)
 	roam_triangle_remove(kids[3], sphere);
 
 	/* Clear kids */
-	tri->kids[0]  = tri->kids[1]  = NULL;
+	triangle->kids[0]  = triangle->kids[1]  = NULL;
 	base->kids[0] = base->kids[1] = NULL;
 
 	/* Add/Remove triangles */
-	if (tri->t.l->t.l == tri->t.r->t.r &&
-	    tri->t.l->t.l != tri && tri->parent) {
-		roam_diamond_update_errors(tri->parent, sphere);
-		roam_diamond_add(tri->parent, sphere);
+	if (triangle->t.l->t.l == triangle->t.r->t.r &&
+	    triangle->t.l->t.l != triangle && triangle->parent) {
+		roam_diamond_update_errors(triangle->parent, sphere);
+		roam_diamond_add(triangle->parent, sphere);
 	}
 
 	if (base->t.l->t.l == base->t.r->t.r &&
@@ -442,22 +442,22 @@ void roam_diamond_merge(RoamDiamond *self, RoamSphere *sphere)
 	}
 
 	/* Remove and free diamond and child triangles */
-	roam_diamond_remove(self, sphere);
-	g_assert(self->kids[0]->p.m == self->kids[1]->p.m &&
-	         self->kids[1]->p.m == self->kids[2]->p.m &&
-	         self->kids[2]->p.m == self->kids[3]->p.m);
-	g_assert(self->kids[0]->p.m->tris == 0);
-	roam_triangle_free(self->kids[0]);
-	roam_triangle_free(self->kids[1]);
-	roam_triangle_free(self->kids[2]);
-	roam_triangle_free(self->kids[3]);
-	g_free(self);
+	roam_diamond_remove(diamond, sphere);
+	g_assert(diamond->kids[0]->p.m == diamond->kids[1]->p.m &&
+	         diamond->kids[1]->p.m == diamond->kids[2]->p.m &&
+	         diamond->kids[2]->p.m == diamond->kids[3]->p.m);
+	g_assert(diamond->kids[0]->p.m->tris == 0);
+	roam_triangle_free(diamond->kids[0]);
+	roam_triangle_free(diamond->kids[1]);
+	roam_triangle_free(diamond->kids[2]);
+	roam_triangle_free(diamond->kids[3]);
+	g_free(diamond);
 }
-void roam_diamond_update_errors(RoamDiamond *self, RoamSphere *sphere)
+void roam_diamond_update_errors(RoamDiamond *diamond, RoamSphere *sphere)
 {
-	roam_triangle_update_errors(self->parents[0], sphere);
-	roam_triangle_update_errors(self->parents[1], sphere);
-	self->error = MAX(self->parents[0]->error, self->parents[1]->error);
+	roam_triangle_update_errors(diamond->parents[0], sphere);
+	roam_triangle_update_errors(diamond->parents[1], sphere);
+	diamond->error = MAX(diamond->parents[0]->error, diamond->parents[1]->error);
 }
 
 /**************
@@ -465,10 +465,10 @@ void roam_diamond_update_errors(RoamDiamond *self, RoamSphere *sphere)
  **************/
 RoamSphere *roam_sphere_new()
 {
-	RoamSphere *self = g_new0(RoamSphere, 1);
-	self->polys       = 8;
-	self->triangles   = g_pqueue_new((GCompareDataFunc)tri_cmp, NULL);
-	self->diamonds    = g_pqueue_new((GCompareDataFunc)dia_cmp, NULL);
+	RoamSphere *sphere = g_new0(RoamSphere, 1);
+	sphere->polys       = 8;
+	sphere->triangles   = g_pqueue_new((GCompareDataFunc)tri_cmp, NULL);
+	sphere->diamonds    = g_pqueue_new((GCompareDataFunc)dia_cmp, NULL);
 
 	RoamPoint *vertexes[] = {
 		roam_point_new( 90,   0,  0), // 0 (North)
@@ -493,133 +493,133 @@ RoamSphere *roam_sphere_new()
 	for (int i = 0; i < 6; i++)
 		roam_point_update_height(vertexes[i]);
 	for (int i = 0; i < 8; i++)
-		self->roots[i] = roam_triangle_new(
+		sphere->roots[i] = roam_triangle_new(
 			vertexes[_triangles[i][0][0]],
 			vertexes[_triangles[i][0][1]],
 			vertexes[_triangles[i][0][2]]);
 	for (int i = 0; i < 8; i++)
-		roam_triangle_add(self->roots[i],
-			self->roots[_triangles[i][1][0]],
-			self->roots[_triangles[i][1][1]],
-			self->roots[_triangles[i][1][2]],
-			self);
+		roam_triangle_add(sphere->roots[i],
+			sphere->roots[_triangles[i][1][0]],
+			sphere->roots[_triangles[i][1][1]],
+			sphere->roots[_triangles[i][1][2]],
+			sphere);
 	for (int i = 0; i < 8; i++)
-		g_debug("RoamSphere: new - %p edge=%f,%f,%f,%f", self->roots[i],
-				self->roots[i]->edge.n,
-				self->roots[i]->edge.s,
-				self->roots[i]->edge.e,
-				self->roots[i]->edge.w);
+		g_debug("RoamSphere: new - %p edge=%f,%f,%f,%f", sphere->roots[i],
+				sphere->roots[i]->edge.n,
+				sphere->roots[i]->edge.s,
+				sphere->roots[i]->edge.e,
+				sphere->roots[i]->edge.w);
 
-	return self;
+	return sphere;
 }
-void roam_sphere_update_view(RoamSphere *self)
+void roam_sphere_update_view(RoamSphere *sphere)
 {
-	if (!self->view)
-		self->view = g_new0(RoamView, 1);
-	glGetDoublev (GL_MODELVIEW_MATRIX,  self->view->model);
-	glGetDoublev (GL_PROJECTION_MATRIX, self->view->proj);
-	glGetIntegerv(GL_VIEWPORT,          self->view->view);
-	self->view->version++;
+	if (!sphere->view)
+		sphere->view = g_new0(RoamView, 1);
+	glGetDoublev (GL_MODELVIEW_MATRIX,  sphere->view->model);
+	glGetDoublev (GL_PROJECTION_MATRIX, sphere->view->proj);
+	glGetIntegerv(GL_VIEWPORT,          sphere->view->view);
+	sphere->view->version++;
 }
-void roam_sphere_update_errors(RoamSphere *self)
+void roam_sphere_update_errors(RoamSphere *sphere)
 {
-	g_debug("RoamSphere: update_errors - polys=%d", self->polys);
-	GPtrArray *tris = g_pqueue_get_array(self->triangles);
-	GPtrArray *dias = g_pqueue_get_array(self->diamonds);
+	g_debug("RoamSphere: update_errors - polys=%d", sphere->polys);
+	GPtrArray *tris = g_pqueue_get_array(sphere->triangles);
+	GPtrArray *dias = g_pqueue_get_array(sphere->diamonds);
 
-	roam_sphere_update_view(self);
+	roam_sphere_update_view(sphere);
 
 	for (int i = 0; i < tris->len; i++) {
-		RoamTriangle *tri = tris->pdata[i];
-		roam_triangle_update_errors(tri, self);
-		g_pqueue_priority_changed(self->triangles, tri->handle);
+		RoamTriangle *triangle = tris->pdata[i];
+		roam_triangle_update_errors(triangle, sphere);
+		g_pqueue_priority_changed(sphere->triangles, triangle->handle);
 	}
 
 	for (int i = 0; i < dias->len; i++) {
-		RoamDiamond *dia = dias->pdata[i];
-		roam_diamond_update_errors(dia, self);
-		g_pqueue_priority_changed(self->diamonds, dia->handle);
+		RoamDiamond *diamond = dias->pdata[i];
+		roam_diamond_update_errors(diamond, sphere);
+		g_pqueue_priority_changed(sphere->diamonds, diamond->handle);
 	}
 
 	g_ptr_array_free(tris, TRUE);
 	g_ptr_array_free(dias, TRUE);
 }
 
-void roam_sphere_split_one(RoamSphere *self)
+void roam_sphere_split_one(RoamSphere *sphere)
 {
-	RoamTriangle *to_split = g_pqueue_peek(self->triangles);
+	RoamTriangle *to_split = g_pqueue_peek(sphere->triangles);
 	if (!to_split) return;
-	roam_triangle_split(to_split, self);
+	roam_triangle_split(to_split, sphere);
 }
-void roam_sphere_merge_one(RoamSphere *self)
+void roam_sphere_merge_one(RoamSphere *sphere)
 {
-	RoamDiamond *to_merge = g_pqueue_peek(self->diamonds);
+	RoamDiamond *to_merge = g_pqueue_peek(sphere->diamonds);
 	if (!to_merge) return;
-	roam_diamond_merge(to_merge, self);
+	roam_diamond_merge(to_merge, sphere);
 }
-gint roam_sphere_split_merge(RoamSphere *self)
+gint roam_sphere_split_merge(RoamSphere *sphere)
 {
 	gint iters = 0, max_iters = 500;
 	//gint target = 4000;
 	gint target = 2000;
 	//gint target = 500;
 
-	if (!self->view)
+	if (!sphere->view)
 		return 0;
 
-	if (target - self->polys > 100) {
-		//g_debug("RoamSphere: split_merge - Splitting %d - %d > 100", target, self->polys);
-		while (self->polys < target && iters++ < max_iters)
-			roam_sphere_split_one(self);
+	if (target - sphere->polys > 100) {
+		//g_debug("RoamSphere: split_merge - Splitting %d - %d > 100", target, sphere->polys);
+		while (sphere->polys < target && iters++ < max_iters)
+			roam_sphere_split_one(sphere);
 	}
 
-	if (self->polys - target > 100) {
-		//g_debug("RoamSphere: split_merge - Merging %d - %d > 100", self->polys, target);
-		while (self->polys > target && iters++ < max_iters)
-			roam_sphere_merge_one(self);
+	if (sphere->polys - target > 100) {
+		//g_debug("RoamSphere: split_merge - Merging %d - %d > 100", sphere->polys, target);
+		while (sphere->polys > target && iters++ < max_iters)
+			roam_sphere_merge_one(sphere);
 	}
 
-	while (((RoamTriangle*)g_pqueue_peek(self->triangles))->error >
-	       ((RoamDiamond *)g_pqueue_peek(self->diamonds ))->error &&
+	while (((RoamTriangle*)g_pqueue_peek(sphere->triangles))->error >
+	       ((RoamDiamond *)g_pqueue_peek(sphere->diamonds ))->error &&
 	       iters++ < max_iters) {
 		//g_debug("RoamSphere: split_merge - Fixing 1 %f > %f && %d < %d",
-		//		((RoamTriangle*)g_pqueue_peek(self->triangles))->error,
-		//		((RoamDiamond *)g_pqueue_peek(self->diamonds ))->error,
+		//		((RoamTriangle*)g_pqueue_peek(sphere->triangles))->error,
+		//		((RoamDiamond *)g_pqueue_peek(sphere->diamonds ))->error,
 		//		iters-1, max_iters);
-		roam_sphere_merge_one(self);
-		roam_sphere_split_one(self);
+		roam_sphere_merge_one(sphere);
+		roam_sphere_split_one(sphere);
 	}
 
 	return iters;
 }
-void roam_sphere_draw(RoamSphere *self)
+void roam_sphere_draw(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: draw");
-	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw, NULL);
+	g_pqueue_foreach(sphere->triangles, (GFunc)roam_triangle_draw, NULL);
 }
-void roam_sphere_draw_normals(RoamSphere *self)
+void roam_sphere_draw_normals(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: draw_normal");
-	g_pqueue_foreach(self->triangles, (GFunc)roam_triangle_draw_normal, NULL);
+	g_pqueue_foreach(sphere->triangles, (GFunc)roam_triangle_draw_normal, NULL);
 }
-static GList *_roam_sphere_get_leaves(RoamTriangle *tri, GList *list, gboolean all)
+static GList *_roam_sphere_get_leaves(RoamTriangle *triangle, GList *list, gboolean all)
 {
-	if (tri->kids[0] && tri->kids[1]) {
-		if (all) list = g_list_prepend(list, tri);
-		list = _roam_sphere_get_leaves(tri->kids[0], list, all);
-		list = _roam_sphere_get_leaves(tri->kids[1], list, all);
+	if (triangle->kids[0] && triangle->kids[1]) {
+		if (all) list = g_list_prepend(list, triangle);
+		list = _roam_sphere_get_leaves(triangle->kids[0], list, all);
+		list = _roam_sphere_get_leaves(triangle->kids[1], list, all);
 		return list;
 	} else {
-		return g_list_prepend(list, tri);
+		return g_list_prepend(list, triangle);
 	}
 }
-static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
+static GList *_roam_sphere_get_intersect_rec(RoamTriangle *triangle, GList *list,
 		gboolean all, gdouble n, gdouble s, gdouble e, gdouble w)
 {
-	gdouble tn = tri->edge.n;
-	gdouble ts = tri->edge.s;
-	gdouble te = tri->edge.e;
-	gdouble tw = tri->edge.w;
+	gdouble tn = triangle->edge.n;
+	gdouble ts = triangle->edge.s;
+	gdouble te = triangle->edge.e;
+	gdouble tw = triangle->edge.w;
 
 	gboolean debug = FALSE  &&
 		n==90 && s==45 && e==-90 && w==-180 &&
@@ -627,7 +627,7 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 
 	if (debug)
 		g_message("t=%p: %f < %f || %f > %f || %f < %f || %f > %f",
-		            tri, tn,   s,   ts,   n,   te,   w,   tw,   e);
+		            triangle, tn,   s,   ts,   n,   te,   w,   tw,   e);
 	if (tn < s || ts > n || te < w || tw > e) {
 		/* No intersect */
 		if (debug) g_message("no intersect");
@@ -635,25 +635,25 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *tri, GList *list,
 	} else if (tn <= n && ts >= s && te <= e && tw >= w) {
 		/* Triangle is completely contained */
 		if (debug) g_message("contained");
-		if (all) list = g_list_prepend(list, tri);
-		return _roam_sphere_get_leaves(tri, list, all);
-	} else if (tri->kids[0] && tri->kids[1]) {
+		if (all) list = g_list_prepend(list, triangle);
+		return _roam_sphere_get_leaves(triangle, list, all);
+	} else if (triangle->kids[0] && triangle->kids[1]) {
 		/* Paritial intersect with children */
 		if (debug) g_message("edge w/ child");
-		if (all) list = g_list_prepend(list, tri);
-		list = _roam_sphere_get_intersect_rec(tri->kids[0], list, all, n, s, e, w);
-		list = _roam_sphere_get_intersect_rec(tri->kids[1], list, all, n, s, e, w);
+		if (all) list = g_list_prepend(list, triangle);
+		list = _roam_sphere_get_intersect_rec(triangle->kids[0], list, all, n, s, e, w);
+		list = _roam_sphere_get_intersect_rec(triangle->kids[1], list, all, n, s, e, w);
 		return list;
 	} else {
 		/* This triangle is an edge case */
 		if (debug) g_message("edge");
-		return g_list_prepend(list, tri);
+		return g_list_prepend(list, triangle);
 	}
 }
 /* Warning: This grabs pointers to triangles which can be changed by other
  * calls, e.g. split_merge. If you use this, you need to do some locking to
  * prevent the returned list from becomming stale. */
-GList *roam_sphere_get_intersect(RoamSphere *self, gboolean all,
+GList *roam_sphere_get_intersect(RoamSphere *sphere, gboolean all,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {
 	/* I think this is correct..
@@ -661,28 +661,28 @@ GList *roam_sphere_get_intersect(RoamSphere *self, gboolean all,
 	 * time = n_tiles * 2*tris_per_tile * i_cost
 	 * time = 30      * 2*333           * i_cost = 20000 * i_cost */
 	GList *list = NULL;
-	for (int i = 0; i < G_N_ELEMENTS(self->roots); i++)
-		list = _roam_sphere_get_intersect_rec(self->roots[i],
+	for (int i = 0; i < G_N_ELEMENTS(sphere->roots); i++)
+		list = _roam_sphere_get_intersect_rec(sphere->roots[i],
 				list, all, n, s, e, w);
 	return list;
 }
-void roam_sphere_free_tri(RoamTriangle *tri)
+void roam_sphere_free_tri(RoamTriangle *triangle)
 {
-	if (--tri->p.l->tris == 0) g_free(tri->p.l);
-	if (--tri->p.m->tris == 0) g_free(tri->p.m);
-	if (--tri->p.r->tris == 0) g_free(tri->p.r);
-	roam_triangle_free(tri);
+	if (--triangle->p.l->tris == 0) g_free(triangle->p.l);
+	if (--triangle->p.m->tris == 0) g_free(triangle->p.m);
+	if (--triangle->p.r->tris == 0) g_free(triangle->p.r);
+	roam_triangle_free(triangle);
 }
-void roam_sphere_free(RoamSphere *self)
+void roam_sphere_free(RoamSphere *sphere)
 {
 	g_debug("RoamSphere: free");
 	/* Slow method, but it should work */
-	while (self->polys > 8)
-		roam_sphere_merge_one(self);
+	while (sphere->polys > 8)
+		roam_sphere_merge_one(sphere);
 	/* TODO: free points */
-	g_pqueue_foreach(self->triangles, (GFunc)roam_sphere_free_tri, NULL);
-	g_pqueue_free(self->triangles);
-	g_pqueue_free(self->diamonds);
-	g_free(self->view);
-	g_free(self);
+	g_pqueue_foreach(sphere->triangles, (GFunc)roam_sphere_free_tri, NULL);
+	g_pqueue_free(sphere->triangles);
+	g_pqueue_free(sphere->diamonds);
+	g_free(sphere->view);
+	g_free(sphere);
 }

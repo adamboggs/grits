@@ -42,6 +42,6 @@ GisWms *gis_wms_new(
 gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
 		GisChunkCallback callback, gpointer user_data);
 
-void gis_wms_free(GisWms *self);
+void gis_wms_free(GisWms *wms);
 
 #endif

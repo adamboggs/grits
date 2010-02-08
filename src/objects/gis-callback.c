@@ -20,13 +20,13 @@
 
 /* GisCallback */
 G_DEFINE_TYPE(GisCallback, gis_callback, GIS_TYPE_OBJECT);
-static void gis_callback_init(GisCallback *self) { }
+static void gis_callback_init(GisCallback *cb) { }
 static void gis_callback_class_init(GisCallbackClass *klass) { }
 
 GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data)
 {
-	GisCallback *self = g_object_new(GIS_TYPE_CALLBACK, NULL);
-	self->callback  = callback;
-	self->user_data = user_data;
-	return self;
+	GisCallback *cb = g_object_new(GIS_TYPE_CALLBACK, NULL);
+	cb->callback  = callback;
+	cb->user_data = user_data;
+	return cb;
 }

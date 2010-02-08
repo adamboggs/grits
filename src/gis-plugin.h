@@ -39,17 +39,17 @@ struct _GisPluginInterface
 	const gchar *description;
 
 	/* Virtual functions */
-	GtkWidget *(*get_config)(GisPlugin *self);
+	GtkWidget *(*get_config)(GisPlugin *plugin);
 };
 
 GType gis_plugin_get_type();
 
 /* Methods */
-const gchar *gis_plugin_get_name(GisPlugin *self);
+const gchar *gis_plugin_get_name(GisPlugin *plugin);
 
-const gchar *gis_plugin_get_description(GisPlugin *self);
+const gchar *gis_plugin_get_description(GisPlugin *plugin);
 
-GtkWidget *gis_plugin_get_config(GisPlugin *self);
+GtkWidget *gis_plugin_get_config(GisPlugin *plugin);
 
 /* Plugins API */
 #include "gis-viewer.h"
@@ -72,13 +72,13 @@ GList *gis_plugins_available(GisPlugins *plugins);
 GisPlugin *gis_plugins_load(GisPlugins *plugins, const char *name,
 		GisViewer *viewer, GisPrefs *prefs);
 
-GisPlugin *gis_plugins_enable(GisPlugins *self, const char *name,
+GisPlugin *gis_plugins_enable(GisPlugins *plugin, const char *name,
 		GisViewer *viewer, GisPrefs *prefs);
 
-GList *gis_plugins_load_enabled(GisPlugins *self,
+GList *gis_plugins_load_enabled(GisPlugins *plugin,
 		GisViewer *viewer, GisPrefs *prefs);
 
-gboolean gis_plugins_disable(GisPlugins *self, const char *name);
+gboolean gis_plugins_disable(GisPlugins *plugin, const char *name);
 
 gboolean gis_plugins_unload(GisPlugins *plugins, const char *name);
 
