@@ -441,14 +441,12 @@ static void on_view_changed(GisOpenGL *self,
 		gdouble _1, gdouble _2, gdouble _3)
 {
 	g_debug("GisOpenGL: on_view_changed");
-	gdk_threads_enter();
 	_set_visuals(self);
 #ifndef ROAM_DEBUG
 	self->ue_source = g_idle_add_full(G_PRIORITY_HIGH_IDLE+30,
 			_update_errors_cb, self->sphere, NULL);
 	//roam_sphere_update_errors(self->sphere);
 #endif
-	gdk_threads_leave();
 }
 
 static gboolean on_idle(GisOpenGL *self)
@@ -615,13 +613,6 @@ static void gis_opengl_init(GisOpenGL *self)
 		g_error("GL lacks required capabilities");
 	g_object_unref(glconfig);
 
-	gtk_widget_set_size_request(GTK_WIDGET(self), 600, 550);
-	gtk_widget_set_events(GTK_WIDGET(self),
-			GDK_BUTTON_PRESS_MASK |
-			GDK_ENTER_NOTIFY_MASK |
-			GDK_KEY_PRESS_MASK);
-	g_object_set(self, "can-focus", TRUE, NULL);
-
 	self->objects = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
 	self->sphere = roam_sphere_new(self);
 	self->sphere_lock = g_mutex_new();
@@ -631,6 +622,7 @@ static void gis_opengl_init(GisOpenGL *self)
 	self->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, self, NULL);
 #endif
 
+	gtk_widget_add_events(GTK_WIDGET(self), GDK_KEY_PRESS_MASK);
 	g_signal_connect(self, "realize",          G_CALLBACK(on_realize),      NULL);
 	g_signal_connect(self, "configure-event",  G_CALLBACK(on_configure),    NULL);
 	g_signal_connect(self, "expose-event",     G_CALLBACK(on_expose),       NULL);

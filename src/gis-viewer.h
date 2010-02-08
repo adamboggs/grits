@@ -55,6 +55,10 @@ struct _GisViewer {
 	gdouble     location[3];
 	gdouble     rotation[3];
 	gboolean    offline;
+
+	/* For dragging */
+	gint    drag_mode;
+	gdouble drag_x, drag_y;
 };
 
 struct _GisViewerClass {

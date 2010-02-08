@@ -1,7 +1,6 @@
 Miscellaneous
 -------------
 - Use VertexArrays/VertexBufferObjects/DisplayLists/etc
-- Mouse control
 - Plugins can time/location references too a tree-view
 
 GisObject:

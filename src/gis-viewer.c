@@ -16,6 +16,7 @@
  */
 
 #include <config.h>
+#include <math.h>
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
@@ -83,12 +84,6 @@ static void _gis_viewer_emit_offline(GisViewer *self)
 /*************
  * Callbacks *
  *************/
-static gboolean on_button_press(GisViewer *self, GdkEventButton *event, gpointer _)
-{
-	g_debug("GisViewer: on_button_press - Grabbing focus");
-	gtk_widget_grab_focus(GTK_WIDGET(self));
-	return TRUE;
-}
 static gboolean on_key_press(GisViewer *self, GdkEventKey *event, gpointer _)
 {
 	g_debug("GisViewer: on_key_press - key=%x, state=%x, plus=%x",
@@ -111,6 +106,59 @@ static gboolean on_key_press(GisViewer *self, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_L) gis_viewer_rotate(self,  0, 0,  2);
 	return FALSE;
 }
+
+enum {
+	GIS_DRAG_NONE,
+	GIS_DRAG_PAN,
+	GIS_DRAG_ZOOM,
+	GIS_DRAG_TILT,
+};
+
+static gboolean on_button_press(GisViewer *self, GdkEventButton *event, gpointer _)
+{
+	g_debug("GisViewer: on_button_press - %d", event->button);
+	gtk_widget_grab_focus(GTK_WIDGET(self));
+	switch (event->button) {
+	case 1:  self->drag_mode = GIS_DRAG_PAN;  break;
+	case 2:  self->drag_mode = GIS_DRAG_ZOOM; break;
+	case 3:  self->drag_mode = GIS_DRAG_TILT; break;
+	defualt: self->drag_mode = GIS_DRAG_NONE; break;
+	}
+	self->drag_x = event->x;
+	self->drag_y = event->y;
+	return FALSE;
+}
+
+static gboolean on_button_release(GisViewer *self, GdkEventButton *event, gpointer _)
+{
+	g_debug("GisViewer: on_button_release");
+	self->drag_mode = GIS_DRAG_NONE;
+	return FALSE;
+}
+
+static gboolean on_motion_notify(GisViewer *self, GdkEventMotion *event, gpointer _)
+{
+	gdouble x_dist = self->drag_x - event->x;
+	gdouble y_dist = self->drag_y - event->y;
+	gdouble lat, lon, elev, scale;
+	gis_viewer_get_location(GIS_VIEWER(self), &lat, &lon, &elev);
+	scale = elev/EARTH_R/15;
+	switch (self->drag_mode) {
+	case GIS_DRAG_PAN:
+		gis_viewer_pan(self, -y_dist*scale, x_dist*scale, 0);
+		break;
+	case GIS_DRAG_ZOOM:
+		gis_viewer_zoom(self, pow(2, -y_dist/500));
+		break;
+	case GIS_DRAG_TILT:
+		gis_viewer_rotate(self, y_dist/10, 0, x_dist/10);
+		break;
+	}
+	self->drag_x = event->x;
+	self->drag_y = event->y;
+	return FALSE;
+}
+
 static void on_view_changed(GisViewer *self,
 		gdouble _1, gdouble _2, gdouble _3)
 {
@@ -304,11 +352,21 @@ static void gis_viewer_init(GisViewer *self)
 	self->rotation[1] = 0;
 	self->rotation[2] = 0;
 
-	g_signal_connect(self, "key-press-event",    G_CALLBACK(on_key_press),    NULL);
-	g_signal_connect(self, "button-press-event", G_CALLBACK(on_button_press), NULL);
+	g_object_set(self, "can-focus", TRUE, NULL);
+	gtk_widget_add_events(GTK_WIDGET(self),
+			GDK_BUTTON_PRESS_MASK |
+			GDK_BUTTON_RELEASE_MASK |
+			GDK_POINTER_MOTION_MASK |
+			GDK_KEY_PRESS_MASK);
 
-	g_signal_connect(self, "location-changed",   G_CALLBACK(on_view_changed), NULL);
-	g_signal_connect(self, "rotation-changed",   G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(self, "key-press-event",      G_CALLBACK(on_key_press),      NULL);
+
+	g_signal_connect(self, "button-press-event",   G_CALLBACK(on_button_press),   NULL);
+	g_signal_connect(self, "button-release-event", G_CALLBACK(on_button_release), NULL);
+	g_signal_connect(self, "motion-notify-event",  G_CALLBACK(on_motion_notify),  NULL);
+
+	g_signal_connect(self, "location-changed",     G_CALLBACK(on_view_changed),   NULL);
+	g_signal_connect(self, "rotation-changed",     G_CALLBACK(on_view_changed),   NULL);
 }
 static void gis_viewer_finalize(GObject *gobject)
 {
