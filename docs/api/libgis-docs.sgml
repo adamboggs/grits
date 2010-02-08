@@ -46,8 +46,7 @@
 
 	<chapter>
 		<title>Miscellaneous</title>
-		<xi:include href="xml/gis-demo.xml"/>
-		<xi:include href="xml/tile-test.xml"/>
+		<xi:include href="gis-demo.xml"/>
 	</chapter>
 
 	<index>

@@ -1,0 +1,48 @@
+<refentry id="gis-demo">
+<refmeta>
+	<refentrytitle>gis-demo</refentrytitle>
+	<manvolnum>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+	<refname>gis-demo</refname>
+	<refpurpose>libgis demonstration program</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+	<cmdsynopsis>
+		<command>gis-demo [GTK_OPTIONS]</command>
+	</cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1><title>Description</title>
+	<para><command>gis-demo</command> TODO (short description)</para>
+	<para>
+		TODO (long description)
+	</para>
+</refsect1>
+
+<refsect1><title>Environment</title>
+	<variablelist>
+		<varlistentry>
+			<term>GIS_PLUGIN_PATH</term>
+			<listitem><para>
+				Secondary path to use when searching for
+				plugins.
+			</para></listitem>
+		</varlistentry>
+	</variablelist>
+</refsect1>
+
+<refsect1><title>Files</title>
+	<variablelist>
+		<varlistentry>
+			<term>$HOME/.config/libgis/config.ini</term>
+			<listitem><para>
+				Configuration file used to store loaded
+				plugins and a few other settings.
+			</para></listitem>
+		</varlistentry>
+	</variablelist>
+</refsect1>
+</refentry>
