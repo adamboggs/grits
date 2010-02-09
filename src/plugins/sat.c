@@ -24,6 +24,7 @@
  */
 
 #include <time.h>
+#include <string.h>
 #include <glib/gstdio.h>
 #include <GL/gl.h>
 
@@ -54,6 +55,18 @@ static gboolean _load_tile_cb(gpointer _data)
 	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
 	gint      width  = gdk_pixbuf_get_width(pixbuf);
 	gint      height = gdk_pixbuf_get_height(pixbuf);
+
+	/* Draw a border */
+	//gint border = 10;
+	//gint stride = gdk_pixbuf_get_rowstride(pixbuf);
+	//for (int i = 0; i < border; i++) {
+	//	memset(&pixels[(       i)*stride], 0xff, stride);
+	//	memset(&pixels[(height-i)*stride], 0xff, stride);
+	//}
+	//for (int i = 0; i < height; i++) {
+	//	memset(&pixels[(i*stride)], 0xff, border*4);
+	//	memset(&pixels[(i*stride)+((width-border)*4)], 0xff, border*4);
+	//}
 
 	guint *tex = g_new0(guint, 1);
 	glGenTextures(1, tex);
