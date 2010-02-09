@@ -133,7 +133,10 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		g_debug("GisHttp: do_cache - Caching file %s", local);
 
 		/* Open the file for writting */
-		FILE *fp = fopen_p(path, "a");
+		gchar *part = path;
+		if (!g_file_test(path, G_FILE_TEST_EXISTS))
+			part = g_strdup_printf("%s.part", path);
+		FILE *fp = fopen_p(part, "a");
 
 		/* Make temp data */
 		struct _CacheInfo info = {
@@ -159,6 +162,13 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 					"\tsrc=%s\n"
 					"\tdst=%s",
 					message->status_code, uri, path);
+
+		/* Close file */
+		fclose(fp);
+		if (path != part && SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+			g_rename(part, path);
+			g_free(part);
+		}
 	}
 
 	/* TODO: free everything.. */
