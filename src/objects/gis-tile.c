@@ -93,13 +93,14 @@ gchar *gis_tile_get_path(GisTile *child)
 	return g_string_free(path, FALSE);
 }
 
-static gdouble _gis_tile_get_min_dist(GisTile *tile,
-		gdouble lat, gdouble lon, gdouble elev)
+static gdouble _gis_tile_get_min_dist(
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble n, gdouble s, gdouble e, gdouble w)
 {
-	gdouble tlat  = lat > tile->edge.n ? tile->edge.n :
-                        lat < tile->edge.s ? tile->edge.s : lat;
-	gdouble tlon  = lon > tile->edge.e ? tile->edge.e :
-	                lon < tile->edge.w ? tile->edge.w : lon;
+	gdouble tlat  = lat > n ? n :
+	                lat < s ? s : lat;
+	gdouble tlon  = lon > e ? e :
+	                lon < w ? w : lon;
 	gdouble telev = 0; // TODO: elevation at rlat,rlon
 	//if (lat == tlat && lon == tlon)
 	//	return elev; /* Shortcut? */
@@ -109,21 +110,23 @@ static gdouble _gis_tile_get_min_dist(GisTile *tile,
 	return distd(a, b);
 }
 
-static gboolean _gis_tile_needs_split(GisTile *tile,
-		gdouble max_res, gint width, gint height,
-		gdouble lat, gdouble lon, gdouble elev)
+static gboolean _gis_tile_precise(
+		gdouble lat, gdouble lon, gdouble elev,
+		gdouble n, gdouble s, gdouble e, gdouble w,
+		gdouble max_res, gint width, gint height)
 {
-	gdouble lat_point = tile->edge.n < 0 ? tile->edge.n :
-	                    tile->edge.s > 0 ? tile->edge.s : 0;
-	gdouble min_dist  = _gis_tile_get_min_dist(tile, lat, lon, elev);
+	gdouble min_dist  = _gis_tile_get_min_dist(lat, lon, elev, n, s, e, w);
 	gdouble view_res  = MPPX(min_dist);
-	gdouble lon_dist  = tile->edge.e - tile->edge.w;
+
+	gdouble lat_point = n < 0 ? n : s > 0 ? s : 0;
+	gdouble lon_dist  = e - w;
 	gdouble tile_res  = ll2m(lon_dist, lat_point)/width;
 
 	/* This isn't really right, but it helps with memory since we don't (yet?) test if the tile
 	 * would be drawn */
 	gdouble scale = elev / min_dist;
 	view_res /= scale;
+	//view_res /= 1.4; /* make it a little nicer, not sure why this is needed */
 	//g_message("tile=(%7.2f %7.2f %7.2f %7.2f) "
 	//          "eye=(%9.1f %9.1f %9.1f) "
 	//          "elev=%9.1f / dist=%9.1f = %f",
@@ -131,9 +134,8 @@ static gboolean _gis_tile_needs_split(GisTile *tile,
 	//		lat, lon, elev,
 	//		elev, min_dist, scale);
 
-	if (tile_res < max_res)
-		return FALSE;
-	return view_res < tile_res;
+	return tile_res < max_res ||
+	       tile_res < view_res;
 }
 
 /**
@@ -160,23 +162,28 @@ void gis_tile_update(GisTile *root,
 		GisTileLoadFunc load_func, gpointer user_data)
 {
 	root->atime = time(NULL);
-	//g_debug("GisTile: update - %p->atime = %u", root, (guint)root->atime);
-	gdouble lat_dist = root->edge.n - root->edge.s;
-	gdouble lon_dist = root->edge.e - root->edge.w;
-	if (_gis_tile_needs_split(root, res, width, height, lat, lon, elev)) {
-		gdouble lat_step = lat_dist / G_N_ELEMENTS(root->children);
-		gdouble lon_step = lon_dist / G_N_ELEMENTS(root->children[0]);
-		int x, y;
-		gis_tile_foreach_index(root, x, y) {
-			if (!root->children[x][y]) {
-				root->children[x][y] = gis_tile_new(root,
-						root->edge.n-(lat_step*(x+0)),
-						root->edge.n-(lat_step*(x+1)),
-						root->edge.w+(lon_step*(y+1)),
-						root->edge.w+(lon_step*(y+0)));
-				load_func(root->children[x][y], user_data);
+	//g_debug("GisTile: update - %p->atime = %u",
+	//		root, (guint)root->atime);
+	const gdouble rows = G_N_ELEMENTS(root->children);
+	const gdouble cols = G_N_ELEMENTS(root->children[0]);
+	const gdouble lat_dist = root->edge.n - root->edge.s;
+	const gdouble lon_dist = root->edge.e - root->edge.w;
+	const gdouble lat_step = lat_dist / rows;
+	const gdouble lon_step = lon_dist / cols;
+	int row, col;
+	gis_tile_foreach_index(root, row, col) {
+		GisTile **child = &root->children[row][col];
+		const gdouble n = root->edge.n-(lat_step*(row+0));
+		const gdouble s = root->edge.n-(lat_step*(row+1));
+		const gdouble e = root->edge.w+(lon_step*(col+1));
+		const gdouble w = root->edge.w+(lon_step*(col+0));
+		if (!_gis_tile_precise(lat,lon,elev, n,s,e,w,
+					res,width/cols,height/rows)) {
+			if (!*child) {
+				*child = gis_tile_new(root, n,s,e,w);
+				load_func(*child, user_data);
 			}
-			gis_tile_update(root->children[x][y],
+			gis_tile_update(*child,
 					res, width, height,
 					lat, lon, elev,
 					load_func, user_data);

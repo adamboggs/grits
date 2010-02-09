@@ -122,12 +122,10 @@ static void _set_visuals(GisOpenGL *opengl)
 /********************
  * Object handleing *
  ********************/
-static void _draw_tile(GisOpenGL *opengl, GisTile *tile)
+static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 {
 	if (!tile || !tile->data)
 		return;
-	GList *triangles = roam_sphere_get_intersect(opengl->sphere, FALSE,
-			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	if (!triangles)
 		g_warning("GisOpenGL: _draw_tiles - No triangles to draw: edges=%f,%f,%f,%f",
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
@@ -191,18 +189,41 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile)
 static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
 {
 	/* Only draw children if possible */
-	gboolean has_children = TRUE;
+	gboolean has_children = FALSE;
 	GisTile *child;
 	gis_tile_foreach(tile, child)
-		if (!child || !child->data)
-			has_children = FALSE;
-	if (has_children)
-		/* Only draw children */
-		gis_tile_foreach(tile, child)
-			_draw_tiles(opengl, child);
-	else
-		/* No children, draw this tile */
-		_draw_tile(opengl, tile);
+		if (child && child->data)
+			has_children = TRUE;
+
+	GList *triangles = NULL;
+	if (has_children) {
+		/* TODO: simplify this */
+		const gdouble rows = G_N_ELEMENTS(tile->children);
+		const gdouble cols = G_N_ELEMENTS(tile->children[0]);
+		const gdouble lat_dist = tile->edge.n - tile->edge.s;
+		const gdouble lon_dist = tile->edge.e - tile->edge.w;
+		const gdouble lat_step = lat_dist / rows;
+		const gdouble lon_step = lon_dist / cols;
+		int row, col;
+		gis_tile_foreach_index(tile, row, col) {
+			GisTile *child = tile->children[row][col];
+			if (child && child->data) {
+				_draw_tiles(opengl, child);
+			} else {
+				const gdouble n = tile->edge.n-(lat_step*(row+0));
+				const gdouble s = tile->edge.n-(lat_step*(row+1));
+				const gdouble e = tile->edge.w+(lon_step*(col+1));
+				const gdouble w = tile->edge.w+(lon_step*(col+0));
+				GList *these = roam_sphere_get_intersect(opengl->sphere, FALSE, n, s, e, w);
+				triangles = g_list_concat(triangles, these);
+			}
+		}
+	} else {
+		triangles = roam_sphere_get_intersect(opengl->sphere, FALSE,
+				tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	}
+	if (triangles)
+		_draw_tile(opengl, tile, triangles);
 }
 
 static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
@@ -270,6 +291,8 @@ static void _draw_object(GisOpenGL *opengl, GisObject *object)
 	} else if (GIS_IS_CALLBACK(object)) {
 		_draw_callback(opengl, GIS_CALLBACK(object));
 	} else if (GIS_IS_TILE(object)) {
+		glEnable(GL_DEPTH_TEST);
+		glDepthFunc(GL_LESS);
 		_draw_tiles(opengl, GIS_TILE(object));
 	}
 	glPopAttrib();

@@ -851,7 +851,7 @@ static GList *_roam_sphere_get_intersect_rec(RoamTriangle *triangle, GList *list
 	if (debug)
 		g_message("t=%p: %f < %f || %f > %f || %f < %f || %f > %f",
 		            triangle, tn,   s,   ts,   n,   te,   w,   tw,   e);
-	if (tn < s || ts > n || te < w || tw > e) {
+	if (tn <= s || ts >= n || te <= w || tw >= e) {
 		/* No intersect */
 		if (debug) g_message("no intersect");
 		return list;
