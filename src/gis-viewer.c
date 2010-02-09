@@ -102,18 +102,29 @@ static gboolean on_key_press(GisViewer *viewer, GdkEventKey *event, gpointer _)
 	double lat, lon, elev, pan;
 	gis_viewer_get_location(viewer, &lat, &lon, &elev);
 	pan = MIN(elev/(EARTH_R/2), 30);
-	guint kv = event->keyval;
 	gdk_threads_leave();
-	if      (kv == GDK_Left  || kv == GDK_h) gis_viewer_pan(viewer,  0,  -pan, 0);
-	else if (kv == GDK_Down  || kv == GDK_j) gis_viewer_pan(viewer, -pan, 0,   0);
-	else if (kv == GDK_Up    || kv == GDK_k) gis_viewer_pan(viewer,  pan, 0,   0);
-	else if (kv == GDK_Right || kv == GDK_l) gis_viewer_pan(viewer,  0,   pan, 0);
-	else if (kv == GDK_minus || kv == GDK_o) gis_viewer_zoom(viewer, 10./9);
-	else if (kv == GDK_plus  || kv == GDK_i) gis_viewer_zoom(viewer, 9./10);
-	else if (kv == GDK_H) gis_viewer_rotate(viewer,  0, 0, -2);
-	else if (kv == GDK_J) gis_viewer_rotate(viewer,  2, 0,  0);
-	else if (kv == GDK_K) gis_viewer_rotate(viewer, -2, 0,  0);
-	else if (kv == GDK_L) gis_viewer_rotate(viewer,  0, 0,  2);
+	switch (event->keyval) {
+	case GDK_Left:  case GDK_h: gis_viewer_pan(viewer,  0,  -pan, 0); break;
+	case GDK_Down:  case GDK_j: gis_viewer_pan(viewer, -pan, 0,   0); break;
+	case GDK_Up:    case GDK_k: gis_viewer_pan(viewer,  pan, 0,   0); break;
+	case GDK_Right: case GDK_l: gis_viewer_pan(viewer,  0,   pan, 0); break;
+	case GDK_minus: case GDK_o: gis_viewer_zoom(viewer, 10./9); break;
+	case GDK_plus:  case GDK_i: gis_viewer_zoom(viewer, 9./10); break;
+	case GDK_H: gis_viewer_rotate(viewer,  0, 0, -2); break;
+	case GDK_J: gis_viewer_rotate(viewer,  2, 0,  0); break;
+	case GDK_K: gis_viewer_rotate(viewer, -2, 0,  0); break;
+	case GDK_L: gis_viewer_rotate(viewer,  0, 0,  2); break;
+	}
+	return FALSE;
+}
+
+static gboolean on_scroll(GisViewer *viewer, GdkEventScroll *event, gpointer _)
+{
+	switch (event->direction) {
+	case GDK_SCROLL_DOWN: gis_viewer_zoom(viewer, 10./9); break;
+	case GDK_SCROLL_UP:   gis_viewer_zoom(viewer, 9./10); break;
+	default: break;
+	}
 	return FALSE;
 }
 
@@ -561,6 +572,7 @@ static void gis_viewer_init(GisViewer *viewer)
 			GDK_KEY_PRESS_MASK);
 
 	g_signal_connect(viewer, "key-press-event",      G_CALLBACK(on_key_press),      NULL);
+	g_signal_connect(viewer, "scroll-event",         G_CALLBACK(on_scroll),         NULL);
 
 	g_signal_connect(viewer, "button-press-event",   G_CALLBACK(on_button_press),   NULL);
 	g_signal_connect(viewer, "button-release-event", G_CALLBACK(on_button_release), NULL);
