@@ -134,7 +134,8 @@ static gpointer _update_tiles(gpointer _map)
 {
 	g_debug("GisPluginMap: _update_tiles");
 	GisPluginMap *map = _map;
-	g_mutex_lock(map->mutex);
+	if (!g_mutex_trylock(map->mutex))
+		return NULL;
 	gdouble lat, lon, elev;
 	gis_viewer_get_location(map->viewer, &lat, &lon, &elev);
 	gis_tile_update(map->tiles,

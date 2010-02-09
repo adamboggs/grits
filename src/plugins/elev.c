@@ -246,7 +246,8 @@ static void _free_tile(GisTile *tile, gpointer _elev)
 static gpointer _update_tiles(gpointer _elev)
 {
 	GisPluginElev *elev = _elev;
-	g_mutex_lock(elev->mutex);
+	if (!g_mutex_trylock(elev->mutex))
+		return NULL;
 	gdouble lat, lon, elevation;
 	gis_viewer_get_location(elev->viewer, &lat, &lon, &elevation);
 	gis_tile_update(elev->tiles,
