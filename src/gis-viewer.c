@@ -159,21 +159,15 @@ static gboolean on_button_release(GisViewer *viewer, GdkEventButton *event, gpoi
 
 static gboolean on_motion_notify(GisViewer *viewer, GdkEventMotion *event, gpointer _)
 {
-	gdouble x_dist = viewer->drag_x - event->x;
-	gdouble y_dist = viewer->drag_y - event->y;
+	gdouble x = viewer->drag_x - event->x;
+	gdouble y = viewer->drag_y - event->y;
 	gdouble lat, lon, elev, scale;
 	gis_viewer_get_location(GIS_VIEWER(viewer), &lat, &lon, &elev);
 	scale = elev/EARTH_R/15;
 	switch (viewer->drag_mode) {
-	case GIS_DRAG_PAN:
-		gis_viewer_pan(viewer, -y_dist*scale, x_dist*scale, 0);
-		break;
-	case GIS_DRAG_ZOOM:
-		gis_viewer_zoom(viewer, pow(2, -y_dist/500));
-		break;
-	case GIS_DRAG_TILT:
-		gis_viewer_rotate(viewer, y_dist/10, 0, x_dist/10);
-		break;
+	case GIS_DRAG_PAN:  gis_viewer_pan(viewer, -y*scale, x*scale, 0); break;
+	case GIS_DRAG_ZOOM: gis_viewer_zoom(viewer, pow(2, -y/500)); break;
+	case GIS_DRAG_TILT: gis_viewer_rotate(viewer, y/10, 0, x/10); break;
 	}
 	viewer->drag_x = event->x;
 	viewer->drag_y = event->y;
@@ -184,6 +178,13 @@ static void on_view_changed(GisViewer *viewer,
 		gdouble _1, gdouble _2, gdouble _3)
 {
 	gtk_widget_queue_draw(GTK_WIDGET(viewer));
+}
+
+static void on_realize(GisViewer *viewer)
+{
+	GdkCursor *cursor = gdk_cursor_new(GDK_FLEUR);
+	GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(viewer));
+	gdk_window_set_cursor(window, cursor);
 }
 
 /***********
@@ -580,6 +581,8 @@ static void gis_viewer_init(GisViewer *viewer)
 
 	g_signal_connect(viewer, "location-changed",     G_CALLBACK(on_view_changed),   NULL);
 	g_signal_connect(viewer, "rotation-changed",     G_CALLBACK(on_view_changed),   NULL);
+
+	g_signal_connect(viewer, "realize",              G_CALLBACK(on_realize),        NULL);
 }
 static void gis_viewer_finalize(GObject *gobject)
 {
