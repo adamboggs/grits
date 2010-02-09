@@ -268,6 +268,13 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, elev, FALSE, NULL);
 }
 
+static gpointer _threaded_init(GisPluginElev *elev)
+{
+	_load_tile(elev->tiles, elev);
+	_update_tiles(elev);
+	return NULL;
+}
+
 /***********
  * Methods *
  ***********/
@@ -286,8 +293,7 @@ GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 	elev->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(elev->tiles, elev);
-	g_thread_create(_update_tiles, elev, FALSE, NULL);
+	g_thread_create((GThreadFunc)_threaded_init, elev, FALSE, NULL);
 
 	/* Connect signals */
 	elev->sigid = g_signal_connect(elev->viewer, "location-changed",

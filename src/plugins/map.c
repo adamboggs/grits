@@ -156,6 +156,13 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, map, FALSE, NULL);
 }
 
+static gpointer _threaded_init(GisPluginMap *map)
+{
+	_load_tile(map->tiles, map);
+	_update_tiles(map);
+	return NULL;
+}
+
 /***********
  * Methods *
  ***********/
@@ -174,8 +181,7 @@ GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 	map->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(map->tiles, map);
-	g_thread_create(_update_tiles, map, FALSE, NULL);
+	g_thread_create((GThreadFunc)_threaded_init, map, FALSE, NULL);
 
 	/* Connect signals */
 	map->sigid = g_signal_connect(map->viewer, "location-changed",

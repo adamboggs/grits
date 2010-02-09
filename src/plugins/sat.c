@@ -147,6 +147,13 @@ static void _on_location_changed(GisViewer *viewer,
 	g_thread_create(_update_tiles, sat, FALSE, NULL);
 }
 
+static gpointer _threaded_init(GisPluginSat *sat)
+{
+	_load_tile(sat->tiles, sat);
+	_update_tiles(sat);
+	return NULL;
+}
+
 /***********
  * Methods *
  ***********/
@@ -165,8 +172,7 @@ GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 	sat->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
-	_load_tile(sat->tiles, sat);
-	g_thread_create(_update_tiles, sat, FALSE, NULL);
+	g_thread_create((GThreadFunc)_threaded_init, sat, FALSE, NULL);
 
 	/* Connect signals */
 	sat->sigid = g_signal_connect(sat->viewer, "location-changed",
