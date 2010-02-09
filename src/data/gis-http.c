@@ -154,20 +154,22 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		soup_message_headers_set_range(message->request_headers, ftell(fp), -1);
 		soup_session_send_message(http->soup, message);
 
-		/* Finished */
-		if (message->status_code == 416) {
-			/* Range unsatisfiable, file already complete */
-		} else if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
-			g_warning("GisHttp: done_cb - error copying file, status=%d\n"
-					"\tsrc=%s\n"
-					"\tdst=%s",
-					message->status_code, uri, path);
-
 		/* Close file */
 		fclose(fp);
 		if (path != part && SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
 			g_rename(part, path);
 			g_free(part);
+		}
+
+		/* Finished */
+		if (message->status_code == 416) {
+			/* Range unsatisfiable, file already complete */
+		} else if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+			g_warning("GisHttp: done_cb - error copying file, status=%d\n"
+					"\tsrc=%s\n"
+					"\tdst=%s",
+					message->status_code, uri, path);
+			return NULL;
 		}
 	}
 
