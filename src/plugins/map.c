@@ -188,7 +188,7 @@ GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), map);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(map->tiles), GIS_LEVEL_OVERLAY, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(map->tiles), GIS_LEVEL_OVERLAY-1, 0);
 
 	return map;
 }

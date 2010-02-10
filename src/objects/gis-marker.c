@@ -47,21 +47,40 @@
 GisMarker *gis_marker_new(const gchar *label)
 {
 	//g_debug("GisMarker: new - %s", label);
-	static const int RADIUS =   4;
-	static const int WIDTH  = 100;
-	static const int HEIGHT =  20;
+	static const gint OUTLINE =   2;
+	static const gint RADIUS  =   4;
+	static const gint WIDTH   = 120;
+	static const gint HEIGHT  =  40;
 
 	GisMarker *marker = g_object_new(GIS_TYPE_MARKER, NULL);
-	marker->xoff  = RADIUS;
-	marker->yoff  = HEIGHT-RADIUS;
+	marker->xoff  = RADIUS+OUTLINE;
+	marker->yoff  = HEIGHT-(RADIUS+OUTLINE);
 	marker->label = g_strdup(label);
 	marker->cairo = cairo_create(cairo_image_surface_create(
 				CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT));
+
+	cairo_select_font_face(marker->cairo, "sans-serif",
+			CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
+	cairo_set_font_size(marker->cairo, 14);
+
+	/* Draw outline */
+	cairo_set_source_rgba(marker->cairo, 0, 0, 0, 1);
+	cairo_set_line_width(marker->cairo, OUTLINE*2);
+
+	cairo_arc(marker->cairo, marker->xoff, marker->yoff, RADIUS, 0, 2*G_PI);
+	cairo_stroke(marker->cairo);
+
+	cairo_move_to(marker->cairo, marker->xoff+4, marker->yoff-8);
+	cairo_text_path(marker->cairo, marker->label);
+	cairo_stroke(marker->cairo);
+
+	/* Draw filler */
 	cairo_set_source_rgba(marker->cairo, 1, 1, 1, 1);
+
 	cairo_arc(marker->cairo, marker->xoff, marker->yoff, RADIUS, 0, 2*G_PI);
 	cairo_fill(marker->cairo);
+
 	cairo_move_to(marker->cairo, marker->xoff+4, marker->yoff-8);
-	cairo_set_font_size(marker->cairo, 10);
 	cairo_show_text(marker->cairo, marker->label);
 	return marker;
 }
