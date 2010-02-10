@@ -7,14 +7,14 @@ LIBS        = $(top_srcdir)/src/libgis.la
 
 pluginsdir  = "$(libdir)/gis"
 
-plugins_LTLIBRARIES = sat.la elev.la map.la env.la test.la
+plugins_LTLIBRARIES = sat.la elev.la map.la env.la
 sat_la_SOURCES      = sat.c  sat.h
 elev_la_SOURCES     = elev.c elev.h
 map_la_SOURCES      = map.c  map.h
 env_la_SOURCES      = env.c  env.h
-test_la_SOURCES     = test.c test.h
 
-noinst_LTLIBRARIES  = teapot.la
+noinst_LTLIBRARIES  = teapot.la test.la
+test_la_SOURCES     = test.c test.h
 teapot_la_SOURCES   = \
 	$(top_srcdir)/examples/plugin/teapot.c
 	$(top_srcdir)/examples/plugin/teapot.h
