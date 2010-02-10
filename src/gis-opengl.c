@@ -344,21 +344,6 @@ struct RenderLevel {
 	GList sorted;
 };
 
-static void on_realize(GisOpenGL *opengl, gpointer _)
-{
-	g_debug("GisOpenGL: on_realize");
-
-	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
-	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
-	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		g_assert_not_reached();
-
-	_set_visuals(opengl);
-	g_mutex_lock(opengl->sphere_lock);
-	roam_sphere_update_errors(opengl->sphere);
-	g_mutex_unlock(opengl->sphere_lock);
-}
-
 static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpointer _)
 {
 	g_debug("GisOpenGL: on_configure");
@@ -380,6 +365,19 @@ static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpoint
 #endif
 
 	return FALSE;
+}
+
+static void on_realize(GisOpenGL *opengl, gpointer _)
+{
+	g_debug("GisOpenGL: on_realize");
+
+	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
+	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		g_assert_not_reached();
+
+	_set_visuals(opengl);
+	on_configure(opengl, NULL, NULL);
 }
 
 static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
