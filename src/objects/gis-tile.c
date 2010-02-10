@@ -33,7 +33,6 @@
  */
 
 #include <config.h>
-#include "gis-util.h"
 #include "gis-tile.h"
 
 gchar *gis_tile_path_table[2][2] = {
@@ -58,11 +57,8 @@ GisTile *gis_tile_new(GisTile *parent,
 {
 	GisTile *tile = g_object_new(GIS_TYPE_TILE, NULL);
 	tile->parent = parent;
-	tile->edge.n = n;
-	tile->edge.s = s;
-	tile->edge.e = e;
-	tile->edge.w = w;
 	tile->atime  = time(NULL);
+	gis_bbox_set_bounds(&tile->edge, n, s, e, w);
 	return tile;
 }
 
@@ -93,38 +89,35 @@ gchar *gis_tile_get_path(GisTile *child)
 	return g_string_free(path, FALSE);
 }
 
-static gdouble _gis_tile_get_min_dist(
-		gdouble lat, gdouble lon, gdouble elev,
-		gdouble n, gdouble s, gdouble e, gdouble w)
+static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBBox *bounds)
 {
-	gdouble tlat  = lat > n ? n :
-	                lat < s ? s : lat;
-	gdouble tlon  = lon > e ? e :
-	                lon < w ? w : lon;
-	gdouble telev = 0; // TODO: elevation at rlat,rlon
-	//if (lat == tlat && lon == tlon)
+	GisPoint pos = {};
+	pos.lat = eye->lat > bounds->n ? bounds->n :
+	          eye->lat < bounds->s ? bounds->s : eye->lat;
+	pos.lon = eye->lon > bounds->e ? bounds->e :
+	          eye->lon < bounds->w ? bounds->w : eye->lon;
+	//if (eye->lat == pos.lat && eye->lon == pos.lon)
 	//	return elev; /* Shortcut? */
 	gdouble a[3], b[3];
-	lle2xyz( lat,  lon,  elev, a+0, a+1, a+2);
-	lle2xyz(tlat, tlon, telev, b+0, b+1, b+2);
+	lle2xyz(eye->lat, eye->lon, eye->elev, a+0, a+1, a+2);
+	lle2xyz(pos.lat,  pos.lon,  pos.elev,  b+0, b+1, b+2);
 	return distd(a, b);
 }
 
-static gboolean _gis_tile_precise(
-		gdouble lat, gdouble lon, gdouble elev,
-		gdouble n, gdouble s, gdouble e, gdouble w,
+static gboolean _gis_tile_precise(GisPoint *eye, GisBBox *bounds,
 		gdouble max_res, gint width, gint height)
 {
-	gdouble min_dist  = _gis_tile_get_min_dist(lat, lon, elev, n, s, e, w);
+	gdouble min_dist  = _gis_tile_get_min_dist(eye, bounds);
 	gdouble view_res  = MPPX(min_dist);
 
-	gdouble lat_point = n < 0 ? n : s > 0 ? s : 0;
-	gdouble lon_dist  = e - w;
+	gdouble lat_point = bounds->n < 0 ? bounds->n :
+	                    bounds->s > 0 ? bounds->s : 0;
+	gdouble lon_dist  = bounds->e - bounds->w;
 	gdouble tile_res  = ll2m(lon_dist, lat_point)/width;
 
 	/* This isn't really right, but it helps with memory since we don't (yet?) test if the tile
 	 * would be drawn */
-	gdouble scale = elev / min_dist;
+	gdouble scale = eye->elev / min_dist;
 	view_res /= scale;
 	//view_res /= 1.4; /* make it a little nicer, not sure why this is needed */
 	//g_message("tile=(%7.2f %7.2f %7.2f %7.2f) "
@@ -141,12 +134,10 @@ static gboolean _gis_tile_precise(
 /**
  * gis_tile_update:
  * @root:      the root tile to split
+ * @eye:       the point the tile is viewed from, for calculating distances
  * @res:       a maximum resolution in meters per pixel to split tiles to
  * @width:     width in pixels of the image associated with the tile
  * @height:    height in pixels of the image associated with the tile
- * @lat:       latitude of the eye point
- * @lon:       longitude of the eye point
- * @elev:      elevation of the eye point
  * @load_func: function used to load the image when a new tile is created
  * @user_data: user data to past to the load function
  *
@@ -156,9 +147,8 @@ static gboolean _gis_tile_precise(
  * the tile is recursively subdivided until a sufficient resolution is
  * achieved.
  */
-void gis_tile_update(GisTile *root,
+void gis_tile_update(GisTile *root, GisPoint *eye,
 		gdouble res, gint width, gint height,
-		gdouble lat, gdouble lon, gdouble elev,
 		GisTileLoadFunc load_func, gpointer user_data)
 {
 	root->atime = time(NULL);
@@ -173,19 +163,20 @@ void gis_tile_update(GisTile *root,
 	int row, col;
 	gis_tile_foreach_index(root, row, col) {
 		GisTile **child = &root->children[row][col];
-		const gdouble n = root->edge.n-(lat_step*(row+0));
-		const gdouble s = root->edge.n-(lat_step*(row+1));
-		const gdouble e = root->edge.w+(lon_step*(col+1));
-		const gdouble w = root->edge.w+(lon_step*(col+0));
-		if (!_gis_tile_precise(lat,lon,elev, n,s,e,w,
-					res,width/cols,height/rows)) {
+		GisBBox edge;
+		edge.n = root->edge.n-(lat_step*(row+0));
+		edge.s = root->edge.n-(lat_step*(row+1));
+		edge.e = root->edge.w+(lon_step*(col+1));
+		edge.w = root->edge.w+(lon_step*(col+0));
+		if (!_gis_tile_precise(eye, &edge, res,
+					width/cols, height/rows)) {
 			if (!*child) {
-				*child = gis_tile_new(root, n,s,e,w);
+				*child = gis_tile_new(root, edge.n, edge.s,
+						edge.e, edge.w);
 				load_func(*child, user_data);
 			}
-			gis_tile_update(*child,
+			gis_tile_update(*child, eye,
 					res, width, height,
-					lat, lon, elev,
 					load_func, user_data);
 		}
 	}

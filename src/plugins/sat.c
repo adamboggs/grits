@@ -127,11 +127,10 @@ static gpointer _update_tiles(gpointer _sat)
 	GisPluginSat *sat = _sat;
 	if (!g_mutex_trylock(sat->mutex))
 		return NULL;
-	gdouble lat, lon, elev;
-	gis_viewer_get_location(sat->viewer, &lat, &lon, &elev);
-	gis_tile_update(sat->tiles,
+	GisPoint eye;
+	gis_viewer_get_location(sat->viewer, &eye.lat, &eye.lon, &eye.elev);
+	gis_tile_update(sat->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
-			lat, lon, elev,
 			_load_tile, sat);
 	gis_tile_gc(sat->tiles, time(NULL)-10,
 			_free_tile, sat);

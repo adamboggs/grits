@@ -248,11 +248,10 @@ static gpointer _update_tiles(gpointer _elev)
 	GisPluginElev *elev = _elev;
 	if (!g_mutex_trylock(elev->mutex))
 		return NULL;
-	gdouble lat, lon, elevation;
-	gis_viewer_get_location(elev->viewer, &lat, &lon, &elevation);
-	gis_tile_update(elev->tiles,
+	GisPoint eye;
+	gis_viewer_get_location(elev->viewer, &eye.lat, &eye.lon, &eye.elev);
+	gis_tile_update(elev->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
-			lat, lon, elevation,
 			_load_tile, elev);
 	gis_tile_gc(elev->tiles, time(NULL)-10,
 			_free_tile, elev);

@@ -17,7 +17,7 @@
 
 /**
  * SECTION:gis-object
- * @short_description: Base classes for drawing operations
+ * @short_description: Base class for drawing operations
  *
  * Objects in libgis are things which can be added to the viewer and will be
  * displayed to the user. Each object has information such as it's location and
@@ -30,48 +30,6 @@
 
 #include <config.h>
 #include "gis-object.h"
-
-/************
- * GisPoint *
- ************/
-/**
- * gis_point_new:
- *
- * Create a new #GisPoint
- *
- * Returns: the new point
- */
-GisPoint *gis_point_new()
-{
-	return g_new0(GisPoint, 1);
-}
-
-/**
- * gis_point_set_lle:
- * @point: the point to modify
- * @lat:   the new latitude
- * @lon:   the new longitude
- * @elev:  the new elevation
- *
- * Set the latitude, longitude, and elevation for a point.
- */
-void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
-{
-	point->lat  = lat;
-	point->lon  = lon;
-	point->elev = elev;
-}
-
-/**
- * gis_point_free:
- * @point: The point to free
- *
- * Free data used by a #GisPoint
- */
-void gis_point_free(GisPoint *point)
-{
-	g_free(point);
-}
 
 
 /*************

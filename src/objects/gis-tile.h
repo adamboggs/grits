@@ -39,9 +39,7 @@ struct _GisTile {
 	gpointer data;
 
 	/* North,South,East,West limits */
-	struct {
-		gdouble n,s,e,w;
-	} edge;
+	GisBBox edge;
 
 	/* Pointers to parent/child nodes */
 	GisTile *parent;
@@ -112,10 +110,9 @@ GisTile *gis_tile_new(GisTile *parent,
 gchar *gis_tile_get_path(GisTile *child);
 
 /* Update a root tile */
-/* Based on eye distance (lat,lon,elev) */
-void gis_tile_update(GisTile *root,
+/* Based on eye distance */
+void gis_tile_update(GisTile *root, GisPoint *eye,
 		gdouble res, gint width, gint height,
-		gdouble lat, gdouble lon, gdouble elev,
 		GisTileLoadFunc load_func, gpointer user_data);
 
 /* Find the leaf tile containing lat-lon */

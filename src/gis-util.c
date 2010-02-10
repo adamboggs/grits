@@ -73,6 +73,48 @@
 
 #include "gis-util.h"
 
+/************
+ * GisPoint *
+ ************/
+/**
+ * gis_point_set_lle:
+ * @point: the point to modify
+ * @lat:   the new latitude
+ * @lon:   the new longitude
+ * @elev:  the new elevation
+ *
+ * Set the latitude, longitude, and elevation for a point.
+ */
+void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
+{
+	point->lat  = lat;
+	point->lon  = lon;
+	point->elev = elev;
+}
+
+
+/***********
+ * GisBBox *
+ ***********/
+/**
+ * gis_bbox_set_bounds:
+ * @n: the north edge
+ * @s: the south edge
+ * @e: the east edge
+ * @w: the west edge
+ *
+ * Set the north, south, east, and west edges of the bounding box
+ */
+void gis_bbox_set_bounds(GisBBox *bbox,
+		gdouble n, gdouble s, gdouble e, gdouble w)
+{
+	bbox->n = n;
+	bbox->s = s;
+	bbox->e = e;
+	bbox->w = w;
+}
+
+
 /******************
  * Global helpers *
  ******************/

@@ -136,11 +136,10 @@ static gpointer _update_tiles(gpointer _map)
 	GisPluginMap *map = _map;
 	if (!g_mutex_trylock(map->mutex))
 		return NULL;
-	gdouble lat, lon, elev;
-	gis_viewer_get_location(map->viewer, &lat, &lon, &elev);
-	gis_tile_update(map->tiles,
+	GisPoint eye;
+	gis_viewer_get_location(map->viewer, &eye.lat, &eye.lon, &eye.elev);
+	gis_tile_update(map->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
-			lat, lon, elev,
 			_load_tile, map);
 	gis_tile_gc(map->tiles, time(NULL)-10,
 			_free_tile, map);

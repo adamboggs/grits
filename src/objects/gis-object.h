@@ -20,18 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-
-/* GisPoint */
-typedef struct _GisPoint GisPoint;
-
-struct _GisPoint {
-	gdouble lat, lon, elev;
-};
-
-GisPoint *gis_point_new();
-void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev);
-void gis_point_free(GisPoint *point);
-
+#include "gis-util.h"
 
 /* GisObject */
 #define GIS_TYPE_OBJECT            (gis_object_get_type())

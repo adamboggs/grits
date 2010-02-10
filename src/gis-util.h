@@ -146,6 +146,29 @@
 #define rad2deg(rad) (((rad)*180.0)/G_PI)
 
 
+/*************
+ * Datatypes *
+ *************/
+
+/* GisPoint */
+typedef struct _GisPoint GisPoint;
+struct _GisPoint {
+	gdouble lat, lon, elev;
+};
+
+void gis_point_set_lle(GisPoint *point,
+		gdouble lat, gdouble lon, gdouble elev);
+
+/* GisBBox */
+typedef struct _GisBBox GisBBox;
+struct _GisBBox {
+	gdouble n, s, e, w;
+};
+
+void gis_bbox_set_bounds(GisBBox *bbox,
+		gdouble n, gdouble s, gdouble e, gdouble w);
+
+
 /********
  * Misc *
  ********/
