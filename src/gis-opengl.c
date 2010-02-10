@@ -233,6 +233,9 @@ static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
 	gis_viewer_project(GIS_VIEWER(opengl),
 			point->lat, point->lon, point->elev,
 			&px, &py, &pz);
+	gint win_width  = GTK_WIDGET(opengl)->allocation.width;
+	gint win_height = GTK_WIDGET(opengl)->allocation.height;
+	py = win_height - py;
 	if (pz > 1)
 		return;
 
@@ -244,8 +247,7 @@ static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
 
 	glMatrixMode(GL_PROJECTION); glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
-	glOrtho(0, GTK_WIDGET(opengl)->allocation.width,
-	        0, GTK_WIDGET(opengl)->allocation.height, -1, 1);
+	glOrtho(0, win_width, win_height, 0, -1, 1);
 	glTranslated(px - marker->xoff,
 	             py - marker->yoff, 0);
 
@@ -254,11 +256,12 @@ static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, marker->tex);
+	glDisable(GL_CULL_FACE);
 	glBegin(GL_QUADS);
-	glTexCoord2f(1, 1); glVertex3f(width, 0     , 0);
-	glTexCoord2f(1, 0); glVertex3f(width, height, 0);
-	glTexCoord2f(0, 0); glVertex3f(0    , height, 0);
-	glTexCoord2f(0, 1); glVertex3f(0    , 0     , 0);
+	glTexCoord2f(1, 0); glVertex3f(width, 0     , 0);
+	glTexCoord2f(1, 1); glVertex3f(width, height, 0);
+	glTexCoord2f(0, 1); glVertex3f(0    , height, 0);
+	glTexCoord2f(0, 0); glVertex3f(0    , 0     , 0);
 	glEnd();
 }
 
