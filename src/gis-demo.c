@@ -135,6 +135,7 @@ static GtkWidget *setup_window(GtkUIManager *manager, GtkWidget **_notebook)
 	g_signal_connect(window, "delete-event", G_CALLBACK(on_delete), NULL);
 	gtk_window_add_accel_group(GTK_WINDOW(window),
 			gtk_ui_manager_get_accel_group(manager));
+	gtk_widget_set_size_request(GTK_WIDGET(viewer), 400, 300);
 	*_notebook = notebook;
 	return window;
 }
