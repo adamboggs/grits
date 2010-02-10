@@ -465,9 +465,11 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 	return FALSE;
 }
 
-static gboolean _update_errors_cb(gpointer sphere)
+static gboolean _update_errors_cb(gpointer _opengl)
 {
-	roam_sphere_update_errors(sphere);
+	GisOpenGL *opengl = _opengl;
+	roam_sphere_update_errors(opengl->sphere);
+	opengl->ue_source = 0;
 	return FALSE;
 }
 static void on_view_changed(GisOpenGL *opengl,
@@ -476,8 +478,9 @@ static void on_view_changed(GisOpenGL *opengl,
 	g_debug("GisOpenGL: on_view_changed");
 	_set_visuals(opengl);
 #ifndef ROAM_DEBUG
-	opengl->ue_source = g_idle_add_full(G_PRIORITY_HIGH_IDLE+30,
-			_update_errors_cb, opengl->sphere, NULL);
+	if (!opengl->ue_source)
+		opengl->ue_source = g_idle_add_full(G_PRIORITY_HIGH_IDLE+30,
+				_update_errors_cb, opengl, NULL);
 	//roam_sphere_update_errors(opengl->sphere);
 #endif
 }
