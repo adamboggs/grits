@@ -326,19 +326,20 @@ static void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, R
 	else g_assert_not_reached();
 }
 
-static gboolean roam_point_visible(RoamPoint *triangle, RoamSphere *sphere)
-{
-	gint *view = sphere->view->view;
-	return triangle->px > view[0] && triangle->px < view[2] &&
-	       triangle->py > view[1] && triangle->py < view[3] &&
-	       triangle->pz > 0       && triangle->pz < 1;
-}
 static gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
 {
-	/* Do this with a bounding box */
-	return roam_point_visible(triangle->p.l, sphere) ||
-	       roam_point_visible(triangle->p.m, sphere) ||
-	       roam_point_visible(triangle->p.r, sphere);
+	RoamPoint *l = triangle->p.l;
+	RoamPoint *m = triangle->p.m;
+	RoamPoint *r = triangle->p.r;
+	gdouble min_x = MIN(MIN(l->px, m->px), r->px);
+	gdouble max_x = MAX(MAX(l->px, m->px), r->px);
+	gdouble min_y = MIN(MIN(l->py, m->py), r->py);
+	gdouble max_y = MAX(MAX(l->py, m->py), r->py);
+	gint *view = sphere->view->view;
+	return !(max_x < view[0] || min_x > view[2] ||
+	         max_y < view[1] || min_y > view[3]) &&
+	         l->pz > 0 && m->pz > 0 && r->pz > 0 &&
+	         l->pz < 1 && m->pz < 1 && r->pz < 1;
 }
 
 /**
@@ -356,7 +357,6 @@ void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 	roam_point_update_projection(triangle->p.m, sphere->view);
 	roam_point_update_projection(triangle->p.r, sphere->view);
 
-	/* Not exactly correct, could be out on both sides (middle in) */
 	if (!roam_triangle_visible(triangle, sphere)) {
 		triangle->error = -1;
 	} else {
