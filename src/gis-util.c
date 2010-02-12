@@ -191,9 +191,9 @@ void xyz2ll(gdouble x, gdouble y, gdouble z,
  */
 gdouble ll2m(gdouble lon_dist, gdouble lat)
 {
-	gdouble azim = (-lat+90)/180*M_PI;
-	gdouble rad  = sin(azim) * EARTH_R;
-	gdouble circ = 2 * M_PI * rad;
+	gdouble incl = lat2incl(lat);
+	gdouble rad  = sin(incl) * EARTH_R;
+	gdouble circ = 2 * G_PI * rad;
 	return lon_dist/360 * circ;
 }
 
