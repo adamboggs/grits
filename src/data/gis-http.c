@@ -117,7 +117,7 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		GisCacheType mode, GisChunkCallback callback, gpointer user_data)
 {
-	g_debug("GisHttp: fetch - %.20s... >> %s/%s  mode=%d",
+	g_debug("GisHttp: fetch - %s... >> %s/%s  mode=%d",
 			uri, http->prefix, local, mode);
 
 	gchar *path = g_build_filename(g_get_user_cache_dir(), PACKAGE,
@@ -130,7 +130,7 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 	/* Do the cache if necessasairy */
 	if (!(mode == GIS_ONCE && g_file_test(path, G_FILE_TEST_EXISTS)) &&
 			mode != GIS_LOCAL) {
-		g_debug("GisHttp: do_cache - Caching file %s", local);
+		g_debug("GisHttp: fetch - Caching file %s", local);
 
 		/* Open the file for writting */
 		gchar *part = path;

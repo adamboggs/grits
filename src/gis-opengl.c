@@ -233,6 +233,7 @@ static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
 	gis_viewer_project(GIS_VIEWER(opengl),
 			point->lat, point->lon, point->elev,
 			&px, &py, &pz);
+
 	gint win_width  = GTK_WIDGET(opengl)->allocation.width;
 	gint win_height = GTK_WIDGET(opengl)->allocation.height;
 	py = win_height - py;
@@ -275,13 +276,22 @@ static void _draw_object(GisOpenGL *opengl, GisObject *object)
 	//g_debug("GisOpenGL: draw_object");
 	/* Skip out of range objects */
 	if (object->lod > 0) {
+		/* LOD test */
 		gdouble eye[3], obj[3];
 		gis_viewer_get_location(GIS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
+		gdouble elev = eye[2];
 		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
 		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
 			&obj[0], &obj[1], &obj[2]);
 		gdouble dist = distd(obj, eye);
 		if (object->lod < dist)
+			return;
+
+		/* Horizon testing */
+		gdouble c = EARTH_R+elev;
+		gdouble a = EARTH_R;
+		gdouble horizon = sqrt(c*c - a*a);
+		if (dist > horizon)
 			return;
 	}
 
