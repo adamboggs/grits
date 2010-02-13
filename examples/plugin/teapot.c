@@ -18,7 +18,7 @@
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
 
-#include <gis/gis.h>
+#include <gis.h>
 
 #include "teapot.h"
 
