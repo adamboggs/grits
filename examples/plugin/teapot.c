@@ -74,7 +74,7 @@ GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
 
 	/* Add renderers */
 	GisCallback *callback = gis_callback_new(expose, teapot);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_WORLD, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_OVERLAY+1, 0);
 
 	return teapot;
 }
