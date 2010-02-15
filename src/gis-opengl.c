@@ -115,7 +115,9 @@ static void _set_visuals(GisOpenGL *opengl)
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	//glShadeModel(GL_FLAT);
 
+	g_mutex_lock(opengl->sphere_lock);
 	roam_sphere_update_view(opengl->sphere);
+	g_mutex_unlock(opengl->sphere_lock);
 }
 
 
@@ -306,7 +308,9 @@ static void _draw_object(GisOpenGL *opengl, GisObject *object)
 	} else if (GIS_IS_TILE(object)) {
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
+		g_mutex_lock(opengl->sphere_lock);
 		_draw_tiles(opengl, GIS_TILE(object));
+		g_mutex_unlock(opengl->sphere_lock);
 	}
 	glPopAttrib();
 	glMatrixMode(GL_PROJECTION); glPopMatrix();
@@ -478,7 +482,9 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 static gboolean _update_errors_cb(gpointer _opengl)
 {
 	GisOpenGL *opengl = _opengl;
+	g_mutex_lock(opengl->sphere_lock);
 	roam_sphere_update_errors(opengl->sphere);
+	g_mutex_unlock(opengl->sphere_lock);
 	opengl->ue_source = 0;
 	return FALSE;
 }
