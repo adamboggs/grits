@@ -89,7 +89,7 @@ struct _GisViewer {
 	/* instance members */
 	GisPlugins *plugins;
 	GisPrefs   *prefs;
-	gchar      *time;
+	time_t      time;
 	gdouble     location[3];
 	gdouble     rotation[3];
 	gboolean    offline;
@@ -125,8 +125,8 @@ GType gis_viewer_get_type(void);
 /* Methods */
 void gis_viewer_setup(GisViewer *viewer, GisPlugins *plugins, GisPrefs *prefs);
 
-void gis_viewer_set_time(GisViewer *viewer, const gchar *time);
-gchar *gis_viewer_get_time(GisViewer *viewer);
+void gis_viewer_set_time(GisViewer *viewer, time_t time);
+time_t gis_viewer_get_time(GisViewer *viewer);
 
 void gis_viewer_set_location(GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
 void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);

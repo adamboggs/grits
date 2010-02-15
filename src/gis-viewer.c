@@ -213,12 +213,11 @@ void gis_viewer_setup(GisViewer *viewer, GisPlugins *plugins, GisPrefs *prefs)
  *
  * Set the current time for the view
  */
-void gis_viewer_set_time(GisViewer *viewer, const char *time)
+void gis_viewer_set_time(GisViewer *viewer, time_t time)
 {
 	g_assert(GIS_IS_VIEWER(viewer));
-	g_debug("GisViewer: set_time - time=%s", time);
-	g_free(viewer->time);
-	viewer->time = g_strdup(time);
+	g_debug("GisViewer: set_time - time=%ld", time);
+	viewer->time = time;
 	_gis_viewer_emit_time_changed(viewer);
 }
 
@@ -230,7 +229,7 @@ void gis_viewer_set_time(GisViewer *viewer, const char *time)
  *
  * Returns: the current time
  */
-gchar *gis_viewer_get_time(GisViewer *viewer)
+time_t gis_viewer_get_time(GisViewer *viewer)
 {
 	g_assert(GIS_IS_VIEWER(viewer));
 	g_debug("GisViewer: get_time");
@@ -557,7 +556,6 @@ static void gis_viewer_init(GisViewer *viewer)
 {
 	g_debug("GisViewer: init");
 	/* Default values */
-	viewer->time = g_strdup("");
 	viewer->location[0] = 40;
 	viewer->location[1] = -100;
 	viewer->location[2] = 1.5*EARTH_R;
@@ -588,7 +586,6 @@ static void gis_viewer_finalize(GObject *gobject)
 {
 	g_debug("GisViewer: finalize");
 	GisViewer *viewer = GIS_VIEWER(gobject);
-	g_free(viewer->time);
 	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
 static void gis_viewer_class_init(GisViewerClass *klass)
@@ -600,7 +597,7 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 	/**
 	 * GisViewer::time-changed:
 	 * @viewer: the viewer.
-	 * @time:   a string representation of the time.
+	 * @time:   the new time.
 	 *
 	 * The ::time-changed signal is emitted when the viewers current time
 	 * changers.
@@ -612,10 +609,10 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 			0,
 			NULL,
 			NULL,
-			g_cclosure_marshal_VOID__STRING,
+			g_cclosure_marshal_VOID__LONG,
 			G_TYPE_NONE,
 			1,
-			G_TYPE_STRING);
+			G_TYPE_LONG);
 
 	/**
 	 * GisViewer::location-changed:
