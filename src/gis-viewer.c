@@ -556,6 +556,7 @@ static void gis_viewer_init(GisViewer *viewer)
 {
 	g_debug("GisViewer: init");
 	/* Default values */
+	viewer->time        = time(NULL);
 	viewer->location[0] = 40;
 	viewer->location[1] = -100;
 	viewer->location[2] = 1.5*EARTH_R;
