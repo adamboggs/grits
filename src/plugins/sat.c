@@ -179,7 +179,7 @@ GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), sat);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(sat->tiles), GIS_LEVEL_WORLD, 0);
+	gis_viewer_add(viewer, GIS_OBJECT(sat->tiles), GIS_LEVEL_WORLD, FALSE);
 
 	return sat;
 }

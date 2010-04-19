@@ -38,6 +38,9 @@ struct _GisTile {
 	/* Pointer to the tile data */
 	gpointer data;
 
+	/* Pointer to the tile data */
+	gint zindex;
+
 	/* North,South,East,West limits */
 	GisBBox edge;
 

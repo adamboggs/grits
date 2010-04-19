@@ -178,7 +178,9 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
 
 		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_POLYGON_OFFSET_FILL);
 		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);
+		glPolygonOffset(0, -tile->zindex);
 		glBegin(GL_TRIANGLES);
 		glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r);
 		glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m);
