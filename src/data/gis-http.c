@@ -32,6 +32,12 @@
 
 #include "gis-http.h"
 
+gchar *_get_cache_path(GisHttp *http, const gchar *local)
+{
+	return g_build_filename(g_get_user_cache_dir(), PACKAGE,
+			http->prefix, local, NULL);
+}
+
 /**
  * gis_http_new:
  * @prefix: The prefix in the cache to store the downloaded files.
@@ -120,8 +126,7 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 	g_debug("GisHttp: fetch - %s... >> %s/%s  mode=%d",
 			uri, http->prefix, local, mode);
 
-	gchar *path = g_build_filename(g_get_user_cache_dir(), PACKAGE,
-			http->prefix, local, NULL);
+	gchar *path = _get_cache_path(http, local);
 
 	/* Unlink the file if we're refreshing it */
 	if (mode == GIS_REFRESH)
