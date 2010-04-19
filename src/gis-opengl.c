@@ -611,6 +611,7 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 	g_assert(GIS_IS_OPENGL(_opengl));
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
 	_load_object(opengl, object);
+	g_mutex_lock(opengl->objects_lock);
 	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)key);
 	if (!level) {
 		level = g_new0(struct RenderLevel, 1);
@@ -623,6 +624,7 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 	next->prev = list;
 	next->next = list->next;
 	list->next = next;
+	g_mutex_unlock(opengl->objects_lock);
 	return next;
 }
 
@@ -633,12 +635,14 @@ static GisObject *gis_opengl_remove(GisViewer *_opengl, gpointer _link)
 	GList *link = _link;
 	GisObject *object = link->data;
 	_unload_object(opengl, object);
+	g_mutex_lock(opengl->objects_lock);
 	/* Just unlink and free it, link->prev is assured */
 	link->prev->next = link->next;
 	if (link->next)
 		link->next->prev = link->prev;
 	g_free(link);
 	g_object_unref(object);
+	g_mutex_unlock(opengl->objects_lock);
 	return object;
 }
 
@@ -677,6 +681,7 @@ static void gis_opengl_init(GisOpenGL *opengl)
 	g_object_unref(glconfig);
 
 	opengl->objects = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
+	opengl->objects_lock = g_mutex_new();
 	opengl->sphere = roam_sphere_new(opengl);
 	opengl->sphere_lock = g_mutex_new();
 
@@ -719,6 +724,7 @@ static void gis_opengl_finalize(GObject *_opengl)
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
 	roam_sphere_free(opengl->sphere);
 	g_tree_destroy(opengl->objects);
+	g_mutex_free(opengl->objects_lock);
 	g_mutex_free(opengl->sphere_lock);
 	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_opengl);
 }

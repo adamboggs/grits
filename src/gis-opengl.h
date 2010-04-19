@@ -39,6 +39,7 @@ struct _GisOpenGL {
 
 	/* instance members */
 	GTree      *objects;
+	GMutex     *objects_lock;
 	RoamSphere *sphere;
 	GMutex     *sphere_lock;
 	guint       sm_source[2];
