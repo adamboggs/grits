@@ -37,4 +37,8 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const gchar *local,
 		GisChunkCallback callback,
 		gpointer user_data);
 
+GList *gis_http_available(GisHttp *http,
+		gchar *filter, gchar *cache,
+		gchar *extract, gchar *index);
+
 #endif

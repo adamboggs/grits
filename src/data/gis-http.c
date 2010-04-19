@@ -181,3 +181,73 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 	/* TODO: free everything.. */
 	return path;
 }
+
+/**
+ * gis_http_available:
+ * @http:    the #GisHttp connection to use
+ * @filter:  filter used to extract files from the index, or NULL
+ *           For example: "href=\"([^"]*)\""
+ * @cache:   path to the local cache, or NULL to not search the cache
+ * @extract: regex used to extract filenames from the page, should match the
+ *           filename as $1, or NULL to use /http="([^"])"/
+ * @index:   path to the index page, or NULL to not search online
+ *
+ * Look through the cache and an HTTP index page for a list of available files.
+ * The name of each file that matches the filter is added to the returned list.
+ *
+ * The list as well as the strings contained in it should be freed afterwards.
+ *
+ * Returns the list of matching filenames
+ */
+GList *gis_http_available(GisHttp *http,
+		gchar *filter, gchar *cache,
+		gchar *extract, gchar *index)
+{
+	g_debug("GisHttp: available - %s~=%s %s~=%s",
+			filter, cache, extract, index);
+	GRegex *filter_re = g_regex_new(filter, 0, 0, NULL);
+	GList  *files = NULL;
+
+	/* Add cached files */
+	if (cache) {
+		const gchar *file;
+		gchar *path = _get_cache_path(http, cache);
+		GDir  *dir  = g_dir_open(path, 0, NULL);
+		while ((file = g_dir_read_name(dir)))
+			if (g_regex_match(filter_re, file, 0, NULL))
+				files = g_list_prepend(files, g_strdup(file));
+		g_free(path);
+	}
+
+
+	/* Add online files if online */
+	if (index) {
+		gchar tmp[16];
+		g_snprintf(tmp, sizeof(tmp), ".index.%x", g_random_int());
+		gchar *path = gis_http_fetch(http, index, tmp,
+				GIS_REFRESH, NULL, NULL);
+		gchar *html;
+		g_file_get_contents(path, &html, NULL, NULL);
+
+		/* Match hrefs by default, this regex is not very accurate */
+		GRegex *extract_re = g_regex_new(
+				extract ?: "href=\"([^\"]*)\"", 0, 0, NULL);
+		GMatchInfo *info;
+		g_regex_match(filter_re, html, 0, &info);
+		while (g_match_info_matches(info)) {
+			gchar *file = g_match_info_fetch(info, 0);
+			if (g_regex_match(filter_re, file, 0, NULL))
+				files = g_list_prepend(files, file);
+			else
+				g_free(file);
+			g_match_info_next(info, NULL);
+		}
+
+		g_match_info_free(info);
+		g_unlink(path);
+		g_free(path);
+		g_free(html);
+	}
+
+	return files;
+}
