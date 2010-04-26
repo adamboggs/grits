@@ -233,9 +233,9 @@ GList *gis_http_available(GisHttp *http,
 		GRegex *extract_re = g_regex_new(
 				extract ?: "href=\"([^\"]*)\"", 0, 0, NULL);
 		GMatchInfo *info;
-		g_regex_match(filter_re, html, 0, &info);
+		g_regex_match(extract_re, html, 0, &info);
 		while (g_match_info_matches(info)) {
-			gchar *file = g_match_info_fetch(info, 0);
+			gchar *file = g_match_info_fetch(info, 1);
 			if (g_regex_match(filter_re, file, 0, NULL))
 				files = g_list_prepend(files, file);
 			else
