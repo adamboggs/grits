@@ -102,7 +102,6 @@ static gboolean on_key_press(GisViewer *viewer, GdkEventKey *event, gpointer _)
 	double lat, lon, elev, pan;
 	gis_viewer_get_location(viewer, &lat, &lon, &elev);
 	pan = MIN(elev/(EARTH_R/2), 30);
-	gdk_threads_leave();
 	switch (event->keyval) {
 	case GDK_Left:  case GDK_h: gis_viewer_pan(viewer,  0,  -pan, 0); break;
 	case GDK_Down:  case GDK_j: gis_viewer_pan(viewer, -pan, 0,   0); break;

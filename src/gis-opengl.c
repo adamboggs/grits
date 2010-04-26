@@ -441,7 +441,9 @@ static gboolean on_expose(GisOpenGL *opengl, GdkEventExpose *event, gpointer _)
 	roam_sphere_draw(opengl->sphere);
 	//roam_sphere_draw_normals(opengl->sphere);
 #else
+	g_mutex_lock(opengl->objects_lock);
 	g_tree_foreach(opengl->objects, _draw_level, opengl);
+	g_mutex_unlock(opengl->objects_lock);
 	if (opengl->wireframe) {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -462,7 +464,6 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 			event->keyval, event->state, GDK_plus);
 
 	guint kv = event->keyval;
-	gdk_threads_leave();
 	/* Testing */
 	if (kv == GDK_w) {
 		opengl->wireframe = !opengl->wireframe;
@@ -473,10 +474,7 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 	else if (kv == GDK_p) roam_sphere_merge_one(opengl->sphere);
 	else if (kv == GDK_r) roam_sphere_split_merge(opengl->sphere);
 	else if (kv == GDK_u) roam_sphere_update_errors(opengl->sphere);
-	gdk_threads_enter();
 	gtk_widget_queue_draw(GTK_WIDGET(opengl));
-#else
-	gdk_threads_enter();
 #endif
 	return FALSE;
 }
@@ -506,12 +504,10 @@ static void on_view_changed(GisOpenGL *opengl,
 static gboolean on_idle(GisOpenGL *opengl)
 {
 	//g_debug("GisOpenGL: on_idle");
-	gdk_threads_enter();
 	g_mutex_lock(opengl->sphere_lock);
 	if (roam_sphere_split_merge(opengl->sphere))
 		gtk_widget_queue_draw(GTK_WIDGET(opengl));
 	g_mutex_unlock(opengl->sphere_lock);
-	gdk_threads_leave();
 	return TRUE;
 }
 
@@ -610,8 +606,8 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 {
 	g_assert(GIS_IS_OPENGL(_opengl));
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
-	_load_object(opengl, object);
 	g_mutex_lock(opengl->objects_lock);
+	_load_object(opengl, object);
 	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)key);
 	if (!level) {
 		level = g_new0(struct RenderLevel, 1);
@@ -619,23 +615,25 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 	}
 	GList *list = sort ? &level->sorted : &level->unsorted;
 	/* Put the link in the list */
-	GList *next = g_new0(GList, 1);
-	next->data = object;
-	next->prev = list;
-	next->next = list->next;
-	list->next = next;
+	GList *link = g_new0(GList, 1);
+	link->data = object;
+	link->prev = list;
+	link->next = list->next;
+	if (list->next)
+		list->next->prev = link;
+	list->next = link;
 	g_mutex_unlock(opengl->objects_lock);
-	return next;
+	return link;
 }
 
 static GisObject *gis_opengl_remove(GisViewer *_opengl, gpointer _link)
 {
 	g_assert(GIS_IS_OPENGL(_opengl));
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	g_mutex_lock(opengl->objects_lock);
 	GList *link = _link;
 	GisObject *object = link->data;
 	_unload_object(opengl, object);
-	g_mutex_lock(opengl->objects_lock);
 	/* Just unlink and free it, link->prev is assured */
 	link->prev->next = link->next;
 	if (link->next)

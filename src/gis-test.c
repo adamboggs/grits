@@ -17,6 +17,7 @@
 
 #include <config.h>
 #include <gtk/gtk.h>
+#include <gtk/gtkgl.h>
 #include <gdk/gdkkeysyms.h>
 
 #include "gis.h"
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
 	g_thread_init(NULL);
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
+	gtk_gl_init(&argc, &argv);
 
 	prefs   = gis_prefs_new(NULL, NULL);
 	plugins = gis_plugins_new(g_getenv("GIS_PLUGIN_PATH"), prefs);
