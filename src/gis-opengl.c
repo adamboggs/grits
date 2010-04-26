@@ -375,7 +375,7 @@ static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpoint
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	double ang = atan(height/FOV_DIST);
-	gluPerspective(rad2deg(ang)*2, width/height, 1, 10*EARTH_R);
+	gluPerspective(rad2deg(ang)*2, width/height, 1000, 10*EARTH_R);
 
 #ifndef ROAM_DEBUG
 	g_mutex_lock(opengl->sphere_lock);
