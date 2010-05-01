@@ -117,8 +117,9 @@ static gboolean _free_tile_cb(gpointer data)
 static void _free_tile(GisTile *tile, gpointer _sat)
 {
 	GisPluginSat *sat = _sat;
-	g_debug("GisPluginSat: _free_tile: %p=%d", tile->data, *(guint*)tile->data);
-	g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
+	g_debug("GisPluginSat: _free_tile: %p", tile->data);
+	if (tile->data)
+		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _sat)

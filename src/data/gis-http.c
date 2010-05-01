@@ -123,8 +123,7 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		GisCacheType mode, GisChunkCallback callback, gpointer user_data)
 {
-	g_debug("GisHttp: fetch - %s... >> %s/%s  mode=%d",
-			uri, http->prefix, local, mode);
+	g_debug("GisHttp: fetch - %s mode=%d", local, mode);
 	gchar *path = _get_cache_path(http, local);
 
 	/* Unlink the file if we're refreshing it */
@@ -218,6 +217,7 @@ GList *gis_http_available(GisHttp *http,
 			if (g_regex_match(filter_re, file, 0, NULL))
 				files = g_list_prepend(files, g_strdup(file));
 		g_free(path);
+		g_dir_close(dir);
 	}
 
 	/* Add online files if online */
@@ -243,11 +243,14 @@ GList *gis_http_available(GisHttp *http,
 			g_match_info_next(info, NULL);
 		}
 
+		g_regex_unref(extract_re);
 		g_match_info_free(info);
 		g_unlink(path);
 		g_free(path);
 		g_free(html);
 	}
+
+	g_regex_unref(filter_re);
 
 	return files;
 }

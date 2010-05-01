@@ -95,8 +95,9 @@ c_type gis_prefs_get_##name##_v(GisPrefs *prefs,                                
 {                                                                                    \
 	GError *error = NULL;                                                        \
 	c_type value = g_key_file_get_##name(prefs->key_file, group, key, &error);   \
-	if (error && error->code != G_KEY_FILE_ERROR_GROUP_NOT_FOUND)                \
-		g_warning("GisPrefs: get_value_##name - error getting key %s: %s\n", \
+	if (error && error->code != G_KEY_FILE_ERROR_GROUP_NOT_FOUND &&              \
+	             error->code != G_KEY_FILE_ERROR_KEY_NOT_FOUND)                  \
+		g_warning("GisPrefs: get_"#name" - error getting key %s: %s\n",      \
 				key, error->message);                                \
 	if (error && _error)                                                         \
 		*_error = error;                                                     \

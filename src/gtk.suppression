@@ -43,18 +43,24 @@
 	...
 	fun:gtk_icon_theme_has_icon
 }
-#{
-#	gtk_icon_theme_get
-#	Memcheck:Leak
-#	...
-#	fun:gtk_icon_theme_get*
-#}
-#{
-#	gtk_icon_factory_lookup
-#	Memcheck:Leak
-#	...
-#	fun:gtk_icon_factory_lookup*
-#}
+{
+	gtk_icon_source_copy
+	Memcheck:Leak
+	...
+	fun:gtk_icon_source_copy
+}
+{
+	gtk_icon_theme_get
+	Memcheck:Leak
+	...
+	fun:gtk_icon_theme_get*
+}
+{
+	gtk_icon_factory_lookup
+	Memcheck:Leak
+	...
+	fun:gtk_icon_factory_lookup*
+}
 {
 	gxk__for_display
 	Memcheck:Leak

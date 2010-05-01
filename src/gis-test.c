@@ -52,6 +52,13 @@ static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
 		return gis_shutdown(widget);
 	return FALSE;
 }
+static void load_plugin(GisPlugins *plugins, gchar *name,
+		GisViewer *viewer, GisPrefs *prefs, GtkNotebook *notebook)
+{
+	GisPlugin *plugin = gis_plugins_load(plugins, name, viewer, prefs);
+	GtkWidget *config = gis_plugin_get_config(plugin);
+	gtk_notebook_append_page(notebook, config, gtk_label_new(name));
+}
 
 /***********
  * Methods *
@@ -69,21 +76,29 @@ int main(int argc, char **argv)
 
 	gdk_threads_enter();
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+	GtkWidget *vbox   = gtk_vbox_new(FALSE, 0);
+	GtkWidget *config = gtk_notebook_new();
 	g_signal_connect(window, "delete-event",    G_CALLBACK(on_delete),    NULL);
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_key_press), NULL);
-	gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(viewer));
+	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(config), GTK_POS_BOTTOM);
+	gtk_container_add(GTK_CONTAINER(window), vbox);
+	gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(viewer), TRUE,  TRUE,  0);
+	gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(config), FALSE, FALSE, 0);
 	gtk_widget_show_all(window);
 
+	/* Configurable stuff */
+	gis_viewer_set_offline(viewer, TRUE);
+	//load_plugin(plugins, "elev",  viewer, prefs, GTK_NOTEBOOK(config));
+	//load_plugin(plugins, "env",   viewer, prefs, GTK_NOTEBOOK(config));
+	//load_plugin(plugins, "map",   viewer, prefs, GTK_NOTEBOOK(config));
+	load_plugin(plugins, "sat",   viewer, prefs, GTK_NOTEBOOK(config));
+	//load_plugin(plugins, "test",  viewer, prefs, GTK_NOTEBOOK(config));
+	load_plugin(plugins, "radar", viewer, prefs, GTK_NOTEBOOK(config));
 
-	/* elev env map sat test */
-	gis_plugins_load(plugins, "elev",  viewer, prefs);
-	gis_plugins_load(plugins, "env",   viewer, prefs);
-	gis_plugins_load(plugins, "map",   viewer, prefs);
-	gis_plugins_load(plugins, "sat",   viewer, prefs);
-	gis_plugins_load(plugins, "test",  viewer, prefs);
-
+	gtk_widget_show_all(config);
 	gtk_main();
-
 	gdk_threads_leave();
+
+	gdk_display_close(gdk_display_get_default());
 	return 0;
 }

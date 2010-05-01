@@ -201,6 +201,13 @@ GList *gis_plugins_available(GisPlugins *plugins)
 		}
 		g_dir_close(dir);
 	}
+	list = g_list_sort(list, (GCompareFunc)g_strcmp0);
+	for (GList *cur = list; cur; cur = cur->next)
+		while (cur->next && g_str_equal(cur->data,cur->next->data)) {
+			GList *tmp = cur->next;
+			list = g_list_remove_link(list, cur);
+			cur = tmp;
+		}
 	return list;
 }
 

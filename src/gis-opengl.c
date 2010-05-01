@@ -187,7 +187,6 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 		glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l);
 		glEnd();
 	}
-	g_list_free(triangles);
 }
 
 static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
@@ -218,7 +217,8 @@ static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
 				const gdouble s = tile->edge.n-(lat_step*(row+1));
 				const gdouble e = tile->edge.w+(lon_step*(col+1));
 				const gdouble w = tile->edge.w+(lon_step*(col+0));
-				GList *these = roam_sphere_get_intersect(opengl->sphere, FALSE, n, s, e, w);
+				GList *these = roam_sphere_get_intersect(opengl->sphere,
+						FALSE, n, s, e, w);
 				triangles = g_list_concat(triangles, these);
 			}
 		}
@@ -228,6 +228,7 @@ static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
 	}
 	if (triangles)
 		_draw_tile(opengl, tile, triangles);
+	g_list_free(triangles);
 }
 
 static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
@@ -321,7 +322,7 @@ static void _draw_object(GisOpenGL *opengl, GisObject *object)
 
 static void _load_object(GisOpenGL *opengl, GisObject *object)
 {
-	g_debug("GisOpenGL: load_object");
+	//g_debug("GisOpenGL: load_object");
 	if (GIS_IS_MARKER(object)) {
 		GisMarker *marker = GIS_MARKER(object);
 		cairo_surface_t *surface = cairo_get_target(marker->cairo);
@@ -338,13 +339,13 @@ static void _load_object(GisOpenGL *opengl, GisObject *object)
 				cairo_image_surface_get_data(surface));
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		g_debug("load_texture: %d", marker->tex);
+		//g_debug("load_texture: %d", marker->tex);
 	}
 }
 
 static void _unload_object(GisOpenGL *opengl, GisObject *object)
 {
-	g_debug("GisOpenGL: unload_object");
+	//g_debug("GisOpenGL: unload_object");
 	if (GIS_IS_MARKER(object)) {
 		GisMarker *marker = GIS_MARKER(object);
 		glDeleteTextures(1, &marker->tex);

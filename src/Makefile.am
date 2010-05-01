@@ -45,22 +45,25 @@ libgis_la_LIBADD  = $(AM_LDADD) \
 
 # Demo program
 if NOTWIN32
-AM_LDFLAGS += -static
+BINLDFLAGS = -static
 endif
 
 bin_PROGRAMS = gis-demo
 
 gis_demo_SOURCES  = gis-demo.c
 gis_demo_LDADD    = $(AM_LDADD) libgis.la
+gis_demo_LDFLAGS  = $(BINLDFLAGS)
 
 # Test programs
 noinst_PROGRAMS = gis-test tile-test
 
 gis_test_SOURCES = gis-test.c
 gis_test_LDADD   = $(AM_LDADD) libgis.la
+gis_test_LDFLAGS  = $(BINLDFLAGS)
 
 tile_test_SOURCES = tile-test.c
 tile_test_LDADD   = $(AM_LDADD) libgis.la
+tile_test_LDFLAGS = $(BINLDFLAGS)
 
 
 MAINTAINERCLEANFILES = Makefile.in
