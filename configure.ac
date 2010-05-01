@@ -18,6 +18,15 @@ PKG_CHECK_MODULES(CAIRO, cairo)
 PKG_CHECK_MODULES(GTK,   gtk+-2.0 >= 2.16 gtkglext-1.0)
 PKG_CHECK_MODULES(SOUP,  libsoup-2.4 >= 2.26)
 
+# Test for Windows vs. Unix
+case "${host}" in
+	*mingw32*) WIN32="yes" ;;
+	*cygwin*)  WIN32="yes" ;;
+	*)         WIN32="no"  ;;
+esac
+AM_CONDITIONAL([WIN32],    test "$WIN32" = "yes")
+AM_CONDITIONAL([NOTWIN32], test "$WIN32" = "no")
+
 # Output 
 AC_CONFIG_FILES([
 	Makefile

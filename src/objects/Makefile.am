@@ -1,5 +1,8 @@
-AM_CFLAGS  = -Wall --std=gnu99 -fPIC -I$(top_srcdir)/src
+AM_CFLAGS  = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CFLAGS += $(GLIB_CFLAGS) $(CAIRO_CFLAGS)
+if NOTWIN32
+AM_CFLAGS += -fPIC
+endif
 
 gis_objects_includedir = $(includedir)/gis/objects
 gis_objects_include_HEADERS = \

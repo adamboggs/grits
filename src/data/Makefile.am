@@ -1,5 +1,8 @@
-AM_CFLAGS  = -Wall --std=gnu99 -fPIC -I$(top_srcdir)/src
+AM_CFLAGS  = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CFLAGS += $(GLIB_CFLAGS) $(SOUP_CFLAGS)
+if NOTWIN32
+AM_CFLAGS += -fPIC
+endif
 
 gis_data_includedir = $(includedir)/gis/data
 gis_data_include_HEADERS = \

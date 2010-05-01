@@ -125,7 +125,6 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 {
 	g_debug("GisHttp: fetch - %s... >> %s/%s  mode=%d",
 			uri, http->prefix, local, mode);
-
 	gchar *path = _get_cache_path(http, local);
 
 	/* Unlink the file if we're refreshing it */
@@ -141,7 +140,8 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		gchar *part = path;
 		if (!g_file_test(path, G_FILE_TEST_EXISTS))
 			part = g_strdup_printf("%s.part", path);
-		FILE *fp = fopen_p(part, "a");
+		FILE *fp = fopen_p(part, "ab");
+		fseek(fp, 0, SEEK_END); // "a" is broken on Windows, twice
 
 		/* Make temp data */
 		struct _CacheInfo info = {
@@ -177,6 +177,7 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 			return NULL;
 		}
 	}
+
 
 	/* TODO: free everything.. */
 	return path;
@@ -218,7 +219,6 @@ GList *gis_http_available(GisHttp *http,
 				files = g_list_prepend(files, g_strdup(file));
 		g_free(path);
 	}
-
 
 	/* Add online files if online */
 	if (index) {
