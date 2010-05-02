@@ -1,0 +1,14 @@
+MKSHELL=/usr/lib/plan9/bin/rc
+PROGS=info info.exe
+default:V: all info-run
+
+info_libs=-lGL -lGLU -lglut
+
+info.exe: info.c
+	i686-pc-mingw32-gcc -o $target $prereq \
+		$CFLAGS -DFREEGLUT_STATIC -static \
+		-lfreeglut_static -lopengl32 -lwinmm -lgdi32
+info.exe-run: info.exe
+	wine $prereq
+
+<$HOME/lib/mkcommon
