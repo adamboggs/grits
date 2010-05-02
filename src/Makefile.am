@@ -37,15 +37,18 @@ libgis_la_SOURCES = gis.h \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DPKGDATADIR="\"$(datadir)/gis\"" \
-	-DPLUGINSDIR="\"$(libdir)/gis\""
+	-DPKGDATADIR="\"$(dots)$(datadir)/gis\"" \
+	-DPLUGINSDIR="\"$(dots)$(libdir)/gis\""
 libgis_la_LIBADD  = $(AM_LDADD) \
 	objects/libgis-objects.la \
 	data/libgis-data.la
 
 # Demo program
-if NOTWIN32
-BINLDFLAGS = -static
+if WIN32
+AM_LDFLAGS += -mwindows
+dots        = ..
+else
+BINLDFLAGS  = -static
 endif
 
 bin_PROGRAMS = gis-demo

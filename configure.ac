@@ -24,6 +24,9 @@ case "${host}" in
 	*cygwin*)  WIN32="yes" ;;
 	*)         WIN32="no"  ;;
 esac
+if test "$WIN32" = yes; then
+	ac_default_prefix="/"
+fi
 AM_CONDITIONAL([WIN32],    test "$WIN32" = "yes")
 AM_CONDITIONAL([NOTWIN32], test "$WIN32" = "no")
 
