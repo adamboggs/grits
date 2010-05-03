@@ -58,6 +58,7 @@ GisTile *gis_tile_new(GisTile *parent,
 	GisTile *tile = g_object_new(GIS_TYPE_TILE, NULL);
 	tile->parent = parent;
 	tile->atime  = time(NULL);
+	gis_bbox_set_bounds(&tile->coords, 0, 1, 1, 0);
 	gis_bbox_set_bounds(&tile->edge, n, s, e, w);
 	return tile;
 }

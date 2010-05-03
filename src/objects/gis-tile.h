@@ -38,11 +38,14 @@ struct _GisTile {
 	/* Pointer to the tile data */
 	gpointer data;
 
-	/* Pointer to the tile data */
+	/* Drawing order */
 	gint zindex;
 
 	/* North,South,East,West limits */
 	GisBBox edge;
+
+	/* Texture mapping coordinates */
+	GisBBox coords;
 
 	/* Pointers to parent/child nodes */
 	GisTile *parent;

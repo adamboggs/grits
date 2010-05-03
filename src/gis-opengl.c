@@ -133,6 +133,17 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	//g_message("drawing %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
 	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	gdouble n = tile->edge.n;
+	gdouble s = tile->edge.s;
+	gdouble e = tile->edge.e;
+	gdouble w = tile->edge.w;
+
+	gdouble londist = e - w;
+	gdouble latdist = n - s;
+
+	gdouble xscale = tile->coords.e - tile->coords.w;
+	gdouble yscale = tile->coords.s - tile->coords.n;
+
 	for (GList *cur = triangles; cur; cur = cur->next) {
 		RoamTriangle *tri = cur->data;
 
@@ -144,14 +155,6 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 			if (lon[1] > 90) lon[1] -= 360;
 			if (lon[2] > 90) lon[2] -= 360;
 		}
-
-		gdouble n = tile->edge.n;
-		gdouble s = tile->edge.s;
-		gdouble e = tile->edge.e;
-		gdouble w = tile->edge.w;
-
-		gdouble londist = e - w;
-		gdouble latdist = n - s;
 
 		gdouble xy[3][2] = {
 			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
@@ -176,6 +179,12 @@ static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
 		if (lat[0] == 90 || lat[0] == -90) xy[0][0] = 0.5;
 		if (lat[1] == 90 || lat[1] == -90) xy[1][0] = 0.5;
 		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
+
+		/* Scale to tile coords */
+		for (int i = 0; i < 3; i++) {
+			xy[i][0] = tile->coords.w + xy[i][0]*xscale;
+			xy[i][1] = tile->coords.n + xy[i][1]*yscale;
+		}
 
 		glEnable(GL_TEXTURE_2D);
 		glEnable(GL_POLYGON_OFFSET_FILL);
