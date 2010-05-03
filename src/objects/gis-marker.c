@@ -47,10 +47,10 @@
 GisMarker *gis_marker_new(const gchar *label)
 {
 	//g_debug("GisMarker: new - %s", label);
-	static const gint OUTLINE =   2;
-	static const gint RADIUS  =   4;
-	static const gint WIDTH   = 120;
-	static const gint HEIGHT  =  40;
+	static const gdouble OUTLINE =   2;
+	static const gdouble RADIUS  =   3;
+	static const gdouble WIDTH   = 128;
+	static const gdouble HEIGHT  =  32;
 
 	GisMarker *marker = g_object_new(GIS_TYPE_MARKER, NULL);
 	marker->xoff  = RADIUS+OUTLINE;
@@ -61,7 +61,7 @@ GisMarker *gis_marker_new(const gchar *label)
 
 	cairo_select_font_face(marker->cairo, "sans-serif",
 			CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
-	cairo_set_font_size(marker->cairo, 14);
+	cairo_set_font_size(marker->cairo, 13);
 
 	/* Draw outline */
 	cairo_set_source_rgba(marker->cairo, 0, 0, 0, 1);

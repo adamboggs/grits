@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 	/* Test extensions */
 	const char *exts[] = {
 		"GL_ARB_texture_rectangle",
+		"GL_ARB_texture_non_power_of_two",
 		"GL_ARB_does_not_exist",
 	};
 	printf("\nChecking some extensions...\n");
@@ -52,6 +53,11 @@ int main(int argc, char **argv)
 
 	/* Test sample image */
 	GLint sizes[][2] = {
+		{ 120,   40},
+		{ 120,  120},
+		{ 128,   32},
+		{ 128,   64},
+		{ 128,  128},
 		{3400, 1600},
 		{1024, 1024},
 		{4096, 4096},
