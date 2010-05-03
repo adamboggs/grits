@@ -47,18 +47,28 @@ static const guchar colormap[][2][4] = {
 struct _LoadTileData {
 	GisPluginMap *map;
 	GisTile      *tile;
-	GdkPixbuf    *pixbuf;
+	gchar        *path;
 };
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginMap *map    = data->map;
-	GisTile      *tile   = data->tile;
-	GdkPixbuf    *pixbuf = data->pixbuf;
+	GisPluginMap *map  = data->map;
+	GisTile      *tile = data->tile;
+	gchar        *path = data->path;
 	g_free(data);
 
-	/* Create Texture */
+	/* Load pixbuf */
 	g_debug("GisPluginMap: _load_tile_cb start");
+	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
+	if (!pixbuf) {
+		g_warning("GisPluginMap: _load_tile - Error loading pixbuf %s", path);
+		g_remove(path);
+		g_free(path);
+		return FALSE;
+	}
+	g_free(path);
+
+	/* Create Texture */
 	guchar   *pixels = gdk_pixbuf_get_pixels(pixbuf);
 	gboolean  alpha  = gdk_pixbuf_get_has_alpha(pixbuf);
 	gint      width  = gdk_pixbuf_get_width(pixbuf);
@@ -102,18 +112,11 @@ static void _load_tile(GisTile *tile, gpointer _map)
 {
 	GisPluginMap *map = _map;
 	g_debug("GisPluginMap: _load_tile start %p", g_thread_self());
-	char *path = gis_wms_fetch(map->wms, tile, GIS_ONCE, NULL, NULL);
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
-	data->map    = map;
-	data->tile   = tile;
-	data->pixbuf = gdk_pixbuf_new_from_file(path, NULL);
-	if (data->pixbuf) {
-		g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
-	} else {
-		g_warning("GisPluginMap: _load_tile - Error loading pixbuf %s", path);
-		g_remove(path);
-	}
-	g_free(path);
+	data->map  = map;
+	data->tile = tile;
+	data->path = gis_wms_fetch(map->wms, tile, GIS_ONCE, NULL, NULL);
+	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
 	g_debug("GisPluginMap: _load_tile end %p", g_thread_self());
 }
 

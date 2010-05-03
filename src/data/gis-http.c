@@ -226,6 +226,8 @@ GList *gis_http_available(GisHttp *http,
 		g_snprintf(tmp, sizeof(tmp), ".index.%x", g_random_int());
 		gchar *path = gis_http_fetch(http, index, tmp,
 				GIS_REFRESH, NULL, NULL);
+		if (!path)
+			return files;
 		gchar *html;
 		g_file_get_contents(path, &html, NULL, NULL);
 
