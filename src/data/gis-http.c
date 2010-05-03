@@ -79,6 +79,24 @@ struct _CacheInfo {
 	GisChunkCallback callback;
 	gpointer user_data;
 };
+struct _CacheInfoMain {
+	gchar *path;
+	GisChunkCallback callback;
+	gpointer user_data;
+	goffset cur, total;
+};
+
+/* call the user callback from the main thread,
+ * since it's usually UI updates */
+static gboolean _chunk_main_cb(gpointer _infomain)
+{
+	struct _CacheInfoMain *infomain = _infomain;
+	infomain->callback(infomain->path,
+			infomain->cur, infomain->total,
+			infomain->user_data);
+	g_free(infomain);
+	return FALSE;
+}
 
 /**
  * Append data to the file and call the users callback if they supplied one.
@@ -97,12 +115,17 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 		g_error("GisHttp: _chunk_cb - Unable to write data");
 
 	if (info->callback) {
-		goffset cur = ftell(info->fp);
-		goffset st=0, end=0, total=0;
+		struct _CacheInfoMain *infomain = g_new0(struct _CacheInfoMain, 1);
+		infomain->path      = info->path;
+		infomain->callback  = info->callback;
+		infomain->user_data = info->user_data;
+		infomain->cur       = ftell(info->fp);
+		goffset st=0, end=0;
 		soup_message_headers_get_content_range(message->response_headers,
-				&st, &end, &total);
-		info->callback(info->path, cur, total, info->user_data);
+				&st, &end, &infomain->total);
+		g_idle_add(_chunk_main_cb, infomain);
 	}
+
 }
 
 /**
