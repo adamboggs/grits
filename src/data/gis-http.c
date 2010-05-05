@@ -245,7 +245,7 @@ GList *gis_http_available(GisHttp *http,
 
 	/* Add online files if online */
 	if (index) {
-		gchar tmp[16];
+		gchar tmp[32];
 		g_snprintf(tmp, sizeof(tmp), ".index.%x", g_random_int());
 		gchar *path = gis_http_fetch(http, index, tmp,
 				GIS_REFRESH, NULL, NULL);
@@ -253,6 +253,8 @@ GList *gis_http_available(GisHttp *http,
 			return files;
 		gchar *html;
 		g_file_get_contents(path, &html, NULL, NULL);
+		if (!html)
+			return files;
 
 		/* Match hrefs by default, this regex is not very accurate */
 		GRegex *extract_re = g_regex_new(
@@ -261,10 +263,12 @@ GList *gis_http_available(GisHttp *http,
 		g_regex_match(extract_re, html, 0, &info);
 		while (g_match_info_matches(info)) {
 			gchar *file = g_match_info_fetch(info, 1);
-			if (g_regex_match(filter_re, file, 0, NULL))
-				files = g_list_prepend(files, file);
-			else
-				g_free(file);
+			if (file) {
+				if (g_regex_match(filter_re, file, 0, NULL))
+					files = g_list_prepend(files, file);
+				else
+					g_free(file);
+			}
 			g_match_info_next(info, NULL);
 		}
 
