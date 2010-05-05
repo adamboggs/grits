@@ -36,6 +36,7 @@ typedef struct _GisObjectClass GisObjectClass;
 struct _GisObject {
 	GObject  parent_instance;
 	GisPoint center;
+	gboolean hidden;
 	gdouble  lod;
 };
 

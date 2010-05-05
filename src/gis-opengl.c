@@ -288,6 +288,10 @@ static void _draw_callback(GisOpenGL *opengl, GisCallback *callback)
 static void _draw_object(GisOpenGL *opengl, GisObject *object)
 {
 	//g_debug("GisOpenGL: draw_object");
+	/* Skip hidden objects */
+	if (object->hidden)
+		return;
+
 	/* Skip out of range objects */
 	if (object->lod > 0) {
 		/* LOD test */
