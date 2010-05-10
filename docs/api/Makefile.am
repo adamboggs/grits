@@ -1,4 +1,4 @@
-AM_CPPFLAGS=$(SOUP_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS)
+AM_CPPFLAGS = $(SOUP_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS)
 
 
 # Gtk docs
@@ -16,10 +16,10 @@ CLEANFILES += libgis-sections.txt
 
 # Man pages 
 man_MANS = gis-demo.1
-%.1 : %.xml 
+%.1: %.xml 
 	xsltproc -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
-BUILT_EXTRA_DIST = $(man_MANS)
+EXTRA_DIST += $(man_MANS)
 
 
-MAINTAINERCLEANFILES=\
+MAINTAINERCLEANFILES = \
 	tmpl/* Makefile.in libgis-overrides.txt libgis.types libgis-scan.*

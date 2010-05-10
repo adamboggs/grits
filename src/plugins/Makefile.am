@@ -16,7 +16,7 @@ test_la_SOURCES     = test.c test.h
 
 noinst_LTLIBRARIES  = teapot.la
 teapot_la_SOURCES   = \
-	$(top_srcdir)/examples/plugin/teapot.c
+	$(top_srcdir)/examples/plugin/teapot.c \
 	$(top_srcdir)/examples/plugin/teapot.h
 
 test:
