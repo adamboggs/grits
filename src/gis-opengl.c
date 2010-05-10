@@ -548,7 +548,6 @@ GisViewer *gis_opengl_new(GisPlugins *plugins, GisPrefs *prefs)
 
 static void gis_opengl_center_position(GisViewer *_opengl, gdouble lat, gdouble lon, gdouble elev)
 {
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
 	glRotatef(lon, 0, 1, 0);
 	glRotatef(-lat, 1, 0, 0);
 	glTranslatef(0, 0, elev2rad(elev));

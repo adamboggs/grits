@@ -128,7 +128,6 @@ static gboolean _free_tile_cb(gpointer data)
 }
 static void _free_tile(GisTile *tile, gpointer _map)
 {
-	GisPluginMap *map = _map;
 	g_debug("GisPluginMap: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);

@@ -84,13 +84,6 @@ RoamPoint *roam_point_new(gdouble lat, gdouble lon, gdouble elev)
 	return point;
 }
 
-static RoamPoint *roam_point_dup(RoamPoint *point)
-{
-	RoamPoint *new = g_memdup(point, sizeof(RoamPoint));
-	new->tris = 0;
-	return new;
-}
-
 /**
  * roam_point_add_triangle:
  * @point:    the point

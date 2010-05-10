@@ -237,7 +237,6 @@ static gboolean _free_tile_cb(gpointer _data)
 }
 static void _free_tile(GisTile *tile, gpointer _elev)
 {
-	GisPluginElev *elev = _elev;
 	g_debug("GisPluginElev: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);

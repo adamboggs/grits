@@ -142,7 +142,7 @@ static gboolean on_button_press(GisViewer *viewer, GdkEventButton *event, gpoint
 	case 1:  viewer->drag_mode = GIS_DRAG_PAN;  break;
 	case 2:  viewer->drag_mode = GIS_DRAG_ZOOM; break;
 	case 3:  viewer->drag_mode = GIS_DRAG_TILT; break;
-	defualt: viewer->drag_mode = GIS_DRAG_NONE; break;
+	default: viewer->drag_mode = GIS_DRAG_NONE; break;
 	}
 	viewer->drag_x = event->x;
 	viewer->drag_y = event->y;
@@ -585,7 +585,6 @@ static void gis_viewer_init(GisViewer *viewer)
 static void gis_viewer_finalize(GObject *gobject)
 {
 	g_debug("GisViewer: finalize");
-	GisViewer *viewer = GIS_VIEWER(gobject);
 	G_OBJECT_CLASS(gis_viewer_parent_class)->finalize(gobject);
 }
 static void gis_viewer_class_init(GisViewerClass *klass)
