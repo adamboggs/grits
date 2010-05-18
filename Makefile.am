@@ -31,5 +31,4 @@ depscan:
 		--book=libsoup-2.4 \
 		--book=pango       \
 		--list-unknown     \
-		"$@"               \
 		src/*.c

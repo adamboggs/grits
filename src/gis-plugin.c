@@ -38,6 +38,8 @@
 #include <glib.h>
 #include <gmodule.h>
 
+#include <string.h>
+
 #include "gis-plugin.h"
 
 /********************
@@ -201,7 +203,7 @@ GList *gis_plugins_available(GisPlugins *plugins)
 		}
 		g_dir_close(dir);
 	}
-	list = g_list_sort(list, (GCompareFunc)g_strcmp0);
+	list = g_list_sort(list, (GCompareFunc)strcmp);
 	for (GList *cur = list; cur; cur = cur->next)
 		while (cur->next && g_str_equal(cur->data,cur->next->data)) {
 			GList *tmp = cur->next;
