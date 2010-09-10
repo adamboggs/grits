@@ -1,0 +1,18 @@
+<Project xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+         xmlns:foaf="http://xmlns.com/foaf/0.1/"
+         xmlns:gnome="http://api.gnome.org/doap-extensions#"
+         xmlns="http://usefulinc.com/ns/doap#">
+
+  <name xml:lang="en">libgis</name>
+  <shortdesc xml:lang="en">Virtual Globe library</shortdesc>
+  <homepage rdf:resource="http://lug.rose-hulman.edu/code/projects/libgis" />
+
+  <maintainer>
+    <foaf:Person>
+      <foaf:name>Andy Spencer</foaf:name>
+      <foaf:mbox rdf:resource="mailto:andy753421@gmail.com" />
+      <gnome:userid>andys</gnome:userid>
+    </foaf:Person>
+  </maintainer>
+</Project>
