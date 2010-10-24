@@ -31,11 +31,9 @@
  */
 
 #include <config.h>
+#include <GL/gl.h>
 #include "gis-marker.h"
 
-/*************
- * GisMarker *
- *************/
 /**
  * gis_marker_new:
  * @label: a short description of the marker
@@ -57,7 +55,7 @@ GisMarker *gis_marker_new(const gchar *label)
 	marker->yoff  = HEIGHT-(RADIUS+OUTLINE);
 	marker->label = g_strdup(label);
 	marker->cairo = cairo_create(cairo_image_surface_create(
-				CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT));
+			CAIRO_FORMAT_ARGB32, WIDTH, HEIGHT));
 
 	cairo_select_font_face(marker->cairo, "sans-serif",
 			CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD);
@@ -82,9 +80,64 @@ GisMarker *gis_marker_new(const gchar *label)
 
 	cairo_move_to(marker->cairo, marker->xoff+4, marker->yoff-8);
 	cairo_show_text(marker->cairo, marker->label);
+
+	/* Load GL texture */
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &marker->tex);
+	glBindTexture(GL_TEXTURE_2D, marker->tex);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, 4, WIDTH, HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+			cairo_image_surface_get_data(cairo_get_target(marker->cairo)));
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 	return marker;
 }
 
+/* Drawing */
+static void gis_marker_draw(GisObject *_marker, GisOpenGL *opengl)
+{
+	GisMarker *marker = GIS_MARKER(_marker);
+	GisPoint *point = gis_object_center(marker);
+	gdouble px, py, pz;
+	gis_viewer_project(GIS_VIEWER(opengl),
+			point->lat, point->lon, point->elev,
+			&px, &py, &pz);
+
+	gint win_width  = GTK_WIDGET(opengl)->allocation.width;
+	gint win_height = GTK_WIDGET(opengl)->allocation.height;
+	py = win_height - py;
+	if (pz > 1)
+		return;
+
+	//g_debug("GisOpenGL: draw_marker - %s pz=%f ", marker->label, pz);
+
+	cairo_surface_t *surface = cairo_get_target(marker->cairo);
+	gdouble width  = cairo_image_surface_get_width(surface);
+	gdouble height = cairo_image_surface_get_height(surface);
+
+	glMatrixMode(GL_PROJECTION); glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
+	glOrtho(0, win_width, win_height, 0, -1, 1);
+	glTranslated(px - marker->xoff,
+	             py - marker->yoff, 0);
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_COLOR_MATERIAL);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, marker->tex);
+	glDisable(GL_CULL_FACE);
+	glBegin(GL_QUADS);
+	glTexCoord2f(1, 0); glVertex3f(width, 0     , 0);
+	glTexCoord2f(1, 1); glVertex3f(width, height, 0);
+	glTexCoord2f(0, 1); glVertex3f(0    , height, 0);
+	glTexCoord2f(0, 0); glVertex3f(0    , 0     , 0);
+	glEnd();
+}
+
+/* GObject code */
 G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
 static void gis_marker_init(GisMarker *marker)
 {
@@ -92,8 +145,9 @@ static void gis_marker_init(GisMarker *marker)
 
 static void gis_marker_finalize(GObject *_marker)
 {
-	GisMarker *marker = GIS_MARKER(_marker);
 	//g_debug("GisMarker: finalize - %s", marker->label);
+	GisMarker *marker = GIS_MARKER(_marker);
+	glDeleteTextures(1, &marker->tex);
 	cairo_surface_t *surface = cairo_get_target(marker->cairo);
 	cairo_surface_destroy(surface);
 	cairo_destroy(marker->cairo);
@@ -102,5 +156,10 @@ static void gis_marker_finalize(GObject *_marker)
 
 static void gis_marker_class_init(GisMarkerClass *klass)
 {
-	G_OBJECT_CLASS(klass)->finalize = gis_marker_finalize;
+	g_debug("GisMarker: class_init");
+	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
+	gobject_class->finalize = gis_marker_finalize;
+
+	GisObjectClass *object_class = GIS_OBJECT_CLASS(klass);
+	object_class->draw = gis_marker_draw;
 }

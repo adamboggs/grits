@@ -40,11 +40,18 @@ struct _GisObject {
 	gdouble  lod;
 };
 
+#include "gis-opengl.h"
 struct _GisObjectClass {
 	GObjectClass parent_class;
+
+	/* Move some of these to GObject? */
+	void (*draw) (GisObject *object, GisOpenGL *opengl);
 };
 
 GType gis_object_get_type(void);
+
+/* Implemented by sub-classes */
+void gis_object_draw(GisObject *object, GisOpenGL *opengl);
 
 /**
  * gis_object_center:

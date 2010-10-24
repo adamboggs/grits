@@ -29,12 +29,72 @@
  */
 
 #include <config.h>
+#include <math.h>
+#include <GL/gl.h>
+
 #include "gis-object.h"
 
 
 /*************
  * GisObject *
  *************/
+/**
+ * gis_object_draw:
+ * @object: the object
+ * @opengl: the viewer the object is being displayed in
+ *
+ * Perform any OpenGL commands necessasairy to draw the object.
+ *
+ * The GL_PROJECTION and GL_MODELVIEW matricies and GL_ALL_ATTRIB_BITS will be
+ * restored to the default state after the call to draw.
+ */
+void gis_object_draw(GisObject *object, GisOpenGL *opengl)
+{
+	GisObjectClass *klass = GIS_OBJECT_GET_CLASS(object);
+	if (!klass->draw) {
+		g_warning("GisObject: draw - Unimplemented");
+		return;
+	}
+
+	/* Skip hidden objects */
+	if (object->hidden)
+		return;
+
+	/* Skip out of range objects */
+	if (object->lod > 0) {
+		/* LOD test */
+		gdouble eye[3], obj[3];
+		gis_viewer_get_location(GIS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
+		gdouble elev = eye[2];
+		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
+		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
+			&obj[0], &obj[1], &obj[2]);
+		gdouble dist = distd(obj, eye);
+		if (object->lod < dist)
+			return;
+
+		/* Horizon testing */
+		gdouble c = EARTH_R+elev;
+		gdouble a = EARTH_R;
+		gdouble horizon = sqrt(c*c - a*a);
+		if (dist > horizon)
+			return;
+	}
+
+	/* Save state, draw, restore state */
+	g_mutex_lock(opengl->sphere_lock);
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	glMatrixMode(GL_PROJECTION); glPushMatrix();
+	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+
+	klass->draw(object, opengl);
+
+	glPopAttrib();
+	glMatrixMode(GL_PROJECTION); glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+	g_mutex_unlock(opengl->sphere_lock);
+}
+
 /* GObject stuff */
 G_DEFINE_ABSTRACT_TYPE(GisObject, gis_object, G_TYPE_OBJECT);
 static void gis_object_init(GisObject *object)

@@ -40,11 +40,11 @@ typedef struct _GisCallbackClass GisCallbackClass;
  *
  * A function to be called when the callback object is being rendered
  */
-typedef void (*GisCallbackFunc)(GisCallback *callback, gpointer user_data);
+typedef void (*GisCallbackFunc)(GisCallback *callback, GisOpenGL *opengl, gpointer user_data);
 
 struct _GisCallback {
 	GisObject       parent;
-	GisCallbackFunc callback;
+	GisCallbackFunc draw;
 	gpointer        user_data;
 };
 
@@ -54,6 +54,6 @@ struct _GisCallbackClass {
 
 GType gis_callback_get_type(void);
 
-GisCallback *gis_callback_new(GisCallbackFunc callback, gpointer user_data);
+GisCallback *gis_callback_new(GisCallbackFunc draw_cb, gpointer user_data);
 
 #endif

@@ -40,11 +40,6 @@
 #include "gis-util.h"
 #include "roam.h"
 
-#include "objects/gis-object.h"
-#include "objects/gis-tile.h"
-#include "objects/gis-marker.h"
-#include "objects/gis-callback.h"
-
 // #define ROAM_DEBUG
 
 /* Tessellation, "finding intersecting triangles" */
@@ -122,251 +117,6 @@ static void _set_visuals(GisOpenGL *opengl)
 }
 
 
-/********************
- * Object handleing *
- ********************/
-static void _draw_tile(GisOpenGL *opengl, GisTile *tile, GList *triangles)
-{
-	if (!tile || !tile->data)
-		return;
-	if (!triangles)
-		g_warning("GisOpenGL: _draw_tiles - No triangles to draw: edges=%f,%f,%f,%f",
-			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	//g_message("drawing %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
-	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	gdouble n = tile->edge.n;
-	gdouble s = tile->edge.s;
-	gdouble e = tile->edge.e;
-	gdouble w = tile->edge.w;
-
-	gdouble londist = e - w;
-	gdouble latdist = n - s;
-
-	gdouble xscale = tile->coords.e - tile->coords.w;
-	gdouble yscale = tile->coords.s - tile->coords.n;
-
-	for (GList *cur = triangles; cur; cur = cur->next) {
-		RoamTriangle *tri = cur->data;
-
-		gdouble lat[3] = {tri->p.r->lat, tri->p.m->lat, tri->p.l->lat};
-		gdouble lon[3] = {tri->p.r->lon, tri->p.m->lon, tri->p.l->lon};
-
-		if (lon[0] < -90 || lon[1] < -90 || lon[2] < -90) {
-			if (lon[0] > 90) lon[0] -= 360;
-			if (lon[1] > 90) lon[1] -= 360;
-			if (lon[2] > 90) lon[2] -= 360;
-		}
-
-		gdouble xy[3][2] = {
-			{(lon[0]-w)/londist, 1-(lat[0]-s)/latdist},
-			{(lon[1]-w)/londist, 1-(lat[1]-s)/latdist},
-			{(lon[2]-w)/londist, 1-(lat[2]-s)/latdist},
-		};
-
-		//if ((lat[0] == 90 && (xy[0][0] < 0 || xy[0][0] > 1)) ||
-		//    (lat[1] == 90 && (xy[1][0] < 0 || xy[1][0] > 1)) ||
-		//    (lat[2] == 90 && (xy[2][0] < 0 || xy[2][0] > 1)))
-		//	g_message("w,e=%4.f,%4.f   "
-		//	          "lat,lon,x,y="
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   "
-		//	          "%4.1f,%4.0f,%4.2f,%4.2f   ",
-		//		w,e,
-		//		lat[0], lon[0], xy[0][0], xy[0][1],
-		//		lat[1], lon[1], xy[1][0], xy[1][1],
-		//		lat[2], lon[2], xy[2][0], xy[2][1]);
-
-		/* Fix poles */
-		if (lat[0] == 90 || lat[0] == -90) xy[0][0] = 0.5;
-		if (lat[1] == 90 || lat[1] == -90) xy[1][0] = 0.5;
-		if (lat[2] == 90 || lat[2] == -90) xy[2][0] = 0.5;
-
-		/* Scale to tile coords */
-		for (int i = 0; i < 3; i++) {
-			xy[i][0] = tile->coords.w + xy[i][0]*xscale;
-			xy[i][1] = tile->coords.n + xy[i][1]*yscale;
-		}
-
-		glEnable(GL_TEXTURE_2D);
-		glEnable(GL_POLYGON_OFFSET_FILL);
-		glBindTexture(GL_TEXTURE_2D, *(guint*)tile->data);
-		glPolygonOffset(0, -tile->zindex);
-		glBegin(GL_TRIANGLES);
-		glNormal3dv(tri->p.r->norm); glTexCoord2dv(xy[0]); glVertex3dv((double*)tri->p.r);
-		glNormal3dv(tri->p.m->norm); glTexCoord2dv(xy[1]); glVertex3dv((double*)tri->p.m);
-		glNormal3dv(tri->p.l->norm); glTexCoord2dv(xy[2]); glVertex3dv((double*)tri->p.l);
-		glEnd();
-	}
-}
-
-static void _draw_tiles(GisOpenGL *opengl, GisTile *tile)
-{
-	/* Only draw children if possible */
-	gboolean has_children = FALSE;
-	GisTile *child;
-	gis_tile_foreach(tile, child)
-		if (child && child->data)
-			has_children = TRUE;
-
-	GList *triangles = NULL;
-	if (has_children) {
-		/* TODO: simplify this */
-		const gdouble rows = G_N_ELEMENTS(tile->children);
-		const gdouble cols = G_N_ELEMENTS(tile->children[0]);
-		const gdouble lat_dist = tile->edge.n - tile->edge.s;
-		const gdouble lon_dist = tile->edge.e - tile->edge.w;
-		const gdouble lat_step = lat_dist / rows;
-		const gdouble lon_step = lon_dist / cols;
-		int row, col;
-		gis_tile_foreach_index(tile, row, col) {
-			GisTile *child = tile->children[row][col];
-			if (child && child->data) {
-				_draw_tiles(opengl, child);
-			} else {
-				const gdouble n = tile->edge.n-(lat_step*(row+0));
-				const gdouble s = tile->edge.n-(lat_step*(row+1));
-				const gdouble e = tile->edge.w+(lon_step*(col+1));
-				const gdouble w = tile->edge.w+(lon_step*(col+0));
-				GList *these = roam_sphere_get_intersect(opengl->sphere,
-						FALSE, n, s, e, w);
-				triangles = g_list_concat(triangles, these);
-			}
-		}
-	} else {
-		triangles = roam_sphere_get_intersect(opengl->sphere, FALSE,
-				tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
-	}
-	if (triangles)
-		_draw_tile(opengl, tile, triangles);
-	g_list_free(triangles);
-}
-
-static void _draw_marker(GisOpenGL *opengl, GisMarker *marker)
-{
-	GisPoint *point = gis_object_center(marker);
-	gdouble px, py, pz;
-	gis_viewer_project(GIS_VIEWER(opengl),
-			point->lat, point->lon, point->elev,
-			&px, &py, &pz);
-
-	gint win_width  = GTK_WIDGET(opengl)->allocation.width;
-	gint win_height = GTK_WIDGET(opengl)->allocation.height;
-	py = win_height - py;
-	if (pz > 1)
-		return;
-
-	//g_debug("GisOpenGL: draw_marker - %s pz=%f ", marker->label, pz);
-
-	cairo_surface_t *surface = cairo_get_target(marker->cairo);
-	gdouble width  = cairo_image_surface_get_width(surface);
-	gdouble height = cairo_image_surface_get_height(surface);
-
-	glMatrixMode(GL_PROJECTION); glLoadIdentity();
-	glMatrixMode(GL_MODELVIEW);  glLoadIdentity();
-	glOrtho(0, win_width, win_height, 0, -1, 1);
-	glTranslated(px - marker->xoff,
-	             py - marker->yoff, 0);
-
-	glDisable(GL_LIGHTING);
-	glDisable(GL_COLOR_MATERIAL);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, marker->tex);
-	glDisable(GL_CULL_FACE);
-	glBegin(GL_QUADS);
-	glTexCoord2f(1, 0); glVertex3f(width, 0     , 0);
-	glTexCoord2f(1, 1); glVertex3f(width, height, 0);
-	glTexCoord2f(0, 1); glVertex3f(0    , height, 0);
-	glTexCoord2f(0, 0); glVertex3f(0    , 0     , 0);
-	glEnd();
-}
-
-static void _draw_callback(GisOpenGL *opengl, GisCallback *callback)
-{
-	callback->callback(callback, callback->user_data);
-}
-
-static void _draw_object(GisOpenGL *opengl, GisObject *object)
-{
-	//g_debug("GisOpenGL: draw_object");
-	/* Skip hidden objects */
-	if (object->hidden)
-		return;
-
-	/* Skip out of range objects */
-	if (object->lod > 0) {
-		/* LOD test */
-		gdouble eye[3], obj[3];
-		gis_viewer_get_location(GIS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
-		gdouble elev = eye[2];
-		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
-		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
-			&obj[0], &obj[1], &obj[2]);
-		gdouble dist = distd(obj, eye);
-		if (object->lod < dist)
-			return;
-
-		/* Horizon testing */
-		gdouble c = EARTH_R+elev;
-		gdouble a = EARTH_R;
-		gdouble horizon = sqrt(c*c - a*a);
-		if (dist > horizon)
-			return;
-	}
-
-	/* Draw */
-	glMatrixMode(GL_PROJECTION); glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	if (GIS_IS_MARKER(object)) {
-		_draw_marker(opengl, GIS_MARKER(object));
-	} else if (GIS_IS_CALLBACK(object)) {
-		_draw_callback(opengl, GIS_CALLBACK(object));
-	} else if (GIS_IS_TILE(object)) {
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-		g_mutex_lock(opengl->sphere_lock);
-		_draw_tiles(opengl, GIS_TILE(object));
-		g_mutex_unlock(opengl->sphere_lock);
-	}
-	glPopAttrib();
-	glMatrixMode(GL_PROJECTION); glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
-}
-
-static void _load_object(GisOpenGL *opengl, GisObject *object)
-{
-	//g_debug("GisOpenGL: load_object");
-	if (GIS_IS_MARKER(object)) {
-		GisMarker *marker = GIS_MARKER(object);
-		cairo_surface_t *surface = cairo_get_target(marker->cairo);
-		gdouble width  = cairo_image_surface_get_width(surface);
-		gdouble height = cairo_image_surface_get_height(surface);
-
-		glEnable(GL_TEXTURE_2D);
-		glGenTextures(1, &marker->tex);
-		glBindTexture(GL_TEXTURE_2D, marker->tex);
-
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, 4, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-				cairo_image_surface_get_data(surface));
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		//g_debug("load_texture: %d", marker->tex);
-	}
-}
-
-static void _unload_object(GisOpenGL *opengl, GisObject *object)
-{
-	//g_debug("GisOpenGL: unload_object");
-	if (GIS_IS_MARKER(object)) {
-		GisMarker *marker = GIS_MARKER(object);
-		glDeleteTextures(1, &marker->tex);
-	}
-}
-
-
 /*************
  * Callbacks *
  *************/
@@ -426,14 +176,14 @@ static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 	glDepthMask(TRUE);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	for (cur = level->unsorted.next; cur; cur = cur->next, nunsorted++)
-		_draw_object(opengl, GIS_OBJECT(cur->data));
+		gis_object_draw( GIS_OBJECT(cur->data), opengl);
 
 	/* Freeze depth buffer and draw transparent objects sorted */
 	/* TODO: sorting */
 	//glDepthMask(FALSE);
 	glAlphaFunc(GL_GREATER, 0.1);
 	for (cur = level->sorted.next; cur; cur = cur->next, nsorted++)
-		_draw_object(opengl, GIS_OBJECT(cur->data));
+		gis_object_draw(GIS_OBJECT(cur->data), opengl);
 
 	/* TODO: Prune empty levels */
 
@@ -619,7 +369,6 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 	g_assert(GIS_IS_OPENGL(_opengl));
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
 	g_mutex_lock(opengl->objects_lock);
-	_load_object(opengl, object);
 	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)key);
 	if (!level) {
 		level = g_new0(struct RenderLevel, 1);
@@ -645,7 +394,6 @@ static GisObject *gis_opengl_remove(GisViewer *_opengl, gpointer _link)
 	g_mutex_lock(opengl->objects_lock);
 	GList *link = _link;
 	GisObject *object = link->data;
-	_unload_object(opengl, object);
 	/* Just unlink and free it, link->prev is assured */
 	link->prev->next = link->next;
 	if (link->next)

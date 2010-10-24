@@ -35,7 +35,7 @@ static gboolean rotate(gpointer _teapot)
 	return TRUE;
 }
 
-static void expose(GisCallback *callback, gpointer _teapot)
+static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _teapot)
 {
 	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
 	g_debug("GisPluginTeapot: expose");

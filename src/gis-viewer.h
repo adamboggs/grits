@@ -15,6 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Hack alert: gis-opengl.h needs to be included before gis-viewer
+ *   - GisViewer depends on GisObject for add/remove functions
+ *   - GisObject depends on GisOpenGL for load/unload functions
+ *   - GisOpenGL depends on GisViewer for inheritance
+ *
+ * The problem here is that GisOpenGL needs the GisViewer definition
+ * but GisViewer only needs the typedefs (through GisObject),
+ * so GisViewer needs to be included after the GisOpenGL typedefs but
+ * before the GisOpenGL definition. This is handled internally by
+ * gis-opengl.h
+ *
+ * This should probably be fixed, but making a GisGLObject interface
+ * seems like too much work. Merging GisViewer and GisOpenGL would also work,
+ * but I like the separate that that's provided by having two.
+ */
+#include "gis-opengl.h"
+
 #ifndef __GIS_VIEWER_H__
 #define __GIS_VIEWER_H__
 
