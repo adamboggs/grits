@@ -93,11 +93,11 @@ void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
 }
 
 
-/***********
- * GisBBox *
- ***********/
+/*************
+ * GisBounds *
+ *************/
 /**
- * gis_bbox_set_bounds:
+ * gis_bounds_set_bounds:
  * @n: the north edge
  * @s: the south edge
  * @e: the east edge
@@ -105,13 +105,13 @@ void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
  *
  * Set the north, south, east, and west edges of the bounding box
  */
-void gis_bbox_set_bounds(GisBBox *bbox,
+void gis_bounds_set_bounds(GisBounds *bounds,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {
-	bbox->n = n;
-	bbox->s = s;
-	bbox->e = e;
-	bbox->w = w;
+	bounds->n = n;
+	bounds->s = s;
+	bounds->e = e;
+	bounds->w = w;
 }
 
 

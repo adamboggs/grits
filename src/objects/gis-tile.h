@@ -42,10 +42,10 @@ struct _GisTile {
 	gint zindex;
 
 	/* North,South,East,West limits */
-	GisBBox edge;
+	GisBounds edge;
 
 	/* Texture mapping coordinates */
-	GisBBox coords;
+	GisBounds coords;
 
 	/* Pointers to parent/child nodes */
 	GisTile *parent;

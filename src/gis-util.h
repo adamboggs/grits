@@ -159,13 +159,13 @@ struct _GisPoint {
 void gis_point_set_lle(GisPoint *point,
 		gdouble lat, gdouble lon, gdouble elev);
 
-/* GisBBox */
-typedef struct _GisBBox GisBBox;
-struct _GisBBox {
+/* GisBounds */
+typedef struct _GisBounds GisBounds;
+struct _GisBounds {
 	gdouble n, s, e, w;
 };
 
-void gis_bbox_set_bounds(GisBBox *bbox,
+void gis_bounds_set_bounds(GisBounds *bounds,
 		gdouble n, gdouble s, gdouble e, gdouble w);
 
 

@@ -58,8 +58,8 @@ GisTile *gis_tile_new(GisTile *parent,
 	GisTile *tile = g_object_new(GIS_TYPE_TILE, NULL);
 	tile->parent = parent;
 	tile->atime  = time(NULL);
-	gis_bbox_set_bounds(&tile->coords, 0, 1, 1, 0);
-	gis_bbox_set_bounds(&tile->edge, n, s, e, w);
+	gis_bounds_set_bounds(&tile->coords, 0, 1, 1, 0);
+	gis_bounds_set_bounds(&tile->edge, n, s, e, w);
 	return tile;
 }
 
@@ -90,7 +90,7 @@ gchar *gis_tile_get_path(GisTile *child)
 	return g_string_free(path, FALSE);
 }
 
-static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBBox *bounds)
+static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBounds *bounds)
 {
 	GisPoint pos = {};
 	pos.lat = eye->lat > bounds->n ? bounds->n :
@@ -105,7 +105,7 @@ static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBBox *bounds)
 	return distd(a, b);
 }
 
-static gboolean _gis_tile_precise(GisPoint *eye, GisBBox *bounds,
+static gboolean _gis_tile_precise(GisPoint *eye, GisBounds *bounds,
 		gdouble max_res, gint width, gint height)
 {
 	gdouble min_dist  = _gis_tile_get_min_dist(eye, bounds);
@@ -164,7 +164,7 @@ void gis_tile_update(GisTile *root, GisPoint *eye,
 	int row, col;
 	gis_tile_foreach_index(root, row, col) {
 		GisTile **child = &root->children[row][col];
-		GisBBox edge;
+		GisBounds edge;
 		edge.n = root->edge.n-(lat_step*(row+0));
 		edge.s = root->edge.n-(lat_step*(row+1));
 		edge.e = root->edge.w+(lon_step*(col+1));
