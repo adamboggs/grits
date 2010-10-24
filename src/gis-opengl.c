@@ -41,6 +41,7 @@
 #include "roam.h"
 
 #include "objects/gis-object.h"
+#include "objects/gis-tile.h"
 #include "objects/gis-marker.h"
 #include "objects/gis-callback.h"
 
@@ -567,22 +568,20 @@ static void gis_opengl_project(GisViewer *_opengl,
 		px, py, pz);
 }
 
-static void gis_opengl_set_height_func(GisViewer *_opengl, GisTile *tile,
+static void gis_opengl_set_height_func(GisViewer *_opengl, GisBounds *bounds,
 		RoamHeightFunc height_func, gpointer user_data, gboolean update)
 {
 	GisOpenGL *opengl = GIS_OPENGL(_opengl);
-	if (!tile)
-		return;
 	/* TODO: get points? */
 	g_mutex_lock(opengl->sphere_lock);
 	GList *triangles = roam_sphere_get_intersect(opengl->sphere, TRUE,
-			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+			bounds->n, bounds->s, bounds->e, bounds->w);
 	for (GList *cur = triangles; cur; cur = cur->next) {
 		RoamTriangle *tri = cur->data;
 		RoamPoint *points[] = {tri->p.l, tri->p.m, tri->p.r, tri->split};
 		for (int i = 0; i < G_N_ELEMENTS(points); i++) {
-			if (tile->edge.n >= points[i]->lat && points[i]->lat >= tile->edge.s &&
-			    tile->edge.e >= points[i]->lon && points[i]->lon >= tile->edge.w) {
+			if (bounds->n >= points[i]->lat && points[i]->lat >= bounds->s &&
+			    bounds->e >= points[i]->lon && points[i]->lon >= bounds->w) {
 				points[i]->height_func = height_func;
 				points[i]->height_data = user_data;
 				roam_point_update_height(points[i]);

@@ -482,21 +482,21 @@ void gis_viewer_clear_height_func(GisViewer *viewer)
 /**
  * gis_viewer_set_height_func:
  * @viewer:      the viewer
- * @tile:        the area to set the height function for
+ * @bounds:      the area to set the height function for
  * @height_func: the height function 
  * @user_data:   user data to pass to the height function
- * @update:      %TRUE if the heights inside the tile should be updated.
+ * @update:      %TRUE if the heights inside the bounds should be updated.
  *
  * Set the height function to be used for a given part of the surface..
  */
-void gis_viewer_set_height_func(GisViewer *viewer, GisTile *tile,
+void gis_viewer_set_height_func(GisViewer *viewer, GisBounds *bounds,
 		GisHeightFunc height_func, gpointer user_data,
 		gboolean update)
 {
 	GisViewerClass *klass = GIS_VIEWER_GET_CLASS(viewer);
 	if (!klass->set_height_func)
 		g_warning("GisViewer: set_height_func - Unimplemented");
-	klass->set_height_func(viewer, tile, height_func, user_data, update);
+	klass->set_height_func(viewer, bounds, height_func, user_data, update);
 }
 
 /**

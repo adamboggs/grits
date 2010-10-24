@@ -188,7 +188,7 @@ static gboolean _load_tile_cb(gpointer _load)
 	/* Do necessasairy processing */
 	/* TODO: Lock this and move to thread, can remove elev from _load then */
 	if (LOAD_BIL)
-		gis_viewer_set_height_func(elev->viewer, tile, _height_func, elev, TRUE);
+		gis_viewer_set_height_func(elev->viewer, &tile->edge, _height_func, elev, TRUE);
 
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)

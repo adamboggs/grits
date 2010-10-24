@@ -81,7 +81,6 @@ typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 #include "gis-plugin.h"
 #include "gis-prefs.h"
 #include "objects/gis-object.h"
-#include "objects/gis-tile.h"
 
 struct _GisViewer {
 	GtkDrawingArea parent_instance;
@@ -111,7 +110,7 @@ struct _GisViewerClass {
 	                          gdouble *px, gdouble *py, gdouble *pz);
 
 	void (*clear_height_func)(GisViewer *viewer);
-	void (*set_height_func)  (GisViewer *viewer, GisTile *tile,
+	void (*set_height_func)  (GisViewer *viewer, GisBounds *bounds,
 	                          GisHeightFunc height_func, gpointer user_data,
 	                          gboolean update);
 
@@ -151,7 +150,7 @@ void gis_viewer_project(GisViewer *viewer,
 		gdouble *px, gdouble *py, gdouble *pz);
 
 void gis_viewer_clear_height_func(GisViewer *viewer);
-void gis_viewer_set_height_func(GisViewer *viewer, GisTile *tile,
+void gis_viewer_set_height_func(GisViewer *viewer, GisBounds *bounds,
 		GisHeightFunc height_func, gpointer user_data,
 		gboolean update);
 
