@@ -44,38 +44,37 @@ static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _env)
 	gis_viewer_get_location(env->viewer, &lat, &lon, &elev);
 
 	/* Misc */
-	gdouble rg   = MAX(0, 1-(elev/20000));
-	gdouble blue = MAX(0, 1-(elev/50000));
-	glClearColor(MIN(0.65,rg), MIN(0.65,rg), MIN(1,blue), 1.0f);
+	gdouble rg   = MAX(0, 1-(elev/40000));
+	gdouble blue = MAX(0, 1-(elev/100000));
+	glClearColor(MIN(0.4,rg), MIN(0.4,rg), MIN(1,blue), 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	/* Attempt to render an atmosphere */
-	/*
 	glEnable(GL_COLOR_MATERIAL);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
-
-	glBlendFunc(GL_ONE, GL_ONE);
-
 	glMatrixMode(GL_MODELVIEW);
+	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+	gis_viewer_center_position(env->viewer, lat, lon, -EARTH_R);
 
-	elev = -EARTH_R;
-	for (elev = -EARTH_R; elev < 0; elev += EARTH_R/10) {
-		glPushMatrix();
-		glColor4f(0.3, 0.3, 1.0, 0.2);
-		gis_viewer_center_position(env->viewer, lat, lon, elev);
+	gdouble ds  = EARTH_R+elev;     // distance to self
+	gdouble da  = EARTH_R+300000;   // distance to top of atmosphere
+	gdouble dg  = EARTH_R-100000;   // distance to top of atmosphere
+	gdouble ang = acos(EARTH_R/ds); // angle to horizon
+	ang = MAX(ang,0.1);
 
-		glBegin(GL_TRIANGLE_FAN);
-		glVertex3f(0, 0, 0);
-		for (gdouble i = 0; i <= 2*G_PI; i += G_PI/10) {
-			gint rad = 1*EARTH_R + 300000;
-			glVertex3f(rad*sin(i), rad*cos(i), 0);
-			g_message("%f %f %f", 3*EARTH_R*sin(i), 3*EARTH_R*cos(i), 0.);
-		}
-		glEnd();
-		glPopMatrix();
+	gdouble ar  = sin(ang)*da;      // top of quad fan "atomosphere"j
+	gdouble az  = cos(ang)*da;      //
+
+	gdouble gr  = sin(ang)*dg;      // bottom of quad fan "ground"
+	gdouble gz  = cos(ang)*dg;      //
+
+	glBegin(GL_QUAD_STRIP);
+	for (gdouble i = 0; i <= 2*G_PI; i += G_PI/30) {
+		glColor4f(0.3, 0.3, 1.0, 1.0); glVertex3f(gr*sin(i), gr*cos(i), gz);
+		glColor4f(0.3, 0.3, 1.0, 0.0); glVertex3f(ar*sin(i), ar*cos(i), az);
 	}
-	*/
+	glEnd();
 }
 
 
