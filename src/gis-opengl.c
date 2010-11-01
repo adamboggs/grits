@@ -210,12 +210,12 @@ static gboolean on_expose(GisOpenGL *opengl, GdkEventExpose *event, gpointer _)
 #else
 	g_mutex_lock(opengl->objects_lock);
 	g_tree_foreach(opengl->objects, _draw_level, opengl);
-	g_mutex_unlock(opengl->objects_lock);
 	if (opengl->wireframe) {
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		roam_sphere_draw(opengl->sphere);
 	}
+	g_mutex_unlock(opengl->objects_lock);
 #endif
 
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
