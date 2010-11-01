@@ -319,7 +319,6 @@ static void roam_triangle_sync_neighbors(RoamTriangle *neigh, RoamTriangle *old,
 	if      (neigh->t.l == old) neigh->t.l = new;
 	else if (neigh->t.b == old) neigh->t.b = new;
 	else if (neigh->t.r == old) neigh->t.r = new;
-	else g_assert_not_reached();
 }
 
 static gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere)
@@ -336,6 +335,20 @@ static gboolean roam_triangle_visible(RoamTriangle *triangle, RoamSphere *sphere
 	         max_y < view[1] || min_y > view[3]) &&
 	         l->pz > 0 && m->pz > 0 && r->pz > 0 &&
 	         l->pz < 1 && m->pz < 1 && r->pz < 1;
+}
+
+static gboolean roam_triangle_backface(RoamTriangle *triangle, RoamSphere *sphere)
+{
+	RoamPoint *l = triangle->p.l;
+	RoamPoint *m = triangle->p.m;
+	RoamPoint *r = triangle->p.r;
+	roam_point_update_projection(l, sphere->view);
+	roam_point_update_projection(m, sphere->view);
+	roam_point_update_projection(r, sphere->view);
+	double size = -( l->px * (m->py - r->py) +
+			 m->px * (r->py - l->py) +
+			 r->px * (l->py - m->py) ) / 2.0;
+	return size < 0;
 }
 
 /**
@@ -375,6 +388,12 @@ void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 
 		/* Size < 0 == backface */
 		triangle->error *= size;
+
+		/* Give some preference to "edge" faces */
+		if (roam_triangle_backface(triangle->t.l, sphere) ||
+		    roam_triangle_backface(triangle->t.b, sphere) ||
+		    roam_triangle_backface(triangle->t.r, sphere))
+			triangle->error *= 500;
 	}
 }
 
@@ -554,6 +573,11 @@ void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 	b->kids[0] = b->kids[1] = NULL;
 
 	/* Add original triangles */
+	roam_triangle_sync_neighbors(s->t.l, sl, s);
+	roam_triangle_sync_neighbors(s->t.r, sr, s);
+	roam_triangle_sync_neighbors(b->t.l, bl, b);
+	roam_triangle_sync_neighbors(b->t.r, br, b);
+
 	roam_triangle_add(s, sl->t.b, b, sr->t.b, sphere);
 	roam_triangle_add(b, bl->t.b, s, br->t.b, sphere);
 
