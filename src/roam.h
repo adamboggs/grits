@@ -53,7 +53,6 @@ struct _RoamView {
 	gdouble proj[16];
 	gint view[4];
 	gint version;
-	gdouble pos[3];
 };
 
 /*************

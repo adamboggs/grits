@@ -249,12 +249,6 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 static gboolean _update_errors_cb(gpointer _opengl)
 {
 	GisOpenGL *opengl = _opengl;
-	gdouble lat, lon, elev;
-	gis_viewer_get_location(GIS_VIEWER(opengl), &lat, &lon, &elev);
-	lle2xyz(lat, lon, elev,
-		&opengl->sphere->view->pos[0],
-		&opengl->sphere->view->pos[1],
-		&opengl->sphere->view->pos[2]);
 	g_mutex_lock(opengl->sphere_lock);
 	roam_sphere_update_errors(opengl->sphere);
 	g_mutex_unlock(opengl->sphere_lock);

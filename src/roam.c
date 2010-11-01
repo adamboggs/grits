@@ -361,7 +361,6 @@ static gboolean roam_triangle_backface(RoamTriangle *triangle, RoamSphere *spher
  */
 void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 {
-#if 0
 	/* Update points */
 	roam_point_update_projection(triangle->p.l, sphere->view);
 	roam_point_update_projection(triangle->p.m, sphere->view);
@@ -396,17 +395,6 @@ void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 		    roam_triangle_backface(triangle->t.r, sphere))
 			triangle->error *= 500;
 	}
-#endif
-
-	/* For pure distance based errors */
-	(void)roam_triangle_visible;
-	(void)roam_triangle_backface;
-	RoamPoint *l = triangle->p.l;
-	RoamPoint *m = triangle->p.m;
-	RoamPoint *r = triangle->p.r;
-	double base = distd((gdouble*)l, (gdouble*)r);
-	double dist = distd((gdouble*)m, (gdouble*)sphere->view->pos);
-	triangle->error = base/dist;
 }
 
 /**
@@ -789,9 +777,8 @@ void roam_sphere_merge_one(RoamSphere *sphere)
 gint roam_sphere_split_merge(RoamSphere *sphere)
 {
 	gint iters = 0, max_iters = 500;
-	gint target = 10000;
 	//gint target = 4000;
-	//gint target = 2000;
+	gint target = 2000;
 	//gint target = 500;
 
 	if (!sphere->view)
