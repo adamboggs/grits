@@ -100,11 +100,11 @@ static void _set_visuals(GisOpenGL *opengl)
 #ifndef ROAM_DEBUG
 	glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
-#endif
 
 	glClearDepth(1.0);
 	glDepthFunc(GL_LEQUAL);
 	glEnable(GL_DEPTH_TEST);
+#endif
 
 	glEnable(GL_LINE_SMOOTH);
 
@@ -200,10 +200,12 @@ static gboolean on_expose(GisOpenGL *opengl, GdkEventExpose *event, gpointer _)
 
 	_set_visuals(opengl);
 #ifdef ROAM_DEBUG
-	glColor4f(0.0, 0.0, 9.0, 0.6);
+	glColor4f(1.0, 1.0, 1.0, 1.0);
+	glLineWidth(2);
 	glDisable(GL_TEXTURE_2D);
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	roam_sphere_draw(opengl->sphere);
+	(void)_draw_level;
 	//roam_sphere_draw_normals(opengl->sphere);
 #else
 	g_mutex_lock(opengl->objects_lock);
@@ -263,6 +265,8 @@ static void on_view_changed(GisOpenGL *opengl,
 		opengl->ue_source = g_idle_add_full(G_PRIORITY_HIGH_IDLE+30,
 				_update_errors_cb, opengl, NULL);
 	//roam_sphere_update_errors(opengl->sphere);
+#else
+	(void)_update_errors_cb;
 #endif
 }
 
@@ -446,6 +450,9 @@ static void gis_opengl_init(GisOpenGL *opengl)
 #ifndef ROAM_DEBUG
 	opengl->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, opengl, NULL);
 	opengl->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, opengl, NULL);
+#else
+	(void)on_idle;
+	(void)_update_errors_cb;
 #endif
 
 	gtk_widget_add_events(GTK_WIDGET(opengl), GDK_KEY_PRESS_MASK);
