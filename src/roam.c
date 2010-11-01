@@ -313,7 +313,8 @@ void roam_triangle_remove(RoamTriangle *triangle, RoamSphere *sphere)
 	g_pqueue_remove(sphere->triangles, triangle->handle);
 }
 
-static void roam_triangle_sync_neighbors(RoamTriangle *new, RoamTriangle *old, RoamTriangle *neigh)
+/* (neight->t.? == old) = new */
+static void roam_triangle_sync_neighbors(RoamTriangle *neigh, RoamTriangle *old, RoamTriangle *new)
 {
 	if      (neigh->t.l == old) neigh->t.l = new;
 	else if (neigh->t.b == old) neigh->t.b = new;
@@ -414,10 +415,10 @@ void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 	roam_triangle_add(bl, br, b->t.l, sr, sphere);
 	roam_triangle_add(br, sl, b->t.r, bl, sphere);
 
-	roam_triangle_sync_neighbors(sl, s, s->t.l);
-	roam_triangle_sync_neighbors(sr, s, s->t.r);
-	roam_triangle_sync_neighbors(bl, b, b->t.l);
-	roam_triangle_sync_neighbors(br, b, b->t.r);
+	roam_triangle_sync_neighbors(s->t.l, s, sl);
+	roam_triangle_sync_neighbors(s->t.r, s, sr);
+	roam_triangle_sync_neighbors(b->t.l, b, bl);
+	roam_triangle_sync_neighbors(b->t.r, b, br);
 
 	/* Remove old triangles */
 	roam_triangle_remove(s, sphere);
@@ -556,10 +557,10 @@ void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 	roam_triangle_add(s, sl->t.b, b, sr->t.b, sphere);
 	roam_triangle_add(b, bl->t.b, s, br->t.b, sphere);
 
-	roam_triangle_sync_neighbors(s, sl, sl->t.b);
-	roam_triangle_sync_neighbors(s, sr, sr->t.b);
-	roam_triangle_sync_neighbors(b, bl, bl->t.b);
-	roam_triangle_sync_neighbors(b, br, br->t.b);
+	roam_triangle_sync_neighbors(sl->t.b, sl, s);
+	roam_triangle_sync_neighbors(sr->t.b, sr, s);
+	roam_triangle_sync_neighbors(bl->t.b, bl, b);
+	roam_triangle_sync_neighbors(br->t.b, br, b);
 
 	/* Remove child triangles */
 	roam_triangle_remove(sl, sphere);
