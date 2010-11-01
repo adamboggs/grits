@@ -177,15 +177,17 @@ void roam_point_update_projection(RoamPoint *point, RoamView *view)
  *
  * Returns: the new triangle
  */
-RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r)
+RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r,
+		RoamDiamond *parent)
 {
 	RoamTriangle *triangle = g_new0(RoamTriangle, 1);
 
-	triangle->error = 0;
-	triangle->p.l   = l;
-	triangle->p.m   = m;
-	triangle->p.r   = r;
-	triangle->split = roam_point_new(
+	triangle->error  = 0;
+	triangle->p.l    = l;
+	triangle->p.m    = m;
+	triangle->p.r    = r;
+	triangle->parent = parent;
+	triangle->split  = roam_point_new(
 		(l->lat + r->lat)/2,
 		(ABS(l->lat) == 90 ? r->lon :
 		 ABS(r->lat) == 90 ? l->lon :
@@ -397,12 +399,14 @@ void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 	RoamTriangle *s = triangle;      // Self
 	RoamTriangle *b = triangle->t.b; // Base
 
+	RoamDiamond *dia = roam_diamond_new(s, b);
+
 	/* Add new triangles */
 	RoamPoint *mid = triangle->split;
-	RoamTriangle *sl = s->kids[0] = roam_triangle_new(s->p.m, mid, s->p.l); // Self Left
-	RoamTriangle *sr = s->kids[1] = roam_triangle_new(s->p.r, mid, s->p.m); // Self Right
-	RoamTriangle *bl = b->kids[0] = roam_triangle_new(b->p.m, mid, b->p.l); // Base Left
-	RoamTriangle *br = b->kids[1] = roam_triangle_new(b->p.r, mid, b->p.m); // Base Right
+	RoamTriangle *sl = s->kids[0] = roam_triangle_new(s->p.m, mid, s->p.l, dia); // Self Left
+	RoamTriangle *sr = s->kids[1] = roam_triangle_new(s->p.r, mid, s->p.m, dia); // Self Right
+	RoamTriangle *bl = b->kids[0] = roam_triangle_new(b->p.m, mid, b->p.l, dia); // Base Left
+	RoamTriangle *br = b->kids[1] = roam_triangle_new(b->p.r, mid, b->p.m, dia); // Base Right
 
 	/*                triangle,l,  base,      r,  sphere */
 	roam_triangle_add(sl, sr, s->t.l, br, sphere);
@@ -420,9 +424,8 @@ void roam_triangle_split(RoamTriangle *triangle, RoamSphere *sphere)
 	roam_triangle_remove(b, sphere);
 
 	/* Add/Remove diamonds */
-	RoamDiamond *diamond = roam_diamond_new(s, b, sl, sr, bl, br);
-	roam_diamond_update_errors(diamond, sphere);
-	roam_diamond_add(diamond, sphere);
+	roam_diamond_update_errors(dia, sphere);
+	roam_diamond_add(dia, sphere);
 	roam_diamond_remove(s->parent, sphere);
 	roam_diamond_remove(b->parent, sphere);
 }
@@ -483,26 +486,11 @@ void roam_triangle_draw_normal(RoamTriangle *triangle)
  *
  * Returns: the new diamond
  */
-RoamDiamond *roam_diamond_new(
-		RoamTriangle *parent0, RoamTriangle *parent1,
-		RoamTriangle *kid0, RoamTriangle *kid1,
-		RoamTriangle *kid2, RoamTriangle *kid3)
+RoamDiamond *roam_diamond_new(RoamTriangle *parent0, RoamTriangle *parent1)
 {
 	RoamDiamond *diamond = g_new0(RoamDiamond, 1);
-
-	diamond->kids[0] = kid0;
-	diamond->kids[1] = kid1;
-	diamond->kids[2] = kid2;
-	diamond->kids[3] = kid3;
-
-	kid0->parent = diamond;
-	kid1->parent = diamond;
-	kid2->parent = diamond;
-	kid3->parent = diamond;
-
 	diamond->parents[0] = parent0;
 	diamond->parents[1] = parent1;
-
 	return diamond;
 }
 
@@ -556,10 +544,10 @@ void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere)
 	RoamTriangle *s = diamond->parents[0]; // Self
 	RoamTriangle *b = diamond->parents[1]; // Base
 
-	RoamTriangle *sl = diamond->kids[0];
-	RoamTriangle *sr = diamond->kids[1];
-	RoamTriangle *bl = diamond->kids[2];
-	RoamTriangle *br = diamond->kids[3];
+	RoamTriangle *sl = s->kids[0];
+	RoamTriangle *sr = s->kids[1];
+	RoamTriangle *bl = b->kids[0];
+	RoamTriangle *br = b->kids[1];
 
 	s->kids[0] = s->kids[1] = NULL;
 	b->kids[0] = b->kids[1] = NULL;
@@ -663,7 +651,8 @@ RoamSphere *roam_sphere_new()
 		sphere->roots[i] = roam_triangle_new(
 			vertexes[_triangles[i][0][0]],
 			vertexes[_triangles[i][0][1]],
-			vertexes[_triangles[i][0][2]]);
+			vertexes[_triangles[i][0][2]],
+			NULL);
 	for (int i = 0; i < 8; i++)
 		roam_triangle_add(sphere->roots[i],
 			sphere->roots[_triangles[i][1][0]],

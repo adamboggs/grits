@@ -111,17 +111,18 @@ struct _RoamTriangle {
 	/* Left, base, and right neighbor triangles */
 	struct { RoamTriangle *l,*b,*r; } t;
 
-	RoamPoint *split;     /* Split point */
-	RoamDiamond *parent;  /* Parent diamond */
-	double norm[3];       /* Surface normal */
-	double error;         /* Screen space error */
+	RoamPoint *split;      /* Split point */
+	RoamDiamond *parent;   /* Parent diamond */
+	RoamTriangle *kids[2]; /* Higher-res triangles */
+	double norm[3];        /* Surface normal */
+	double error;          /* Screen space error */
 	GPQueueHandle handle;
 
 	/* For get_intersect */
 	struct { gdouble n,s,e,w; } edge;
-	RoamTriangle *kids[2];
 };
-RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r);
+RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r,
+		RoamDiamond *parent);
 void roam_triangle_free(RoamTriangle *triangle);
 void roam_triangle_add(RoamTriangle *triangle,
 		RoamTriangle *left, RoamTriangle *base, RoamTriangle *right,
@@ -148,16 +149,12 @@ void roam_triangle_draw_normal(RoamTriangle *triangle);
  */
 struct _RoamDiamond {
 	/*< private >*/
-	RoamTriangle *kids[4];    /* Child triangles */
 	RoamTriangle *parents[2]; /* Parent triangles */
 	double error;             /* Screen space error */
 	gboolean active;          /* For internal use */
 	GPQueueHandle handle;
 };
-RoamDiamond *roam_diamond_new(
-		RoamTriangle *parent0, RoamTriangle *parent1,
-		RoamTriangle *kid0, RoamTriangle *kid1,
-		RoamTriangle *kid2, RoamTriangle *kid3);
+RoamDiamond *roam_diamond_new(RoamTriangle *parent0, RoamTriangle *parent1);
 void roam_diamond_add(RoamDiamond *diamond, RoamSphere *sphere);
 void roam_diamond_remove(RoamDiamond *diamond, RoamSphere *sphere);
 void roam_diamond_merge(RoamDiamond *diamond, RoamSphere *sphere);
