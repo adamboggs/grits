@@ -1,9 +1,19 @@
+m4_define([gis_release], [0.4.2])
+m4_define([gis_version], [0:0:0])
+m4_define([gis_subdir],  [libgis0])
+
 # Init and options
-AC_INIT([libgis], [0.4.1], [andy753421@gmail.com])
+AC_INIT([libgis], [gis_release], [andy753421@gmail.com])
 AM_INIT_AUTOMAKE([-Wall -Werror -Wno-portability foreign])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 #AM_SILENT_RULES([yes])
+
+# For library versioning
+LIB_VERSION=gis_version
+GIS_SUBDIR=gis_subdir
+AC_SUBST(LIB_VERSION)
+AC_SUBST(GIS_SUBDIR)
 
 # Check for required programs
 AC_PROG_CC

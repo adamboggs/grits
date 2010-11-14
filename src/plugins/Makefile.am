@@ -5,7 +5,7 @@ AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
 AM_LDFLAGS  = -module -avoid-version -no-undefined
 LIBS        = $(top_srcdir)/src/libgis.la
 
-pluginsdir  = "$(libdir)/gis"
+pluginsdir  = "$(libdir)/$(GIS_SUBDIR)"
 
 plugins_LTLIBRARIES = sat.la elev.la map.la env.la test.la
 sat_la_SOURCES      = sat.c  sat.h

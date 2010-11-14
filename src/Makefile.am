@@ -37,11 +37,13 @@ libgis_la_SOURCES = gis.h \
 	roam.c        roam.h        \
 	gpqueue.c     gpqueue.h
 libgis_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DPKGDATADIR="\"$(dots)$(datadir)/gis\"" \
-	-DPLUGINSDIR="\"$(dots)$(libdir)/gis\""
+	-DPKGDATADIR="\"$(dots)$(datadir)/$(GIS_SUBDIR)\"" \
+	-DPLUGINSDIR="\"$(dots)$(libdir)/$(GIS_SUBDIR)\""
 libgis_la_LIBADD  = $(AM_LDADD) \
 	objects/libgis-objects.la \
 	data/libgis-data.la
+libgis_la_LDFLAGS = $(AM_LDFLAGS) \
+	-version-info $(LIB_VERSION)
 
 # Demo program
 if WIN32
@@ -76,17 +78,17 @@ MAINTAINERCLEANFILES = Makefile.in
 .list.h:
 	glib-genmarshal --prefix=gis_cclosure_marshal --header $< > $@
 
-test: all .libs/gis
+test: all .libs/$(GIS_SUBDIR)
 	./gis-test
 
-gdb: all .libs/gis
+gdb: all .libs/$(GIS_SUBDIR)
 	gdb ./gis-test
 
-ddd: all .libs/gis
+ddd: all .libs/$(GIS_SUBDIR)
 	ddd ./gis-test
 
-.libs/gis: plugins/.libs
-	ln -sf ../plugins/.libs .libs/gis
+.libs/$(GIS_SUBDIR): plugins/.libs
+	ln -sf ../plugins/.libs .libs/$(GIS_SUBDIR)
 
 memcheck: all
 	G_SLICE=always-malloc                   \
