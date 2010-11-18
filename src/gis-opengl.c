@@ -151,19 +151,6 @@ static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpoint
 	return FALSE;
 }
 
-static void on_realize(GisOpenGL *opengl, gpointer _)
-{
-	g_debug("GisOpenGL: on_realize");
-
-	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
-	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
-	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		g_assert_not_reached();
-
-	_set_visuals(opengl);
-	on_configure(opengl, NULL, NULL);
-}
-
 static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 {
 	g_debug("GisOpenGL: _draw_level - level=%-4d", (int)key);
@@ -280,6 +267,37 @@ static gboolean on_idle(GisOpenGL *opengl)
 	return TRUE;
 }
 
+static void on_realize(GisOpenGL *opengl, gpointer _)
+{
+	g_debug("GisOpenGL: on_realize");
+
+	/* Start OpenGL */
+	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
+	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
+	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
+		g_assert_not_reached();
+
+	/* Connect signals and idle functions now that opengl is fully initialized */
+	gtk_widget_add_events(GTK_WIDGET(opengl), GDK_KEY_PRESS_MASK);
+	g_signal_connect(opengl, "configure-event",  G_CALLBACK(on_configure),    NULL);
+	g_signal_connect(opengl, "expose-event",     G_CALLBACK(on_expose),       NULL);
+
+	g_signal_connect(opengl, "key-press-event",  G_CALLBACK(on_key_press),    NULL);
+
+	g_signal_connect(opengl, "location-changed", G_CALLBACK(on_view_changed), NULL);
+	g_signal_connect(opengl, "rotation-changed", G_CALLBACK(on_view_changed), NULL);
+
+#ifndef ROAM_DEBUG
+	opengl->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, opengl, NULL);
+	opengl->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, opengl, NULL);
+#else
+	(void)on_idle;
+	(void)_update_errors_cb;
+#endif
+
+	/* Re-queue resize incase configure was triggered before realize */
+	gtk_widget_queue_resize(GTK_WIDGET(opengl));
+}
 
 /*********************
  * GisViewer methods *
@@ -431,7 +449,12 @@ G_DEFINE_TYPE(GisOpenGL, gis_opengl, GIS_TYPE_VIEWER);
 static void gis_opengl_init(GisOpenGL *opengl)
 {
 	g_debug("GisOpenGL: init");
-	/* OpenGL setup */
+	opengl->objects      = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
+	opengl->objects_lock = g_mutex_new();
+	opengl->sphere       = roam_sphere_new(opengl);
+	opengl->sphere_lock  = g_mutex_new();
+
+	/* Set OpenGL before "realize" */
 	GdkGLConfig *glconfig = gdk_gl_config_new_by_mode(
 			GDK_GL_MODE_RGBA   | GDK_GL_MODE_DEPTH |
 			GDK_GL_MODE_DOUBLE | GDK_GL_MODE_ALPHA);
@@ -442,28 +465,8 @@ static void gis_opengl_init(GisOpenGL *opengl)
 		g_error("GL lacks required capabilities");
 	g_object_unref(glconfig);
 
-	opengl->objects = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
-	opengl->objects_lock = g_mutex_new();
-	opengl->sphere = roam_sphere_new(opengl);
-	opengl->sphere_lock = g_mutex_new();
-
-#ifndef ROAM_DEBUG
-	opengl->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, opengl, NULL);
-	opengl->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, opengl, NULL);
-#else
-	(void)on_idle;
-	(void)_update_errors_cb;
-#endif
-
-	gtk_widget_add_events(GTK_WIDGET(opengl), GDK_KEY_PRESS_MASK);
-	g_signal_connect(opengl, "realize",          G_CALLBACK(on_realize),      NULL);
-	g_signal_connect(opengl, "configure-event",  G_CALLBACK(on_configure),    NULL);
-	g_signal_connect(opengl, "expose-event",     G_CALLBACK(on_expose),       NULL);
-
-	g_signal_connect(opengl, "key-press-event",  G_CALLBACK(on_key_press),    NULL);
-
-	g_signal_connect(opengl, "location-changed", G_CALLBACK(on_view_changed), NULL);
-	g_signal_connect(opengl, "rotation-changed", G_CALLBACK(on_view_changed), NULL);
+	/* Finish OpenGL init after it's realized */
+	g_signal_connect(opengl, "realize", G_CALLBACK(on_realize), NULL);
 }
 static void gis_opengl_dispose(GObject *_opengl)
 {
