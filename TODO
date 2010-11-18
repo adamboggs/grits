@@ -2,6 +2,8 @@ Miscellaneous
 -------------
 - Use VertexArrays/VertexBufferObjects/DisplayLists/etc
 - Plugins can time/location references too a tree-view
+- Organize examples and demo programs
+	- Add real examples do dist
 
 GisObject:
   - Improve GisMarker
