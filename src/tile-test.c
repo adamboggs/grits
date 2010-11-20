@@ -50,15 +50,15 @@ gpointer do_bmng_cache(gpointer _image)
 {
 	GtkImage *image = _image;
 	g_message("Creating bmng tile");
-	GisTile *tile = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	tile->children[0][1] = gis_tile_new(tile, NORTH, 0, 0, WEST);
+	GritsTile *tile = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	tile->children[0][1] = grits_tile_new(tile, NORTH, 0, 0, WEST);
 	tile = tile->children[0][1];
 
 	g_message("Fetching bmng image");
-	GisWms *bmng_wms = gis_wms_new(
+	GritsWms *bmng_wms = grits_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng_test/", "jpg", 512, 256);
-	const char *path = gis_wms_fetch(bmng_wms, tile, GIS_ONCE, NULL, NULL);
+	const char *path = grits_wms_fetch(bmng_wms, tile, GRITS_ONCE, NULL, NULL);
 
 	g_message("Loading bmng image: [%s]", path);
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
@@ -67,8 +67,8 @@ gpointer do_bmng_cache(gpointer _image)
 	gdk_threads_leave();
 
 	g_message("Cleaning bmng up");
-	gis_wms_free(bmng_wms);
-	gis_tile_free(tile, NULL, NULL);
+	grits_wms_free(bmng_wms);
+	grits_tile_free(tile, NULL, NULL);
 	return NULL;
 }
 
@@ -76,15 +76,15 @@ gpointer do_osm_cache(gpointer _image)
 {
 	GtkImage *image = _image;
 	g_message("Creating osm tile");
-	GisTile *tile = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	tile->children[0][1] = gis_tile_new(tile, NORTH, 0, 0, WEST);
+	GritsTile *tile = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	tile->children[0][1] = grits_tile_new(tile, NORTH, 0, 0, WEST);
 	tile = tile->children[0][1];
 
 	g_message("Fetching osm image");
-	GisWms *osm_wms = gis_wms_new(
+	GritsWms *osm_wms = grits_wms_new(
 		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
 		"osm_test/", "png", 512, 256);
-	const char *path = gis_wms_fetch(osm_wms, tile, GIS_ONCE, NULL, NULL);
+	const char *path = grits_wms_fetch(osm_wms, tile, GRITS_ONCE, NULL, NULL);
 
 	g_message("Loading osm image: [%s]", path);
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
@@ -93,8 +93,8 @@ gpointer do_osm_cache(gpointer _image)
 	gdk_threads_leave();
 
 	g_message("Cleaning osm up");
-	gis_wms_free(osm_wms);
-	gis_tile_free(tile, NULL, NULL);
+	grits_wms_free(osm_wms);
+	grits_tile_free(tile, NULL, NULL);
 	return NULL;
 }
 

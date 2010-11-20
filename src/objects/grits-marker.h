@@ -15,39 +15,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_MARKER_H__
-#define __GIS_MARKER_H__
+#ifndef __GRITS_MARKER_H__
+#define __GRITS_MARKER_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include <cairo.h>
 #include "grits-object.h"
 
-/* GisMarker */
-#define GIS_TYPE_MARKER            (gis_marker_get_type())
-#define GIS_MARKER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_MARKER, GisMarker))
-#define GIS_IS_MARKER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_MARKER))
-#define GIS_MARKER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_MARKER, GisMarkerClass))
-#define GIS_IS_MARKER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_MARKER))
-#define GIS_MARKER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_MARKER, GisMarkerClass))
+/* GritsMarker */
+#define GRITS_TYPE_MARKER            (grits_marker_get_type())
+#define GRITS_MARKER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_MARKER, GritsMarker))
+#define GRITS_IS_MARKER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_MARKER))
+#define GRITS_MARKER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_MARKER, GritsMarkerClass))
+#define GRITS_IS_MARKER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_MARKER))
+#define GRITS_MARKER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_MARKER, GritsMarkerClass))
 
-typedef struct _GisMarker      GisMarker;
-typedef struct _GisMarkerClass GisMarkerClass;
+typedef struct _GritsMarker      GritsMarker;
+typedef struct _GritsMarkerClass GritsMarkerClass;
 
-struct _GisMarker {
-	GisObject  parent_instance;
+struct _GritsMarker {
+	GritsObject  parent_instance;
 	gint       xoff, yoff;
 	gchar     *label;
 	cairo_t   *cairo;
 	guint      tex;
 };
 
-struct _GisMarkerClass {
-	GisObjectClass parent_class;
+struct _GritsMarkerClass {
+	GritsObjectClass parent_class;
 };
 
-GType gis_marker_get_type(void);
+GType grits_marker_get_type(void);
 
-GisMarker *gis_marker_new(const gchar *label);
+GritsMarker *grits_marker_new(const gchar *label);
 
 #endif

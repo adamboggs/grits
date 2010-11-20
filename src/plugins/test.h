@@ -20,31 +20,31 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_TEST            (gis_plugin_test_get_type ())
-#define GIS_PLUGIN_TEST(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_TEST, GisPluginTest))
-#define GIS_IS_PLUGIN_TEST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_TEST))
-#define GIS_PLUGIN_TEST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_TEST, GisPluginTestClass))
-#define GIS_IS_PLUGIN_TEST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_TEST))
-#define GIS_PLUGIN_TEST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_TEST, GisPluginTestClass))
+#define GRITS_TYPE_PLUGIN_TEST            (grits_plugin_test_get_type ())
+#define GRITS_PLUGIN_TEST(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_TEST, GritsPluginTest))
+#define GRITS_IS_PLUGIN_TEST(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_TEST))
+#define GRITS_PLUGIN_TEST_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_TEST, GritsPluginTestClass))
+#define GRITS_IS_PLUGIN_TEST_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_TEST))
+#define GRITS_PLUGIN_TEST_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_TEST, GritsPluginTestClass))
 
-typedef struct _GisPluginTest      GisPluginTest;
-typedef struct _GisPluginTestClass GisPluginTestClass;
+typedef struct _GritsPluginTest      GritsPluginTest;
+typedef struct _GritsPluginTestClass GritsPluginTestClass;
 
-struct _GisPluginTest {
+struct _GritsPluginTest {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer *viewer;
-	gpointer   marker;
+	GritsViewer *viewer;
+	gpointer     marker;
 };
 
-struct _GisPluginTestClass {
+struct _GritsPluginTestClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_test_get_type();
+GType grits_plugin_test_get_type();
 
 /* Methods */
-GisPluginTest *gis_plugin_test_new(GisViewer *viewer);
+GritsPluginTest *grits_plugin_test_new(GritsViewer *viewer);
 
 #endif

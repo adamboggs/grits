@@ -19,7 +19,7 @@
  * SECTION:elev
  * @short_description: Elevation plugin
  *
- * #GisPluginElev provides access to ground elevation. It does this in two ways:
+ * #GritsPluginElev provides access to ground elevation. It does this in two ways:
  * First, it provides a height function used by the viewer when drawing the
  * world. Second, it can load the elevation data into an image and draw a
  * greyscale elevation overlay on the planets surface.
@@ -39,17 +39,17 @@
 #define TILE_SIZE      (TILE_WIDTH*TILE_HEIGHT*sizeof(guint16))
 
 struct _TileData {
-	/* OpenGL has to be first to make gis_opengl_render_tiles happy */
+	/* OpenGL has to be first to make grits_opengl_render_tiles happy */
 	guint      opengl;
 	guint16   *bil;
 };
 
 static gdouble _height_func(gdouble lat, gdouble lon, gpointer _elev)
 {
-	GisPluginElev *elev = _elev;
+	GritsPluginElev *elev = _elev;
 	if (!elev) return 0;
 
-	GisTile *tile = gis_tile_find(elev->tiles, lat, lon);
+	GritsTile *tile = grits_tile_find(elev->tiles, lat, lon);
 	if (!tile) return 0;
 
 	struct _TileData *data = tile->data;
@@ -101,9 +101,9 @@ static gdouble _height_func(gdouble lat, gdouble lon, gpointer _elev)
 #define LOAD_BIL    TRUE
 #define LOAD_OPENGL FALSE
 struct _LoadTileData {
-	GisPluginElev    *elev;
+	GritsPluginElev    *elev;
 	gchar            *path;
-	GisTile          *tile;
+	GritsTile          *tile;
 	GdkPixbuf        *pixbuf;
 	struct _TileData *data;
 };
@@ -112,9 +112,9 @@ static guint16 *_load_bil(gchar *path)
 	gsize len;
 	gchar *data = NULL;
 	g_file_get_contents(path, &data, &len, NULL);
-	g_debug("GisPluginElev: load_bil %p", data);
+	g_debug("GritsPluginElev: load_bil %p", data);
 	if (len != TILE_SIZE) {
-		g_warning("GisPluginElev: _load_bil - unexpected tile size %d, != %d",
+		g_warning("GritsPluginElev: _load_bil - unexpected tile size %d, != %d",
 				len, TILE_SIZE);
 		g_free(data);
 		return NULL;
@@ -140,7 +140,7 @@ static GdkPixbuf *_load_pixbuf(guint16 *bil)
 				pixels[r*stride + c*nchan + 3] = 128;
 		}
 	}
-	g_debug("GisPluginElev: load_pixbuf %p", pixbuf);
+	g_debug("GritsPluginElev: load_pixbuf %p", pixbuf);
 	return pixbuf;
 }
 static guint _load_opengl(GdkPixbuf *pixbuf)
@@ -166,15 +166,15 @@ static guint _load_opengl(GdkPixbuf *pixbuf)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
-	g_debug("GisPluginElev: load_opengl %d", opengl);
+	g_debug("GritsPluginElev: load_opengl %d", opengl);
 	return opengl;
 }
 static gboolean _load_tile_cb(gpointer _load)
 {
 	struct _LoadTileData *load = _load;
-	g_debug("GisPluginElev: _load_tile_cb: %s", load->path);
-	GisPluginElev    *elev   = load->elev;
-	GisTile          *tile   = load->tile;
+	g_debug("GritsPluginElev: _load_tile_cb: %s", load->path);
+	GritsPluginElev    *elev   = load->elev;
+	GritsTile          *tile   = load->tile;
 	GdkPixbuf        *pixbuf = load->pixbuf;
 	struct _TileData *data   = load->data;
 	g_free(load->path);
@@ -188,7 +188,8 @@ static gboolean _load_tile_cb(gpointer _load)
 	/* Do necessasairy processing */
 	/* TODO: Lock this and move to thread, can remove elev from _load then */
 	if (LOAD_BIL)
-		gis_viewer_set_height_func(elev->viewer, &tile->edge, _height_func, elev, TRUE);
+		grits_viewer_set_height_func(elev->viewer, &tile->edge,
+				_height_func, elev, TRUE);
 
 	/* Cleanup unneeded things */
 	if (!LOAD_BIL)
@@ -198,13 +199,13 @@ static gboolean _load_tile_cb(gpointer _load)
 
 	return FALSE;
 }
-static void _load_tile(GisTile *tile, gpointer _elev)
+static void _load_tile(GritsTile *tile, gpointer _elev)
 {
-	GisPluginElev *elev = _elev;
+	GritsPluginElev *elev = _elev;
 
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
-	load->path = gis_wms_fetch(elev->wms, tile, GIS_ONCE, NULL, NULL);
-	g_debug("GisPluginElev: _load_tile: %s", load->path);
+	load->path = grits_wms_fetch(elev->wms, tile, GRITS_ONCE, NULL, NULL);
+	g_debug("GritsPluginElev: _load_tile: %s", load->path);
 	load->elev = elev;
 	load->tile = tile;
 	load->data = g_new0(struct _TileData, 1);
@@ -235,24 +236,24 @@ static gboolean _free_tile_cb(gpointer _data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _elev)
+static void _free_tile(GritsTile *tile, gpointer _elev)
 {
-	g_debug("GisPluginElev: _free_tile: %p", tile->data);
+	g_debug("GritsPluginElev: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _elev)
 {
-	GisPluginElev *elev = _elev;
+	GritsPluginElev *elev = _elev;
 	if (!g_mutex_trylock(elev->mutex))
 		return NULL;
-	GisPoint eye;
-	gis_viewer_get_location(elev->viewer, &eye.lat, &eye.lon, &eye.elev);
-	gis_tile_update(elev->tiles, &eye,
+	GritsPoint eye;
+	grits_viewer_get_location(elev->viewer, &eye.lat, &eye.lon, &eye.elev);
+	grits_tile_update(elev->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			_load_tile, elev);
-	gis_tile_gc(elev->tiles, time(NULL)-10,
+	grits_tile_gc(elev->tiles, time(NULL)-10,
 			_free_tile, elev);
 	g_mutex_unlock(elev->mutex);
 	return NULL;
@@ -261,13 +262,13 @@ static gpointer _update_tiles(gpointer _elev)
 /*************
  * Callbacks *
  *************/
-static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elevation, GisPluginElev *elev)
+static void _on_location_changed(GritsViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elevation, GritsPluginElev *elev)
 {
 	g_thread_create(_update_tiles, elev, FALSE, NULL);
 }
 
-static gpointer _threaded_init(GisPluginElev *elev)
+static gpointer _threaded_init(GritsPluginElev *elev)
 {
 	_load_tile(elev->tiles, elev);
 	_update_tiles(elev);
@@ -278,17 +279,17 @@ static gpointer _threaded_init(GisPluginElev *elev)
  * Methods *
  ***********/
 /**
- * gis_plugin_elev_new:
- * @viewer: the #GisViewer to use for drawing
+ * grits_plugin_elev_new:
+ * @viewer: the #GritsViewer to use for drawing
  *
  * Create a new instance of the elevation plugin.
  *
- * Returns: the new #GisPluginElev
+ * Returns: the new #GritsPluginElev
  */
-GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
+GritsPluginElev *grits_plugin_elev_new(GritsViewer *viewer)
 {
-	g_debug("GisPluginElev: new");
-	GisPluginElev *elev = g_object_new(GIS_TYPE_PLUGIN_ELEV, NULL);
+	g_debug("GritsPluginElev: new");
+	GritsPluginElev *elev = g_object_new(GRITS_TYPE_PLUGIN_ELEV, NULL);
 	elev->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
@@ -300,7 +301,7 @@ GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
 
 	/* Add renderers */
 	if (LOAD_OPENGL)
-		gis_viewer_add(viewer, GIS_OBJECT(elev->tiles), GIS_LEVEL_WORLD, 0);
+		grits_viewer_add(viewer, GRITS_OBJECT(elev->tiles), GRITS_LEVEL_WORLD, 0);
 
 	return elev;
 }
@@ -310,55 +311,55 @@ GisPluginElev *gis_plugin_elev_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_elev_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginElev, gis_plugin_elev, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_elev_plugin_init));
-static void gis_plugin_elev_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_elev_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginElev, grits_plugin_elev, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_elev_plugin_init));
+static void grits_plugin_elev_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginElev: plugin_init");
+	g_debug("GritsPluginElev: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_elev_init(GisPluginElev *elev)
+static void grits_plugin_elev_init(GritsPluginElev *elev)
 {
-	g_debug("GisPluginElev: init");
+	g_debug("GritsPluginElev: init");
 	/* Set defaults */
 	elev->mutex = g_mutex_new();
-	elev->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	elev->wms   = gis_wms_new(
+	elev->tiles = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	elev->wms   = grits_wms_new(
 		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
 		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
-static void gis_plugin_elev_dispose(GObject *gobject)
+static void grits_plugin_elev_dispose(GObject *gobject)
 {
-	g_debug("GisPluginElev: dispose");
-	GisPluginElev *elev = GIS_PLUGIN_ELEV(gobject);
+	g_debug("GritsPluginElev: dispose");
+	GritsPluginElev *elev = GRITS_PLUGIN_ELEV(gobject);
 	/* Drop references */
 	if (LOAD_BIL)
-		gis_viewer_clear_height_func(elev->viewer);
+		grits_viewer_clear_height_func(elev->viewer);
 	if (elev->viewer) {
 		g_signal_handler_disconnect(elev->viewer, elev->sigid);
 		g_object_unref(elev->viewer);
 		elev->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(grits_plugin_elev_parent_class)->dispose(gobject);
 }
-static void gis_plugin_elev_finalize(GObject *gobject)
+static void grits_plugin_elev_finalize(GObject *gobject)
 {
-	g_debug("GisPluginElev: finalize");
-	GisPluginElev *elev = GIS_PLUGIN_ELEV(gobject);
+	g_debug("GritsPluginElev: finalize");
+	GritsPluginElev *elev = GRITS_PLUGIN_ELEV(gobject);
 	/* Free data */
-	gis_tile_free(elev->tiles, _free_tile, elev);
-	gis_wms_free(elev->wms);
+	grits_tile_free(elev->tiles, _free_tile, elev);
+	grits_wms_free(elev->wms);
 	g_mutex_free(elev->mutex);
-	G_OBJECT_CLASS(gis_plugin_elev_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(grits_plugin_elev_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_elev_class_init(GisPluginElevClass *klass)
+static void grits_plugin_elev_class_init(GritsPluginElevClass *klass)
 {
-	g_debug("GisPluginElev: class_init");
+	g_debug("GritsPluginElev: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_elev_dispose;
-	gobject_class->finalize = gis_plugin_elev_finalize;
+	gobject_class->dispose  = grits_plugin_elev_dispose;
+	gobject_class->finalize = grits_plugin_elev_finalize;
 }

@@ -22,9 +22,9 @@
 #include "grits.h"
 
 
-static GisPrefs   *prefs;
-static GisPlugins *plugins;
-static GisViewer  *viewer;
+static GritsPrefs   *prefs;
+static GritsPlugins *plugins;
+static GritsViewer  *viewer;
 
 
 /*************
@@ -39,7 +39,7 @@ static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 static void on_offline(GtkToggleAction *action, gpointer _)
 {
 	gboolean active = gtk_toggle_action_get_active(action);
-	gis_viewer_set_offline(viewer, active);
+	grits_viewer_set_offline(viewer, active);
 }
 
 static void on_plugin(GtkToggleAction *action, GtkWidget *notebook)
@@ -47,16 +47,16 @@ static void on_plugin(GtkToggleAction *action, GtkWidget *notebook)
 	const gchar *name = gtk_action_get_name(GTK_ACTION(action));
 	gboolean active = gtk_toggle_action_get_active(action);
 	if (active) {
-		GisPlugin *plugin = gis_plugins_enable(plugins, name,
-				GIS_VIEWER(viewer), prefs);
-		GtkWidget *config = gis_plugin_get_config(plugin);
+		GritsPlugin *plugin = grits_plugins_enable(plugins, name,
+				GRITS_VIEWER(viewer), prefs);
+		GtkWidget *config = grits_plugin_get_config(plugin);
 		if (config) {
 			gtk_notebook_append_page(GTK_NOTEBOOK(notebook), config,
 					gtk_label_new(name));
 			gtk_widget_show_all(config);
 		}
 	} else {
-		gis_plugins_disable(plugins, name);
+		grits_plugins_disable(plugins, name);
 		guint n_pages = gtk_notebook_get_n_pages(GTK_NOTEBOOK(notebook));
 		for (int i = 0; i < n_pages; i++) {
 			GtkWidget *body = gtk_notebook_get_nth_page(GTK_NOTEBOOK(notebook), i);
@@ -145,14 +145,14 @@ static void setup_plugins(GtkUIManager *manager, GtkNotebook *notebook)
 	GtkActionGroup *actions = gtk_action_group_new("Plugins");
 	gtk_ui_manager_insert_action_group(manager, actions, 1);
 	guint merge_id = gtk_ui_manager_new_merge_id(manager);
-	for (GList *cur = gis_plugins_available(plugins); cur; cur = cur->next) {
+	for (GList *cur = grits_plugins_available(plugins); cur; cur = cur->next) {
 		gchar *name = cur->data;
 		GtkToggleAction *action = gtk_toggle_action_new(name, name, NULL, NULL);
 		g_signal_connect(action, "toggled", G_CALLBACK(on_plugin), notebook);
 		gtk_action_group_add_action(actions, GTK_ACTION(action));
 		gtk_ui_manager_add_ui(manager, merge_id, "/Menu/Plugins", name, name,
 				GTK_UI_MANAGER_AUTO, TRUE);
-		if (gis_prefs_get_boolean_v(prefs, "plugins", name, NULL))
+		if (grits_prefs_get_boolean_v(prefs, "plugins", name, NULL))
 			gtk_toggle_action_set_active(action, TRUE);
 	}
 }
@@ -161,7 +161,7 @@ static void restore_states(GtkUIManager *manager)
 {
 	GtkAction *action = gtk_ui_manager_get_action(manager, "/Menu/File/Offline");
 	gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action),
-			gis_viewer_get_offline(viewer));
+			grits_viewer_get_offline(viewer));
 }
 
 int main(int argc, char **argv)
@@ -170,9 +170,9 @@ int main(int argc, char **argv)
 	gdk_threads_init();
 	gtk_init(&argc, &argv);
 
-	prefs   = gis_prefs_new(NULL, NULL);
-	plugins = gis_plugins_new(g_getenv("GIS_PLUGIN_PATH"), prefs);
-	viewer  = gis_opengl_new(plugins, prefs);
+	prefs   = grits_prefs_new(NULL, NULL);
+	plugins = grits_plugins_new(g_getenv("GRITS_PLUGIN_PATH"), prefs);
+	viewer  = grits_opengl_new(plugins, prefs);
 
 	gdk_threads_enter();
 
@@ -186,12 +186,12 @@ int main(int argc, char **argv)
 
 	gtk_main();
 
-	gis_plugins_free(plugins);
+	grits_plugins_free(plugins);
 	g_object_unref(prefs);
 
 	gdk_threads_leave();
 
-	g_debug("GisDemo: main - refs=%d,%d",
+	g_debug("GritsDemo: main - refs=%d,%d",
 			G_OBJECT(manager)->ref_count,
 			G_OBJECT(window)->ref_count);
 	g_object_unref(manager);

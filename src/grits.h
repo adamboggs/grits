@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_H__
-#define __GIS_H__
+#ifndef __GRITS_H__
+#define __GRITS_H__
 
 /* Grits Core */
 #include <grits-viewer.h>

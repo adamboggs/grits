@@ -19,7 +19,7 @@
  * SECTION:map
  * @short_description: Map plugin
  *
- * #GisPluginMap provides map overlays. Much of this data is obtained from the
+ * #GritsPluginMap provides map overlays. Much of this data is obtained from the
  * OpenStreetMap project.
  */
 
@@ -45,23 +45,23 @@ static const guchar colormap[][2][4] = {
 };
 
 struct _LoadTileData {
-	GisPluginMap *map;
-	GisTile      *tile;
-	gchar        *path;
+	GritsPluginMap *map;
+	GritsTile      *tile;
+	gchar          *path;
 };
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginMap *map  = data->map;
-	GisTile      *tile = data->tile;
-	gchar        *path = data->path;
+	GritsPluginMap *map  = data->map;
+	GritsTile      *tile = data->tile;
+	gchar          *path = data->path;
 	g_free(data);
 
 	/* Load pixbuf */
-	g_debug("GisPluginMap: _load_tile_cb start");
+	g_debug("GritsPluginMap: _load_tile_cb start");
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
 	if (!pixbuf) {
-		g_warning("GisPluginMap: _load_tile - Error loading pixbuf %s", path);
+		g_warning("GritsPluginMap: _load_tile - Error loading pixbuf %s", path);
 		g_remove(path);
 		g_free(path);
 		return FALSE;
@@ -108,16 +108,16 @@ static gboolean _load_tile_cb(gpointer _data)
 	return FALSE;
 }
 
-static void _load_tile(GisTile *tile, gpointer _map)
+static void _load_tile(GritsTile *tile, gpointer _map)
 {
-	GisPluginMap *map = _map;
-	g_debug("GisPluginMap: _load_tile start %p", g_thread_self());
+	GritsPluginMap *map = _map;
+	g_debug("GritsPluginMap: _load_tile start %p", g_thread_self());
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
 	data->map  = map;
 	data->tile = tile;
-	data->path = gis_wms_fetch(map->wms, tile, GIS_ONCE, NULL, NULL);
+	data->path = grits_wms_fetch(map->wms, tile, GRITS_ONCE, NULL, NULL);
 	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
-	g_debug("GisPluginMap: _load_tile end %p", g_thread_self());
+	g_debug("GritsPluginMap: _load_tile end %p", g_thread_self());
 }
 
 static gboolean _free_tile_cb(gpointer data)
@@ -126,25 +126,25 @@ static gboolean _free_tile_cb(gpointer data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _map)
+static void _free_tile(GritsTile *tile, gpointer _map)
 {
-	g_debug("GisPluginMap: _free_tile: %p", tile->data);
+	g_debug("GritsPluginMap: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _map)
 {
-	g_debug("GisPluginMap: _update_tiles");
-	GisPluginMap *map = _map;
+	g_debug("GritsPluginMap: _update_tiles");
+	GritsPluginMap *map = _map;
 	if (!g_mutex_trylock(map->mutex))
 		return NULL;
-	GisPoint eye;
-	gis_viewer_get_location(map->viewer, &eye.lat, &eye.lon, &eye.elev);
-	gis_tile_update(map->tiles, &eye,
+	GritsPoint eye;
+	grits_viewer_get_location(map->viewer, &eye.lat, &eye.lon, &eye.elev);
+	grits_tile_update(map->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			_load_tile, map);
-	gis_tile_gc(map->tiles, time(NULL)-10,
+	grits_tile_gc(map->tiles, time(NULL)-10,
 			_free_tile, map);
 	g_mutex_unlock(map->mutex);
 	return NULL;
@@ -153,13 +153,13 @@ static gpointer _update_tiles(gpointer _map)
 /*************
  * Callbacks *
  *************/
-static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginMap *map)
+static void _on_location_changed(GritsViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elev, GritsPluginMap *map)
 {
 	g_thread_create(_update_tiles, map, FALSE, NULL);
 }
 
-static gpointer _threaded_init(GisPluginMap *map)
+static gpointer _threaded_init(GritsPluginMap *map)
 {
 	_load_tile(map->tiles, map);
 	_update_tiles(map);
@@ -170,17 +170,17 @@ static gpointer _threaded_init(GisPluginMap *map)
  * Methods *
  ***********/
 /**
- * gis_plugin_map_new:
- * @viewer: the #GisViewer to use for drawing
+ * grits_plugin_map_new:
+ * @viewer: the #GritsViewer to use for drawing
  *
  * Create a new instance of the map plugin.
  *
- * Returns: the new #GisPluginMap
+ * Returns: the new #GritsPluginMap
  */
-GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
+GritsPluginMap *grits_plugin_map_new(GritsViewer *viewer)
 {
-	g_debug("GisPluginMap: new");
-	GisPluginMap *map = g_object_new(GIS_TYPE_PLUGIN_MAP, NULL);
+	g_debug("GritsPluginMap: new");
+	GritsPluginMap *map = g_object_new(GRITS_TYPE_PLUGIN_MAP, NULL);
 	map->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
@@ -191,7 +191,7 @@ GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), map);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(map->tiles), GIS_LEVEL_OVERLAY-1, 0);
+	grits_viewer_add(viewer, GRITS_OBJECT(map->tiles), GRITS_LEVEL_OVERLAY-1, 0);
 
 	return map;
 }
@@ -201,53 +201,53 @@ GisPluginMap *gis_plugin_map_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_map_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginMap, gis_plugin_map, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_map_plugin_init));
-static void gis_plugin_map_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_map_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginMap, grits_plugin_map, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_map_plugin_init));
+static void grits_plugin_map_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginMap: plugin_init");
+	g_debug("GritsPluginMap: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_map_init(GisPluginMap *map)
+static void grits_plugin_map_init(GritsPluginMap *map)
 {
-	g_debug("GisPluginMap: init");
+	g_debug("GritsPluginMap: init");
 	/* Set defaults */
-	map->mutex  = g_mutex_new();
-	map->tiles  = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	map->wms    = gis_wms_new(
+	map->mutex = g_mutex_new();
+	map->tiles = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	map->wms   = grits_wms_new(
 		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
 		"osm/", "png", TILE_WIDTH, TILE_HEIGHT);
 }
-static void gis_plugin_map_dispose(GObject *gobject)
+static void grits_plugin_map_dispose(GObject *gobject)
 {
-	g_debug("GisPluginMap: dispose");
-	GisPluginMap *map = GIS_PLUGIN_MAP(gobject);
+	g_debug("GritsPluginMap: dispose");
+	GritsPluginMap *map = GRITS_PLUGIN_MAP(gobject);
 	/* Drop references */
 	if (map->viewer) {
 		g_signal_handler_disconnect(map->viewer, map->sigid);
 		g_object_unref(map->viewer);
 		map->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_map_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(grits_plugin_map_parent_class)->dispose(gobject);
 }
-static void gis_plugin_map_finalize(GObject *gobject)
+static void grits_plugin_map_finalize(GObject *gobject)
 {
-	g_debug("GisPluginMap: finalize");
-	GisPluginMap *map = GIS_PLUGIN_MAP(gobject);
+	g_debug("GritsPluginMap: finalize");
+	GritsPluginMap *map = GRITS_PLUGIN_MAP(gobject);
 	/* Free data */
-	gis_tile_free(map->tiles, _free_tile, map);
-	gis_wms_free(map->wms);
+	grits_tile_free(map->tiles, _free_tile, map);
+	grits_wms_free(map->wms);
 	g_mutex_free(map->mutex);
-	G_OBJECT_CLASS(gis_plugin_map_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(grits_plugin_map_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_map_class_init(GisPluginMapClass *klass)
+static void grits_plugin_map_class_init(GritsPluginMapClass *klass)
 {
-	g_debug("GisPluginMap: class_init");
+	g_debug("GritsPluginMap: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_map_dispose;
-	gobject_class->finalize = gis_plugin_map_finalize;
+	gobject_class->dispose  = grits_plugin_map_dispose;
+	gobject_class->finalize = grits_plugin_map_finalize;
 }

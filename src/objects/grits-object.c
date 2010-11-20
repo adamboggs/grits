@@ -16,7 +16,7 @@
  */
 
 /**
- * SECTION:gis-object
+ * SECTION:grits-object
  * @short_description: Base class for drawing operations
  *
  * Objects in grits are things which can be added to the viewer and will be
@@ -24,8 +24,8 @@
  * level of detail which are used by the viewer to determine which objects
  * should be drawn.
  *
- * Each #GisObject is also a #GObject, but not every GObject in grits is a
- * GisObject. The "Object" part of the name is just coincidence.
+ * Each #GritsObject is also a #GObject, but not every GObject in grits is a
+ * GritsObject. The "Object" part of the name is just coincidence.
  */
 
 #include <config.h>
@@ -35,11 +35,8 @@
 #include "grits-object.h"
 
 
-/*************
- * GisObject *
- *************/
 /**
- * gis_object_draw:
+ * grits_object_draw:
  * @object: the object
  * @opengl: the viewer the object is being displayed in
  *
@@ -48,11 +45,11 @@
  * The GL_PROJECTION and GL_MODELVIEW matricies and GL_ALL_ATTRIB_BITS will be
  * restored to the default state after the call to draw.
  */
-void gis_object_draw(GisObject *object, GisOpenGL *opengl)
+void grits_object_draw(GritsObject *object, GritsOpenGL *opengl)
 {
-	GisObjectClass *klass = GIS_OBJECT_GET_CLASS(object);
+	GritsObjectClass *klass = GRITS_OBJECT_GET_CLASS(object);
 	if (!klass->draw) {
-		g_warning("GisObject: draw - Unimplemented");
+		g_warning("GritsObject: draw - Unimplemented");
 		return;
 	}
 
@@ -64,7 +61,7 @@ void gis_object_draw(GisObject *object, GisOpenGL *opengl)
 	if (object->lod > 0) {
 		/* LOD test */
 		gdouble eye[3], obj[3];
-		gis_viewer_get_location(GIS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
+		grits_viewer_get_location(GRITS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
 		gdouble elev = eye[2];
 		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
 		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
@@ -96,11 +93,11 @@ void gis_object_draw(GisObject *object, GisOpenGL *opengl)
 }
 
 /* GObject stuff */
-G_DEFINE_ABSTRACT_TYPE(GisObject, gis_object, G_TYPE_OBJECT);
-static void gis_object_init(GisObject *object)
+G_DEFINE_ABSTRACT_TYPE(GritsObject, grits_object, G_TYPE_OBJECT);
+static void grits_object_init(GritsObject *object)
 {
 }
 
-static void gis_object_class_init(GisObjectClass *klass)
+static void grits_object_class_init(GritsObjectClass *klass)
 {
 }

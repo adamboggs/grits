@@ -19,7 +19,7 @@
  * SECTION:env
  * @short_description: Environment plugin
  *
- * #GisPluginEnv provides environmental information such as sky images. It can
+ * #GritsPluginEnv provides environmental information such as sky images. It can
  * also paint a blank overlay on the surface so that other plugins can draw
  * transparent overlays nicely.
  */
@@ -35,13 +35,13 @@
 /***********
  * Helpers *
  ***********/
-static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _env)
+static void expose(GritsCallback *callback, GritsOpenGL *opengl, gpointer _env)
 {
-	GisPluginEnv *env = GIS_PLUGIN_ENV(_env);
-	g_debug("GisPluginEnv: expose");
+	GritsPluginEnv *env = GRITS_PLUGIN_ENV(_env);
+	g_debug("GritsPluginEnv: expose");
 
 	gdouble lat, lon, elev;
-	gis_viewer_get_location(env->viewer, &lat, &lon, &elev);
+	grits_viewer_get_location(env->viewer, &lat, &lon, &elev);
 
 	/* Misc */
 	gdouble rg   = MAX(0, 1-(elev/40000));
@@ -55,7 +55,7 @@ static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _env)
 	glDisable(GL_LIGHTING);
 	glMatrixMode(GL_MODELVIEW);
 	glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
-	gis_viewer_center_position(env->viewer, lat, lon, -EARTH_R);
+	grits_viewer_center_position(env->viewer, lat, lon, -EARTH_R);
 
 	gdouble ds  = EARTH_R+elev;     // distance to self
 	gdouble da  = EARTH_R+300000;   // distance to top of atmosphere
@@ -82,30 +82,30 @@ static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _env)
  * Methods *
  ***********/
 /**
- * gis_plugin_env_new:
- * @viewer: the #GisViewer to use for drawing
- * @prefs:  the #GisPrefs for storing configurations
+ * grits_plugin_env_new:
+ * @viewer: the #GritsViewer to use for drawing
+ * @prefs:  the #GritsPrefs for storing configurations
  *
  * Create a new instance of the environment plugin.
  *
- * Returns: the new #GisPluginEnv
+ * Returns: the new #GritsPluginEnv
  */
-GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
+GritsPluginEnv *grits_plugin_env_new(GritsViewer *viewer, GritsPrefs *prefs)
 {
-	g_debug("GisPluginEnv: new");
-	GisPluginEnv *env = g_object_new(GIS_TYPE_PLUGIN_ENV, NULL);
+	g_debug("GritsPluginEnv: new");
+	GritsPluginEnv *env = g_object_new(GRITS_TYPE_PLUGIN_ENV, NULL);
 	env->viewer = g_object_ref(viewer);
 
 	/* Create objects */
-	GisCallback *callback   = gis_callback_new(expose, env);
-	GisTile     *background = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	GritsCallback *callback   = grits_callback_new(expose, env);
+	GritsTile     *background = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	glGenTextures(1, &env->tex);
 	background->data = &env->tex;
 
 	/* Add renderers */
 	gpointer ref1, ref2;
-	ref1 = gis_viewer_add(viewer, GIS_OBJECT(callback),   GIS_LEVEL_BACKGROUND, FALSE);
-	ref2 = gis_viewer_add(viewer, GIS_OBJECT(background), GIS_LEVEL_BACKGROUND, FALSE);
+	ref1 = grits_viewer_add(viewer, GRITS_OBJECT(callback),   GRITS_LEVEL_BACKGROUND, FALSE);
+	ref2 = grits_viewer_add(viewer, GRITS_OBJECT(background), GRITS_LEVEL_BACKGROUND, FALSE);
 	env->refs = g_list_prepend(env->refs, ref1);
 	env->refs = g_list_prepend(env->refs, ref2);
 
@@ -117,39 +117,39 @@ GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_env_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginEnv, gis_plugin_env, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_env_plugin_init));
-static void gis_plugin_env_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_env_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginEnv, grits_plugin_env, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_env_plugin_init));
+static void grits_plugin_env_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginEnv: plugin_init");
+	g_debug("GritsPluginEnv: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_env_init(GisPluginEnv *env)
+static void grits_plugin_env_init(GritsPluginEnv *env)
 {
-	g_debug("GisPluginEnv: init");
+	g_debug("GritsPluginEnv: init");
 	/* Set defaults */
 }
-static void gis_plugin_env_dispose(GObject *gobject)
+static void grits_plugin_env_dispose(GObject *gobject)
 {
-	g_debug("GisPluginEnv: dispose");
-	GisPluginEnv *env = GIS_PLUGIN_ENV(gobject);
+	g_debug("GritsPluginEnv: dispose");
+	GritsPluginEnv *env = GRITS_PLUGIN_ENV(gobject);
 	/* Drop references */
 	if (env->viewer) {
 		for (GList *cur = env->refs; cur; cur = cur->next)
-			gis_viewer_remove(env->viewer, cur->data);
+			grits_viewer_remove(env->viewer, cur->data);
 		g_list_free(env->refs);
 		g_object_unref(env->viewer);
 		glDeleteTextures(1, &env->tex);
 		env->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_env_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(grits_plugin_env_parent_class)->dispose(gobject);
 }
-static void gis_plugin_env_class_init(GisPluginEnvClass *klass)
+static void grits_plugin_env_class_init(GritsPluginEnvClass *klass)
 {
-	g_debug("GisPluginEnv: class_init");
+	g_debug("GritsPluginEnv: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose = gis_plugin_env_dispose;
+	gobject_class->dispose = grits_plugin_env_dispose;
 }

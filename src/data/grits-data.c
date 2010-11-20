@@ -16,7 +16,7 @@
  */
 
 /**
- * SECTION:gis-data
+ * SECTION:grits-data
  * @short_description: Miscellaneous utilities for data access
  * @include: glib/gstdio.h
  *

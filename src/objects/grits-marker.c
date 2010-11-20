@@ -16,17 +16,17 @@
  */
 
 /**
- * SECTION:gis-marker
+ * SECTION:grits-marker
  * @short_description: Single point markers
  *
- * Each #GisMarker represents some point on the earth with some form of
+ * Each #GritsMarker represents some point on the earth with some form of
  * content. Commonly this is used to mark geographic features such as cities or
  * states.
  * 
  * While markers represent a place in three dimensions somewhere on, below, or
  * above the surface of the earth, they are drawn in 2 dimensions so that they
- * look normal and readable by the user. Due to this, GisObjects should almost
- * always be added to the GIS_LEVEL_OVERLAY level so they are drawn "above" the
+ * look normal and readable by the user. Due to this, GritsObjects should almost
+ * always be added to the GRITS_LEVEL_OVERLAY level so they are drawn "above" the
  * actual earth.
  */
 
@@ -35,22 +35,22 @@
 #include "grits-marker.h"
 
 /**
- * gis_marker_new:
+ * grits_marker_new:
  * @label: a short description of the marker
  *
- * Create a new GisMarker which shows the given label when drawn.
+ * Create a new GritsMarker which shows the given label when drawn.
  *
- * Returns: the new #GisMarker.
+ * Returns: the new #GritsMarker.
  */
-GisMarker *gis_marker_new(const gchar *label)
+GritsMarker *grits_marker_new(const gchar *label)
 {
-	//g_debug("GisMarker: new - %s", label);
+	//g_debug("GritsMarker: new - %s", label);
 	static const gdouble OUTLINE =   2;
 	static const gdouble RADIUS  =   3;
 	static const gdouble WIDTH   = 128;
 	static const gdouble HEIGHT  =  32;
 
-	GisMarker *marker = g_object_new(GIS_TYPE_MARKER, NULL);
+	GritsMarker *marker = g_object_new(GRITS_TYPE_MARKER, NULL);
 	marker->xoff  = RADIUS+OUTLINE;
 	marker->yoff  = HEIGHT-(RADIUS+OUTLINE);
 	marker->label = g_strdup(label);
@@ -96,12 +96,12 @@ GisMarker *gis_marker_new(const gchar *label)
 }
 
 /* Drawing */
-static void gis_marker_draw(GisObject *_marker, GisOpenGL *opengl)
+static void grits_marker_draw(GritsObject *_marker, GritsOpenGL *opengl)
 {
-	GisMarker *marker = GIS_MARKER(_marker);
-	GisPoint *point = gis_object_center(marker);
+	GritsMarker *marker = GRITS_MARKER(_marker);
+	GritsPoint  *point  = grits_object_center(marker);
 	gdouble px, py, pz;
-	gis_viewer_project(GIS_VIEWER(opengl),
+	grits_viewer_project(GRITS_VIEWER(opengl),
 			point->lat, point->lon, point->elev,
 			&px, &py, &pz);
 
@@ -111,7 +111,7 @@ static void gis_marker_draw(GisObject *_marker, GisOpenGL *opengl)
 	if (pz > 1)
 		return;
 
-	//g_debug("GisOpenGL: draw_marker - %s pz=%f ", marker->label, pz);
+	//g_debug("GritsOpenGL: draw_marker - %s pz=%f ", marker->label, pz);
 
 	cairo_surface_t *surface = cairo_get_target(marker->cairo);
 	gdouble width  = cairo_image_surface_get_width(surface);
@@ -138,15 +138,15 @@ static void gis_marker_draw(GisObject *_marker, GisOpenGL *opengl)
 }
 
 /* GObject code */
-G_DEFINE_TYPE(GisMarker, gis_marker, GIS_TYPE_OBJECT);
-static void gis_marker_init(GisMarker *marker)
+G_DEFINE_TYPE(GritsMarker, grits_marker, GRITS_TYPE_OBJECT);
+static void grits_marker_init(GritsMarker *marker)
 {
 }
 
-static void gis_marker_finalize(GObject *_marker)
+static void grits_marker_finalize(GObject *_marker)
 {
-	//g_debug("GisMarker: finalize - %s", marker->label);
-	GisMarker *marker = GIS_MARKER(_marker);
+	//g_debug("GritsMarker: finalize - %s", marker->label);
+	GritsMarker *marker = GRITS_MARKER(_marker);
 	glDeleteTextures(1, &marker->tex);
 	cairo_surface_t *surface = cairo_get_target(marker->cairo);
 	cairo_surface_destroy(surface);
@@ -154,12 +154,12 @@ static void gis_marker_finalize(GObject *_marker)
 	g_free(marker->label);
 }
 
-static void gis_marker_class_init(GisMarkerClass *klass)
+static void grits_marker_class_init(GritsMarkerClass *klass)
 {
-	g_debug("GisMarker: class_init");
+	g_debug("GritsMarker: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->finalize = gis_marker_finalize;
+	gobject_class->finalize = grits_marker_finalize;
 
-	GisObjectClass *object_class = GIS_OBJECT_CLASS(klass);
-	object_class->draw = gis_marker_draw;
+	GritsObjectClass *object_class = GRITS_OBJECT_CLASS(klass);
+	object_class->draw = grits_marker_draw;
 }

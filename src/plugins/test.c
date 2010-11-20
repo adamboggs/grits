@@ -19,7 +19,7 @@
  * SECTION:test
  * @short_description: Testing plugin
  *
- * #GisPluginTest is a testing plugin used during development and as an example
+ * #GritsPluginTest is a testing plugin used during development and as an example
  * for how to create a plugin.
  */
 
@@ -36,25 +36,25 @@
  ***********/
 gboolean _load_marker(gpointer _test)
 {
-	GisPluginTest *test = _test;
-	GisMarker *marker = gis_marker_new("St. Charles");
-	gis_point_set_lle(gis_object_center(marker), 38.841847, -90.491982, 0);
-	GIS_OBJECT(marker)->lod = EARTH_R;
-	test->marker = gis_viewer_add(test->viewer, GIS_OBJECT(marker), GIS_LEVEL_OVERLAY, 0);
+	GritsPluginTest *test = _test;
+	GritsMarker *marker = grits_marker_new("St. Charles");
+	grits_point_set_lle(grits_object_center(marker), 38.841847, -90.491982, 0);
+	GRITS_OBJECT(marker)->lod = EARTH_R;
+	test->marker = grits_viewer_add(test->viewer, GRITS_OBJECT(marker), GRITS_LEVEL_OVERLAY, 0);
 	return FALSE;
 }
 /**
- * gis_plugin_test_new:
- * @viewer: the #GisViewer to use for drawing
+ * grits_plugin_test_new:
+ * @viewer: the #GritsViewer to use for drawing
  *
  * Create a new instance of the testing plugin.
  *
- * Returns: the new #GisPluginTest
+ * Returns: the new #GritsPluginTest
  */
-GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
+GritsPluginTest *grits_plugin_test_new(GritsViewer *viewer)
 {
-	g_debug("GisPluginTest: new");
-	GisPluginTest *test = g_object_new(GIS_TYPE_PLUGIN_TEST, NULL);
+	g_debug("GritsPluginTest: new");
+	GritsPluginTest *test = g_object_new(GRITS_TYPE_PLUGIN_TEST, NULL);
 	test->viewer = g_object_ref(viewer);
 	g_idle_add(_load_marker, test);
 	return test;
@@ -65,34 +65,34 @@ GisPluginTest *gis_plugin_test_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_test_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginTest, gis_plugin_test, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_test_plugin_init));
-static void gis_plugin_test_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_test_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginTest, grits_plugin_test, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_test_plugin_init));
+static void grits_plugin_test_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginTest: plugin_init");
+	g_debug("GritsPluginTest: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_test_init(GisPluginTest *test)
+static void grits_plugin_test_init(GritsPluginTest *test)
 {
-	g_debug("GisPluginTest: init");
+	g_debug("GritsPluginTest: init");
 }
-static void gis_plugin_test_dispose(GObject *_test)
+static void grits_plugin_test_dispose(GObject *_test)
 {
-	g_debug("GisPluginTest: dispose");
-	GisPluginTest *test = GIS_PLUGIN_TEST(_test);
+	g_debug("GritsPluginTest: dispose");
+	GritsPluginTest *test = GRITS_PLUGIN_TEST(_test);
 	if (test->viewer) {
-		gis_viewer_remove(test->viewer, test->marker);
+		grits_viewer_remove(test->viewer, test->marker);
 		g_object_unref(test->viewer);
 		test->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_test_parent_class)->finalize(_test);
+	G_OBJECT_CLASS(grits_plugin_test_parent_class)->finalize(_test);
 }
-static void gis_plugin_test_class_init(GisPluginTestClass *klass)
+static void grits_plugin_test_class_init(GritsPluginTestClass *klass)
 {
-	g_debug("GisPluginTest: class_init");
+	g_debug("GritsPluginTest: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->dispose = gis_plugin_test_dispose;
+	gobject_class->dispose = grits_plugin_test_dispose;
 }

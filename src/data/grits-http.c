@@ -16,13 +16,13 @@
  */
 
 /**
- * SECTION:gis-http
+ * SECTION:grits-http
  * @short_description: Hyper Text Transfer Protocol
  *
- * #GisHttp is a small wrapper around libsoup to provide data access using the
- * Hyper Text Transfer Protocol. Each #GisHttp should be associated with a
- * particular server or dataset, all the files downloaded for this dataset will
- * be cached together in $HOME/.cache/grits/
+ * #GritsHttp is a small wrapper around libsoup to provide data access using
+ * the Hyper Text Transfer Protocol. Each #GritsHttp should be associated with
+ * a particular server or dataset, all the files downloaded for this dataset
+ * will be cached together in $HOME/.cache/grits/
  */
 
 #include <config.h>
@@ -32,25 +32,25 @@
 
 #include "grits-http.h"
 
-gchar *_get_cache_path(GisHttp *http, const gchar *local)
+gchar *_get_cache_path(GritsHttp *http, const gchar *local)
 {
 	return g_build_filename(g_get_user_cache_dir(), PACKAGE,
 			http->prefix, local, NULL);
 }
 
 /**
- * gis_http_new:
+ * grits_http_new:
  * @prefix: The prefix in the cache to store the downloaded files.
  *          For example: * "/nexrad/level2/".
  *
- * Create a new #GisHttp for the given prefix
+ * Create a new #GritsHttp for the given prefix
  *
- * Returns: the new #GisHttp
+ * Returns: the new #GritsHttp
  */
-GisHttp *gis_http_new(const gchar *prefix)
+GritsHttp *grits_http_new(const gchar *prefix)
 {
-	g_debug("GisHttp: new - %s", prefix);
-	GisHttp *http = g_new0(GisHttp, 1);
+	g_debug("GritsHttp: new - %s", prefix);
+	GritsHttp *http = g_new0(GritsHttp, 1);
 	http->soup = soup_session_sync_new();
 	http->prefix = g_strdup(prefix);
 	g_object_set(http->soup, "user-agent", PACKAGE_STRING, NULL);
@@ -58,14 +58,14 @@ GisHttp *gis_http_new(const gchar *prefix)
 }
 
 /**
- * gis_http_free:
- * @http: the #GisHttp to free
+ * grits_http_free:
+ * @http: the #GritsHttp to free
  *
  * Frees resources used by @http and cancels any pending requests.
  */
-void gis_http_free(GisHttp *http)
+void grits_http_free(GritsHttp *http)
 {
-	g_debug("GisHttp: free - %s", http->prefix);
+	g_debug("GritsHttp: free - %s", http->prefix);
 	soup_session_abort(http->soup);
 	g_object_unref(http->soup);
 	g_free(http->prefix);
@@ -76,12 +76,12 @@ void gis_http_free(GisHttp *http)
 struct _CacheInfo {
 	FILE  *fp;
 	gchar *path;
-	GisChunkCallback callback;
+	GritsChunkCallback callback;
 	gpointer user_data;
 };
 struct _CacheInfoMain {
 	gchar *path;
-	GisChunkCallback callback;
+	GritsChunkCallback callback;
 	gpointer user_data;
 	goffset cur, total;
 };
@@ -106,13 +106,13 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 	struct _CacheInfo *info = _info;
 
 	if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
-		g_warning("GisHttp: _chunk_cb - soup failed with %d",
+		g_warning("GritsHttp: _chunk_cb - soup failed with %d",
 				message->status_code);
 		return;
 	}
 
 	if (!fwrite(chunk->data, chunk->length, 1, info->fp))
-		g_error("GisHttp: _chunk_cb - Unable to write data");
+		g_error("GritsHttp: _chunk_cb - Unable to write data");
 
 	if (info->callback) {
 		struct _CacheInfoMain *infomain = g_new0(struct _CacheInfoMain, 1);
@@ -129,8 +129,8 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
 }
 
 /**
- * gis_http_fetch:
- * @http:      the #GisHttp connection to use
+ * grits_http_fetch:
+ * @http:      the #GritsHttp connection to use
  * @uri:       the URI to fetch
  * @local:     the local name to give to the file
  * @mode:      the update type to use when fetching data
@@ -142,21 +142,21 @@ static void _chunk_cb(SoupMessage *message, SoupBuffer *chunk, gpointer _info)
  *
  * Returns: The local path to the complete file
  */
-/* TODO: use .part extentions and continue even when using GIS_ONCE */
-gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
-		GisCacheType mode, GisChunkCallback callback, gpointer user_data)
+/* TODO: use .part extentions and continue even when using GRITS_ONCE */
+gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
+		GritsCacheType mode, GritsChunkCallback callback, gpointer user_data)
 {
-	g_debug("GisHttp: fetch - %s mode=%d", local, mode);
+	g_debug("GritsHttp: fetch - %s mode=%d", local, mode);
 	gchar *path = _get_cache_path(http, local);
 
 	/* Unlink the file if we're refreshing it */
-	if (mode == GIS_REFRESH)
+	if (mode == GRITS_REFRESH)
 		g_remove(path);
 
 	/* Do the cache if necessasairy */
-	if (!(mode == GIS_ONCE && g_file_test(path, G_FILE_TEST_EXISTS)) &&
-			mode != GIS_LOCAL) {
-		g_debug("GisHttp: fetch - Caching file %s", local);
+	if (!(mode == GRITS_ONCE && g_file_test(path, G_FILE_TEST_EXISTS)) &&
+			mode != GRITS_LOCAL) {
+		g_debug("GritsHttp: fetch - Caching file %s", local);
 
 		/* Open the file for writting */
 		gchar *part = path;
@@ -192,7 +192,7 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 		if (message->status_code == 416) {
 			/* Range unsatisfiable, file already complete */
 		} else if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
-			g_warning("GisHttp: done_cb - error copying file, status=%d\n"
+			g_warning("GritsHttp: done_cb - error copying file, status=%d\n"
 					"\tsrc=%s\n"
 					"\tdst=%s",
 					message->status_code, uri, path);
@@ -206,8 +206,8 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
 }
 
 /**
- * gis_http_available:
- * @http:    the #GisHttp connection to use
+ * grits_http_available:
+ * @http:    the #GritsHttp connection to use
  * @filter:  filter used to extract files from the index, or NULL
  *           For example: "href=\"([^"]*)\""
  * @cache:   path to the local cache, or NULL to not search the cache
@@ -222,11 +222,11 @@ gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const char *local,
  *
  * Returns the list of matching filenames
  */
-GList *gis_http_available(GisHttp *http,
+GList *grits_http_available(GritsHttp *http,
 		gchar *filter, gchar *cache,
 		gchar *extract, gchar *index)
 {
-	g_debug("GisHttp: available - %s~=%s %s~=%s",
+	g_debug("GritsHttp: available - %s~=%s %s~=%s",
 			filter, cache, extract, index);
 	GRegex *filter_re = g_regex_new(filter, 0, 0, NULL);
 	GList  *files = NULL;
@@ -247,8 +247,8 @@ GList *gis_http_available(GisHttp *http,
 	if (index) {
 		gchar tmp[32];
 		g_snprintf(tmp, sizeof(tmp), ".index.%x", g_random_int());
-		gchar *path = gis_http_fetch(http, index, tmp,
-				GIS_REFRESH, NULL, NULL);
+		gchar *path = grits_http_fetch(http, index, tmp,
+				GRITS_REFRESH, NULL, NULL);
 		if (!path)
 			return files;
 		gchar *html;

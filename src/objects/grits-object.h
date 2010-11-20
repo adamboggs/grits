@@ -15,53 +15,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_OBJECT_H__
-#define __GIS_OBJECT_H__
+#ifndef __GRITS_OBJECT_H__
+#define __GRITS_OBJECT_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include "grits-util.h"
 
-/* GisObject */
-#define GIS_TYPE_OBJECT            (gis_object_get_type())
-#define GIS_OBJECT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_OBJECT, GisObject))
-#define GIS_IS_OBJECT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_OBJECT))
-#define GIS_OBJECT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_OBJECT, GisObjectClass))
-#define GIS_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_OBJECT))
-#define GIS_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_OBJECT, GisObjectClass))
+/* GritsObject */
+#define GRITS_TYPE_OBJECT            (grits_object_get_type())
+#define GRITS_OBJECT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_OBJECT, GritsObject))
+#define GRITS_IS_OBJECT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_OBJECT))
+#define GRITS_OBJECT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_OBJECT, GritsObjectClass))
+#define GRITS_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_OBJECT))
+#define GRITS_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_OBJECT, GritsObjectClass))
 
-typedef struct _GisObject      GisObject;
-typedef struct _GisObjectClass GisObjectClass;
+typedef struct _GritsObject      GritsObject;
+typedef struct _GritsObjectClass GritsObjectClass;
 
-struct _GisObject {
-	GObject  parent_instance;
-	GisPoint center;
-	gboolean hidden;
-	gdouble  lod;
+struct _GritsObject {
+	GObject    parent_instance;
+	GritsPoint center;
+	gboolean   hidden;
+	gdouble    lod;
 };
 
 #include "grits-opengl.h"
-struct _GisObjectClass {
+struct _GritsObjectClass {
 	GObjectClass parent_class;
 
 	/* Move some of these to GObject? */
-	void (*draw) (GisObject *object, GisOpenGL *opengl);
+	void (*draw) (GritsObject *object, GritsOpenGL *opengl);
 };
 
-GType gis_object_get_type(void);
+GType grits_object_get_type(void);
 
 /* Implemented by sub-classes */
-void gis_object_draw(GisObject *object, GisOpenGL *opengl);
+void grits_object_draw(GritsObject *object, GritsOpenGL *opengl);
 
 /**
- * gis_object_center:
- * @object: The #GisObject to get the center of
+ * grits_object_center:
+ * @object: The #GritsObject to get the center of
  * 
- * Get the #GisPoint representing the center of an object
+ * Get the #GritsPoint representing the center of an object
  *
  * Returns: the center point
  */
-#define gis_object_center(object) \
-	(&GIS_OBJECT(object)->center)
+#define grits_object_center(object) \
+	(&GRITS_OBJECT(object)->center)
 
 #endif

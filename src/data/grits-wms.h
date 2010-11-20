@@ -15,32 +15,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_WMS_H__
-#define __GIS_WMS_H__
+#ifndef __GRITS_WMS_H__
+#define __GRITS_WMS_H__
 
 #include <glib.h>
 
 #include "data/grits-http.h"
 #include "objects/grits-tile.h"
 
-typedef struct _GisWms {
-	GisHttp *http;
+typedef struct _GritsWms {
+	GritsHttp *http;
 	gchar *uri_prefix;
 	gchar *uri_layer;
 	gchar *uri_format;
 	gchar *extension;
 	gint   width;
 	gint   height;
-} GisWms;
+} GritsWms;
 
-GisWms *gis_wms_new(
+GritsWms *grits_wms_new(
 	const gchar *uri_prefix, const gchar *uri_layer,
 	const gchar *uri_format, const gchar *prefix,
 	const gchar *extension, gint width, gint height);
 
-gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
-		GisChunkCallback callback, gpointer user_data);
+gchar *grits_wms_fetch(GritsWms *wms, GritsTile *tile, GritsCacheType mode,
+		GritsChunkCallback callback, gpointer user_data);
 
-void gis_wms_free(GisWms *wms);
+void grits_wms_free(GritsWms *wms);
 
 #endif

@@ -8,30 +8,30 @@
 
 	<chapter>
 		<title>Core API</title>
-		<xi:include href="xml/gis-viewer.xml"/>
-		<xi:include href="xml/gis-opengl.xml"/>
-		<xi:include href="xml/gis-prefs.xml"/>
-		<xi:include href="xml/gis-util.xml"/>
+		<xi:include href="xml/grits-viewer.xml"/>
+		<xi:include href="xml/grits-opengl.xml"/>
+		<xi:include href="xml/grits-prefs.xml"/>
+		<xi:include href="xml/grits-util.xml"/>
 	</chapter>
 
 	<chapter>
 		<title>Data Access</title>
-		<xi:include href="xml/gis-data.xml"/>
-		<xi:include href="xml/gis-http.xml"/>
-		<xi:include href="xml/gis-wms.xml"/>
+		<xi:include href="xml/grits-data.xml"/>
+		<xi:include href="xml/grits-http.xml"/>
+		<xi:include href="xml/grits-wms.xml"/>
 	</chapter>
 
 	<chapter>
 		<title>Drawing Objects</title>
-		<xi:include href="xml/gis-object.xml"/>
-		<xi:include href="xml/gis-tile.xml"/>
-		<xi:include href="xml/gis-marker.xml"/>
-		<xi:include href="xml/gis-callback.xml"/>
+		<xi:include href="xml/grits-object.xml"/>
+		<xi:include href="xml/grits-tile.xml"/>
+		<xi:include href="xml/grits-marker.xml"/>
+		<xi:include href="xml/grits-callback.xml"/>
 	</chapter>
 
 	<chapter>
 		<title>Plugins</title>
-		<xi:include href="xml/gis-plugin.xml"/>
+		<xi:include href="xml/grits-plugin.xml"/>
 		<xi:include href="xml/elev.xml"/>
 		<xi:include href="xml/env.xml"/>
 		<xi:include href="xml/map.xml"/>
@@ -47,7 +47,7 @@
 
 	<chapter>
 		<title>Miscellaneous</title>
-		<xi:include href="gis-demo.xml"/>
+		<xi:include href="grits-demo.xml"/>
 	</chapter>
 
 	<index>

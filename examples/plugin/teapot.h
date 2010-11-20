@@ -20,33 +20,33 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_TEAPOT            (gis_plugin_teapot_get_type ())
-#define GIS_PLUGIN_TEAPOT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_TEAPOT, GisPluginTeapot))
-#define GIS_IS_PLUGIN_TEAPOT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_TEAPOT))
-#define GIS_PLUGIN_TEAPOT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_TEAPOT, GisPluginTeapotClass))
-#define GIS_IS_PLUGIN_TEAPOT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_TEAPOT))
-#define GIS_PLUGIN_TEAPOT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_TEAPOT, GisPluginTeapotClass))
+#define GRITS_TYPE_PLUGIN_TEAPOT            (grits_plugin_teapot_get_type ())
+#define GRITS_PLUGIN_TEAPOT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_TEAPOT, GritsPluginTeapot))
+#define GRITS_IS_PLUGIN_TEAPOT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_TEAPOT))
+#define GRITS_PLUGIN_TEAPOT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_TEAPOT, GritsPluginTeapotClass))
+#define GRITS_IS_PLUGIN_TEAPOT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_TEAPOT))
+#define GRITS_PLUGIN_TEAPOT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_TEAPOT, GritsPluginTeapotClass))
 
-typedef struct _GisPluginTeapot      GisPluginTeapot;
-typedef struct _GisPluginTeapotClass GisPluginTeapotClass;
+typedef struct _GritsPluginTeapot      GritsPluginTeapot;
+typedef struct _GritsPluginTeapotClass GritsPluginTeapotClass;
 
-struct _GisPluginTeapot {
+struct _GritsPluginTeapot {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer       *viewer;
+	GritsViewer     *viewer;
 	GtkToggleButton *button;
 	guint            rotate_id;
 	float            rotation;
 };
 
-struct _GisPluginTeapotClass {
+struct _GritsPluginTeapotClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_teapot_get_type();
+GType grits_plugin_teapot_get_type();
 
 /* Methods */
-GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs);
+GritsPluginTeapot *grits_plugin_teapot_new(GritsViewer *viewer, GritsPrefs *prefs);
 
 #endif

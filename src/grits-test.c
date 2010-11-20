@@ -22,16 +22,16 @@
 
 #include "grits.h"
 
-GisPrefs   *prefs   = NULL;
-GisPlugins *plugins = NULL;
-GisViewer  *viewer  = NULL;
+GritsPrefs   *prefs   = NULL;
+GritsPlugins *plugins = NULL;
+GritsViewer  *viewer  = NULL;
 
 /*************
  * Callbacks *
  *************/
-static gboolean gis_shutdown(GtkWidget *window)
+static gboolean grits_shutdown(GtkWidget *window)
 {
-	gis_plugins_free(plugins);
+	grits_plugins_free(plugins);
 	g_object_unref(prefs);
 	gtk_widget_destroy(window);
 
@@ -43,20 +43,20 @@ static gboolean gis_shutdown(GtkWidget *window)
 }
 static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 {
-	return gis_shutdown(widget);
+	return grits_shutdown(widget);
 }
 static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
 		gpointer window)
 {
 	if (event->keyval == GDK_q)
-		return gis_shutdown(widget);
+		return grits_shutdown(widget);
 	return FALSE;
 }
-static void load_plugin(GisPlugins *plugins, gchar *name,
-		GisViewer *viewer, GisPrefs *prefs, GtkNotebook *notebook)
+static void load_plugin(GritsPlugins *plugins, gchar *name,
+		GritsViewer *viewer, GritsPrefs *prefs, GtkNotebook *notebook)
 {
-	GisPlugin *plugin = gis_plugins_load(plugins, name, viewer, prefs);
-	GtkWidget *config = gis_plugin_get_config(plugin);
+	GritsPlugin *plugin = grits_plugins_load(plugins, name, viewer, prefs);
+	GtkWidget *config = grits_plugin_get_config(plugin);
 	gtk_notebook_append_page(notebook, config, gtk_label_new(name));
 }
 
@@ -70,9 +70,9 @@ int main(int argc, char **argv)
 	gtk_init(&argc, &argv);
 	gtk_gl_init(&argc, &argv);
 
-	prefs   = gis_prefs_new(NULL, NULL);
-	plugins = gis_plugins_new(g_getenv("GIS_PLUGIN_PATH"), prefs);
-	viewer  = gis_opengl_new(plugins, prefs);
+	prefs   = grits_prefs_new(NULL, NULL);
+	plugins = grits_plugins_new(g_getenv("GRITS_PLUGIN_PATH"), prefs);
+	viewer  = grits_opengl_new(plugins, prefs);
 
 	gdk_threads_enter();
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -87,7 +87,7 @@ int main(int argc, char **argv)
 	gtk_widget_show_all(window);
 
 	/* Configurable stuff */
-	gis_viewer_set_offline(viewer, TRUE);
+	grits_viewer_set_offline(viewer, TRUE);
 	load_plugin(plugins, "elev",  viewer, prefs, GTK_NOTEBOOK(config));
 	load_plugin(plugins, "env",   viewer, prefs, GTK_NOTEBOOK(config));
 	//load_plugin(plugins, "map",   viewer, prefs, GTK_NOTEBOOK(config));

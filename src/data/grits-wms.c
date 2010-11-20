@@ -16,11 +16,11 @@
  */
 
 /**
- * SECTION:gis-wms
+ * SECTION:grits-wms
  * @short_description: Web Map Service
  *
  * Provides an API for accessing image tiles form a Web Map Service (WMS)
- * server. #GisWms integrates closely with #GisTile. The remote server must
+ * server. #GritsWms integrates closely with #GritsTile. The remote server must
  * support the EPSG:4326 cartographic projection.
  */
 
@@ -76,7 +76,7 @@
 #include "grits-wms.h"
 #include "grits-http.h"
 
-static gchar *_make_uri(GisWms *wms, GisTile *tile)
+static gchar *_make_uri(GritsWms *wms, GritsTile *tile)
 {
 	return g_strdup_printf(
 		"%s?"
@@ -102,24 +102,24 @@ static gchar *_make_uri(GisWms *wms, GisTile *tile)
 }
 
 /**
- * gis_wms_fetch:
- * @wms:       the #GisWms to fetch the data from 
- * @tile:      a #GisTile representing the area to be fetched 
+ * grits_wms_fetch:
+ * @wms:       the #GritsWms to fetch the data from 
+ * @tile:      a #GritsTile representing the area to be fetched 
  * @mode:      the update type to use when fetching data
  * @callback:  callback to call when a chunk of data is received
  * @user_data: user data to pass to the callback
  *
- * Fetch a image coresponding to a #GisTile from a WMS server. 
+ * Fetch a image coresponding to a #GritsTile from a WMS server. 
  *
  * Returns: the path to the local file.
  */
-gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
-		GisChunkCallback callback, gpointer user_data)
+gchar *grits_wms_fetch(GritsWms *wms, GritsTile *tile, GritsCacheType mode,
+		GritsChunkCallback callback, gpointer user_data)
 {
 	gchar *uri   = _make_uri(wms, tile);
-	gchar *tilep = gis_tile_get_path(tile);
+	gchar *tilep = grits_tile_get_path(tile);
 	gchar *local = g_strdup_printf("%s%s", tilep, wms->extension);
-	gchar *path  = gis_http_fetch(wms->http, uri, local,
+	gchar *path  = grits_http_fetch(wms->http, uri, local,
 			mode, callback, user_data);
 	g_free(uri);
 	g_free(tilep);
@@ -128,7 +128,7 @@ gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
 }
 
 /**
- * gis_wms_new:
+ * grits_wms_new:
  * @uri_prefix: the base URL for the WMS server
  * @uri_layer:  the layer the images should be fetched from (wms LAYERS)
  * @uri_format: the format the images should be fetch in (wms FORMAT)
@@ -137,39 +137,39 @@ gchar *gis_wms_fetch(GisWms *wms, GisTile *tile, GisCacheType mode,
  * @width:      width in pixels for downloaded images (wms WIDTH)
  * @height:     height in pixels for downloaded images (wms HEIGHT)
  *
- * Creates a #GisWms for some layer on a WMS server. The returned #GisWms
+ * Creates a #GritsWms for some layer on a WMS server. The returned #GritsWms
  * stores information about the images so it does not need to be entered each
  * time a images is fetched.
  *
- * Returns: the new #GisWms
+ * Returns: the new #GritsWms
  */
-GisWms *gis_wms_new(
+GritsWms *grits_wms_new(
 	const gchar *uri_prefix, const gchar *uri_layer,
 	const gchar *uri_format, const gchar *prefix,
 	const gchar *extension, gint width, gint height)
 {
-	g_debug("GisWms: new - %s", uri_prefix);
-	GisWms *wms = g_new0(GisWms, 1);
-	wms->http         = gis_http_new(prefix);
-	wms->uri_prefix   = g_strdup(uri_prefix);
-	wms->uri_layer    = g_strdup(uri_layer);
-	wms->uri_format   = g_strdup(uri_format);
-	wms->extension    = g_strdup(extension);
-	wms->width        = width;
-	wms->height       = height;
+	g_debug("GritsWms: new - %s", uri_prefix);
+	GritsWms *wms = g_new0(GritsWms, 1);
+	wms->http       = grits_http_new(prefix);
+	wms->uri_prefix = g_strdup(uri_prefix);
+	wms->uri_layer  = g_strdup(uri_layer);
+	wms->uri_format = g_strdup(uri_format);
+	wms->extension  = g_strdup(extension);
+	wms->width      = width;
+	wms->height     = height;
 	return wms;
 }
 
 /**
- * gis_wms_free:
- * @wms: the #GisWms to free
+ * grits_wms_free:
+ * @wms: the #GritsWms to free
  *
  * Free resources used by @wms and cancel any pending requests.
  */
-void gis_wms_free(GisWms *wms)
+void grits_wms_free(GritsWms *wms)
 {
-	g_debug("GisWms: free - %s", wms->uri_prefix);
-	gis_http_free(wms->http);
+	g_debug("GritsWms: free - %s", wms->uri_prefix);
+	grits_http_free(wms->http);
 	g_free(wms->uri_prefix);
 	g_free(wms->uri_layer);
 	g_free(wms->uri_format);

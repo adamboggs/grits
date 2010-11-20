@@ -15,45 +15,45 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_CALLBACK_H__
-#define __GIS_CALLBACK_H__
+#ifndef __GRITS_CALLBACK_H__
+#define __GRITS_CALLBACK_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include "grits-object.h"
 
-/* GisCallback */
-#define GIS_TYPE_CALLBACK            (gis_callback_get_type())
-#define GIS_CALLBACK(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_CALLBACK, GisCallback))
-#define GIS_IS_CALLBACK(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_CALLBACK))
-#define GIS_CALLBACK_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_CALLBACK, GisCallbackClass))
-#define GIS_IS_CALLBACK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_CALLBACK))
-#define GIS_CALLBACK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_CALLBACK, GisCallbackClass))
+/* GritsCallback */
+#define GRITS_TYPE_CALLBACK            (grits_callback_get_type())
+#define GRITS_CALLBACK(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_CALLBACK, GritsCallback))
+#define GRITS_IS_CALLBACK(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_CALLBACK))
+#define GRITS_CALLBACK_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_CALLBACK, GritsCallbackClass))
+#define GRITS_IS_CALLBACK_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_CALLBACK))
+#define GRITS_CALLBACK_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_CALLBACK, GritsCallbackClass))
 
-typedef struct _GisCallback      GisCallback;
-typedef struct _GisCallbackClass GisCallbackClass;
+typedef struct _GritsCallback      GritsCallback;
+typedef struct _GritsCallbackClass GritsCallbackClass;
 
 /**
- * GisCallbackFunc:
+ * GritsCallbackFunc:
  * @callback:  the callback object to be drawn
  * @user_data: the user data associated with the callback 
  *
  * A function to be called when the callback object is being rendered
  */
-typedef void (*GisCallbackFunc)(GisCallback *callback, GisOpenGL *opengl, gpointer user_data);
+typedef void (*GritsCallbackFunc)(GritsCallback *callback, GritsOpenGL *opengl, gpointer user_data);
 
-struct _GisCallback {
-	GisObject       parent;
-	GisCallbackFunc draw;
-	gpointer        user_data;
+struct _GritsCallback {
+	GritsObject       parent;
+	GritsCallbackFunc draw;
+	gpointer          user_data;
 };
 
-struct _GisCallbackClass {
-	GisObjectClass parent_class;
+struct _GritsCallbackClass {
+	GritsObjectClass parent_class;
 };
 
-GType gis_callback_get_type(void);
+GType grits_callback_get_type(void);
 
-GisCallback *gis_callback_new(GisCallbackFunc draw_cb, gpointer user_data);
+GritsCallback *grits_callback_new(GritsCallbackFunc draw_cb, gpointer user_data);
 
 #endif

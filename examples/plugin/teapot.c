@@ -27,7 +27,7 @@
  ***********/
 static gboolean rotate(gpointer _teapot)
 {
-	GisPluginTeapot *teapot = _teapot;
+	GritsPluginTeapot *teapot = _teapot;
 	if (gtk_toggle_button_get_active(teapot->button)) {
 		teapot->rotation += 1.0;
 		gtk_widget_queue_draw(GTK_WIDGET(teapot->viewer));
@@ -35,10 +35,10 @@ static gboolean rotate(gpointer _teapot)
 	return TRUE;
 }
 
-static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _teapot)
+static void expose(GritsCallback *callback, GritsOpenGL *opengl, gpointer _teapot)
 {
-	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
-	g_debug("GisPluginTeapot: expose");
+	GritsPluginTeapot *teapot = GRITS_PLUGIN_TEAPOT(_teapot);
+	g_debug("GritsPluginTeapot: expose");
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -66,22 +66,22 @@ static void expose(GisCallback *callback, GisOpenGL *opengl, gpointer _teapot)
 /***********
  * Methods *
  ***********/
-GisPluginTeapot *gis_plugin_teapot_new(GisViewer *viewer, GisPrefs *prefs)
+GritsPluginTeapot *grits_plugin_teapot_new(GritsViewer *viewer, GritsPrefs *prefs)
 {
-	g_debug("GisPluginTeapot: new");
-	GisPluginTeapot *teapot = g_object_new(GIS_TYPE_PLUGIN_TEAPOT, NULL);
+	g_debug("GritsPluginTeapot: new");
+	GritsPluginTeapot *teapot = g_object_new(GRITS_TYPE_PLUGIN_TEAPOT, NULL);
 	teapot->viewer = viewer;
 
 	/* Add renderers */
-	GisCallback *callback = gis_callback_new(expose, teapot);
-	gis_viewer_add(viewer, GIS_OBJECT(callback), GIS_LEVEL_OVERLAY+1, 0);
+	GritsCallback *callback = grits_callback_new(expose, teapot);
+	grits_viewer_add(viewer, GRITS_OBJECT(callback), GRITS_LEVEL_OVERLAY+1, 0);
 
 	return teapot;
 }
 
-static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_teapot)
+static GtkWidget *grits_plugin_teapot_get_config(GritsPlugin *_teapot)
 {
-	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(_teapot);
+	GritsPluginTeapot *teapot = GRITS_PLUGIN_TEAPOT(_teapot);
 	return GTK_WIDGET(teapot->button);
 }
 
@@ -90,36 +90,36 @@ static GtkWidget *gis_plugin_teapot_get_config(GisPlugin *_teapot)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginTeapot, gis_plugin_teapot, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_teapot_plugin_init));
-static void gis_plugin_teapot_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_teapot_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginTeapot, grits_plugin_teapot, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_teapot_plugin_init));
+static void grits_plugin_teapot_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginTeapot: plugin_init");
+	g_debug("GritsPluginTeapot: plugin_init");
 	/* Add methods to the interface */
-	iface->get_config = gis_plugin_teapot_get_config;
+	iface->get_config = grits_plugin_teapot_get_config;
 }
 /* Class/Object init */
-static void gis_plugin_teapot_init(GisPluginTeapot *teapot)
+static void grits_plugin_teapot_init(GritsPluginTeapot *teapot)
 {
-	g_debug("GisPluginTeapot: init");
+	g_debug("GritsPluginTeapot: init");
 	/* Set defaults */
 	teapot->button    = GTK_TOGGLE_BUTTON(gtk_toggle_button_new_with_label("Rotate"));
 	teapot->rotate_id = g_timeout_add(1000/60, rotate, teapot);
 	teapot->rotation  = 30.0;
 }
-static void gis_plugin_teapot_dispose(GObject *gobject)
+static void grits_plugin_teapot_dispose(GObject *gobject)
 {
-	g_debug("GisPluginTeapot: dispose");
-	GisPluginTeapot *teapot = GIS_PLUGIN_TEAPOT(gobject);
+	g_debug("GritsPluginTeapot: dispose");
+	GritsPluginTeapot *teapot = GRITS_PLUGIN_TEAPOT(gobject);
 	g_source_remove(teapot->rotate_id);
 	/* Drop references */
-	G_OBJECT_CLASS(gis_plugin_teapot_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(grits_plugin_teapot_parent_class)->dispose(gobject);
 }
-static void gis_plugin_teapot_class_init(GisPluginTeapotClass *klass)
+static void grits_plugin_teapot_class_init(GritsPluginTeapotClass *klass)
 {
-	g_debug("GisPluginTeapot: class_init");
+	g_debug("GritsPluginTeapot: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_teapot_dispose;
+	gobject_class->dispose  = grits_plugin_teapot_dispose;
 }

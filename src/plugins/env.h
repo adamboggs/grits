@@ -20,33 +20,33 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_ENV            (gis_plugin_env_get_type ())
-#define GIS_PLUGIN_ENV(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_ENV, GisPluginEnv))
-#define GIS_IS_PLUGIN_ENV(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_ENV))
-#define GIS_PLUGIN_ENV_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_ENV, GisPluginEnvClass))
-#define GIS_IS_PLUGIN_ENV_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_ENV))
-#define GIS_PLUGIN_ENV_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_ENV, GisPluginEnvClass))
+#define GRITS_TYPE_PLUGIN_ENV            (grits_plugin_env_get_type ())
+#define GRITS_PLUGIN_ENV(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_ENV, GritsPluginEnv))
+#define GRITS_IS_PLUGIN_ENV(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_ENV))
+#define GRITS_PLUGIN_ENV_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_ENV, GritsPluginEnvClass))
+#define GRITS_IS_PLUGIN_ENV_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_ENV))
+#define GRITS_PLUGIN_ENV_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_ENV, GritsPluginEnvClass))
 
-typedef struct _GisPluginEnv      GisPluginEnv;
-typedef struct _GisPluginEnvClass GisPluginEnvClass;
+typedef struct _GritsPluginEnv      GritsPluginEnv;
+typedef struct _GritsPluginEnvClass GritsPluginEnvClass;
 
-struct _GisPluginEnv {
+struct _GritsPluginEnv {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer *viewer;
-	guint      tex;
-	GisTile   *background;
-	GList     *refs;
+	GritsViewer *viewer;
+	guint        tex;
+	GritsTile   *background;
+	GList       *refs;
 };
 
-struct _GisPluginEnvClass {
+struct _GritsPluginEnvClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_env_get_type();
+GType grits_plugin_env_get_type();
 
 /* Methods */
-GisPluginEnv *gis_plugin_env_new(GisViewer *viewer, GisPrefs *prefs);
+GritsPluginEnv *grits_plugin_env_new(GritsViewer *viewer, GritsPrefs *prefs);
 
 #endif

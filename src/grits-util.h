@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_UTIL_H__
-#define __GIS_UTIL_H__
+#ifndef __GRITS_UTIL_H__
+#define __GRITS_UTIL_H__
 
 #include <glib.h>
 
@@ -150,22 +150,22 @@
  * Datatypes *
  *************/
 
-/* GisPoint */
-typedef struct _GisPoint GisPoint;
-struct _GisPoint {
+/* GritsPoint */
+typedef struct _GritsPoint GritsPoint;
+struct _GritsPoint {
 	gdouble lat, lon, elev;
 };
 
-void gis_point_set_lle(GisPoint *point,
+void grits_point_set_lle(GritsPoint *point,
 		gdouble lat, gdouble lon, gdouble elev);
 
-/* GisBounds */
-typedef struct _GisBounds GisBounds;
-struct _GisBounds {
+/* GritsBounds */
+typedef struct _GritsBounds GritsBounds;
+struct _GritsBounds {
 	gdouble n, s, e, w;
 };
 
-void gis_bounds_set_bounds(GisBounds *bounds,
+void grits_bounds_set_bounds(GritsBounds *bounds,
 		gdouble n, gdouble s, gdouble e, gdouble w);
 
 
@@ -175,7 +175,7 @@ void gis_bounds_set_bounds(GisBounds *bounds,
 /**
  * FOV_DIST:
  *
- * Used by GisOpenGL to set up the drawing window
+ * Used by GritsOpenGL to set up the drawing window
  */
 #define FOV_DIST   2000.0
 

@@ -16,19 +16,19 @@
  */
 
 /**
- * SECTION:gis-tile
+ * SECTION:grits-tile
  * @short_description: Latitude/longitude overlays
  *
- * Each #GisTile corresponds to a latitude/longitude box on the surface of the
- * earth. When drawn, the #GisTile renders an images associated with it to the
- * surface of the earth. This is primarily used to draw ground overlays.
+ * Each #GritsTile corresponds to a latitude/longitude box on the surface of
+ * the earth. When drawn, the #GritsTile renders an images associated with it
+ * to the surface of the earth. This is primarily used to draw ground overlays.
  *
- * Each GisTile can be split into subtiles in order to draw higher resolution
+ * Each GritsTile can be split into subtiles in order to draw higher resolution
  * overlays. Pointers to subtitles are stored in the parent tile and a parent
  * pointer is stored in each child.
  *
- * Each #GisTile has a data filed which must be set by the user in order for
- * the tile to be drawn. When used with GisOpenGL the data must be an integer
+ * Each #GritsTile has a data filed which must be set by the user in order for
+ * the tile to be drawn. When used with GritsOpenGL the data must be an integer
  * representing the OpenGL texture to use when drawing the tile.
  */
 
@@ -36,13 +36,13 @@
 #include <GL/gl.h>
 #include "grits-tile.h"
 
-gchar *gis_tile_path_table[2][2] = {
+gchar *grits_tile_path_table[2][2] = {
 	{"00.", "01."},
 	{"10.", "11."},
 };
 
 /**
- * gis_tile_new:
+ * grits_tile_new:
  * @parent: the parent for the tile, or NULL
  * @n:      the northern border of the tile
  * @s:      the southern border of the tile
@@ -51,21 +51,21 @@ gchar *gis_tile_path_table[2][2] = {
  *
  * Create a tile associated with a particular latitude/longitude box.
  *
- * Returns: the new #GisTile
+ * Returns: the new #GritsTile
  */
-GisTile *gis_tile_new(GisTile *parent,
+GritsTile *grits_tile_new(GritsTile *parent,
 	gdouble n, gdouble s, gdouble e, gdouble w)
 {
-	GisTile *tile = g_object_new(GIS_TYPE_TILE, NULL);
+	GritsTile *tile = g_object_new(GRITS_TYPE_TILE, NULL);
 	tile->parent = parent;
 	tile->atime  = time(NULL);
-	gis_bounds_set_bounds(&tile->coords, 0, 1, 1, 0);
-	gis_bounds_set_bounds(&tile->edge, n, s, e, w);
+	grits_bounds_set_bounds(&tile->coords, 0, 1, 1, 0);
+	grits_bounds_set_bounds(&tile->edge, n, s, e, w);
 	return tile;
 }
 
 /**
- * gis_tile_get_path:
+ * grits_tile_get_path:
  * @child: the tile to generate a path for
  *
  * Generate a string representation of a tiles location in a group of nested
@@ -75,15 +75,15 @@ GisTile *gis_tile_new(GisTile *parent,
  *
  * Returns: the path representing the tiles's location
  */
-gchar *gis_tile_get_path(GisTile *child)
+gchar *grits_tile_get_path(GritsTile *child)
 {
 	/* This could be easily cached if necessary */
 	int x, y;
 	GList *parts = NULL;
-	for (GisTile *parent = child->parent; parent; child = parent, parent = child->parent)
-		gis_tile_foreach_index(child, x, y)
+	for (GritsTile *parent = child->parent; parent; child = parent, parent = child->parent)
+		grits_tile_foreach_index(child, x, y)
 			if (parent->children[x][y] == child)
-				parts = g_list_prepend(parts, gis_tile_path_table[x][y]);
+				parts = g_list_prepend(parts, grits_tile_path_table[x][y]);
 	GString *path = g_string_new("");
 	for (GList *cur = parts; cur; cur = cur->next)
 		g_string_append(path, cur->data);
@@ -91,9 +91,9 @@ gchar *gis_tile_get_path(GisTile *child)
 	return g_string_free(path, FALSE);
 }
 
-static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBounds *bounds)
+static gdouble _grits_tile_get_min_dist(GritsPoint *eye, GritsBounds *bounds)
 {
-	GisPoint pos = {};
+	GritsPoint pos = {};
 	pos.lat = eye->lat > bounds->n ? bounds->n :
 	          eye->lat < bounds->s ? bounds->s : eye->lat;
 	pos.lon = eye->lon > bounds->e ? bounds->e :
@@ -106,10 +106,10 @@ static gdouble _gis_tile_get_min_dist(GisPoint *eye, GisBounds *bounds)
 	return distd(a, b);
 }
 
-static gboolean _gis_tile_precise(GisPoint *eye, GisBounds *bounds,
+static gboolean _grits_tile_precise(GritsPoint *eye, GritsBounds *bounds,
 		gdouble max_res, gint width, gint height)
 {
-	gdouble min_dist  = _gis_tile_get_min_dist(eye, bounds);
+	gdouble min_dist  = _grits_tile_get_min_dist(eye, bounds);
 	gdouble view_res  = MPPX(min_dist);
 
 	gdouble lat_point = bounds->n < 0 ? bounds->n :
@@ -134,7 +134,7 @@ static gboolean _gis_tile_precise(GisPoint *eye, GisBounds *bounds,
 }
 
 /**
- * gis_tile_update:
+ * grits_tile_update:
  * @root:      the root tile to split
  * @eye:       the point the tile is viewed from, for calculating distances
  * @res:       a maximum resolution in meters per pixel to split tiles to
@@ -149,12 +149,12 @@ static gboolean _gis_tile_precise(GisPoint *eye, GisBounds *bounds,
  * the tile is recursively subdivided until a sufficient resolution is
  * achieved.
  */
-void gis_tile_update(GisTile *root, GisPoint *eye,
+void grits_tile_update(GritsTile *root, GritsPoint *eye,
 		gdouble res, gint width, gint height,
-		GisTileLoadFunc load_func, gpointer user_data)
+		GritsTileLoadFunc load_func, gpointer user_data)
 {
 	root->atime = time(NULL);
-	//g_debug("GisTile: update - %p->atime = %u",
+	//g_debug("GritsTile: update - %p->atime = %u",
 	//		root, (guint)root->atime);
 	const gdouble rows = G_N_ELEMENTS(root->children);
 	const gdouble cols = G_N_ELEMENTS(root->children[0]);
@@ -163,21 +163,21 @@ void gis_tile_update(GisTile *root, GisPoint *eye,
 	const gdouble lat_step = lat_dist / rows;
 	const gdouble lon_step = lon_dist / cols;
 	int row, col;
-	gis_tile_foreach_index(root, row, col) {
-		GisTile **child = &root->children[row][col];
-		GisBounds edge;
+	grits_tile_foreach_index(root, row, col) {
+		GritsTile **child = &root->children[row][col];
+		GritsBounds edge;
 		edge.n = root->edge.n-(lat_step*(row+0));
 		edge.s = root->edge.n-(lat_step*(row+1));
 		edge.e = root->edge.w+(lon_step*(col+1));
 		edge.w = root->edge.w+(lon_step*(col+0));
-		if (!_gis_tile_precise(eye, &edge, res,
+		if (!_grits_tile_precise(eye, &edge, res,
 					width/cols, height/rows)) {
 			if (!*child) {
-				*child = gis_tile_new(root, edge.n, edge.s,
+				*child = grits_tile_new(root, edge.n, edge.s,
 						edge.e, edge.w);
 				load_func(*child, user_data);
 			}
-			gis_tile_update(*child, eye,
+			grits_tile_update(*child, eye,
 					res, width, height,
 					load_func, user_data);
 		}
@@ -185,7 +185,7 @@ void gis_tile_update(GisTile *root, GisPoint *eye,
 }
 
 /**
- * gis_tile_find:
+ * grits_tile_find:
  * @root: the root tile to search from
  * @lat:  target latitude
  * @lon:  target longitude
@@ -195,7 +195,7 @@ void gis_tile_update(GisTile *root, GisPoint *eye,
  * 
  * Returns: the child tile
  */
-GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
+GritsTile *grits_tile_find(GritsTile *root, gdouble lat, gdouble lon)
 {
 	gint    rows = G_N_ELEMENTS(root->children);
 	gint    cols = G_N_ELEMENTS(root->children[0]);
@@ -219,13 +219,13 @@ GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
 	if (row < 0 || row >= rows || col < 0 || col >= cols)
 		return NULL;
 	else if (root->children[row][col] && root->children[row][col]->data)
-		return gis_tile_find(root->children[row][col], lat, lon);
+		return grits_tile_find(root->children[row][col], lat, lon);
 	else
 		return root;
 }
 
 /**
- * gis_tile_gc:
+ * grits_tile_gc:
  * @root:      the root tile to start garbage collection at
  * @atime:     most recent time at which tiles will be kept
  * @free_func: function used to free the image when a new tile is collected
@@ -236,21 +236,21 @@ GisTile *gis_tile_find(GisTile *root, gdouble lat, gdouble lon)
  *
  * Returns: a pointer to the original tile, or NULL if it was garbage collected
  */
-GisTile *gis_tile_gc(GisTile *root, time_t atime,
-		GisTileFreeFunc free_func, gpointer user_data)
+GritsTile *grits_tile_gc(GritsTile *root, time_t atime,
+		GritsTileFreeFunc free_func, gpointer user_data)
 {
 	if (!root)
 		return NULL;
 	gboolean has_children = FALSE;
 	int x, y;
-	gis_tile_foreach_index(root, x, y) {
-		root->children[x][y] = gis_tile_gc(
+	grits_tile_foreach_index(root, x, y) {
+		root->children[x][y] = grits_tile_gc(
 				root->children[x][y], atime,
 				free_func, user_data);
 		if (root->children[x][y])
 			has_children = TRUE;
 	}
-	//g_debug("GisTile: gc - %p->atime=%u < atime=%u",
+	//g_debug("GritsTile: gc - %p->atime=%u < atime=%u",
 	//		root, (guint)root->atime, (guint)atime);
 	if (!has_children && root->atime < atime && root->data) {
 		free_func(root, user_data);
@@ -262,32 +262,32 @@ GisTile *gis_tile_gc(GisTile *root, time_t atime,
 
 /* Use GObject for this */
 /**
- * gis_tile_free:
+ * grits_tile_free:
  * @root:      the root tile to free
  * @free_func: function used to free the image when a new tile is collected
  * @user_data: user data to past to the free function
  *
  * Recursively free a tile and all it's children.
  */
-void gis_tile_free(GisTile *root, GisTileFreeFunc free_func, gpointer user_data)
+void grits_tile_free(GritsTile *root, GritsTileFreeFunc free_func, gpointer user_data)
 {
 	if (!root)
 		return;
-	GisTile *child;
-	gis_tile_foreach(root, child)
-		gis_tile_free(child, free_func, user_data);
+	GritsTile *child;
+	grits_tile_foreach(root, child)
+		grits_tile_free(child, free_func, user_data);
 	if (free_func)
 		free_func(root, user_data);
 	g_object_unref(root);
 }
 
 /* Draw a single tile */
-static void gis_tile_draw_one(GisTile *tile, GisOpenGL *opengl, GList *triangles)
+static void grits_tile_draw_one(GritsTile *tile, GritsOpenGL *opengl, GList *triangles)
 {
 	if (!tile || !tile->data)
 		return;
 	if (!triangles)
-		g_warning("GisOpenGL: _draw_tiles - No triangles to draw: edges=%f,%f,%f,%f",
+		g_warning("GritsOpenGL: _draw_tiles - No triangles to draw: edges=%f,%f,%f,%f",
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	//g_message("drawing %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
 	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
@@ -357,12 +357,12 @@ static void gis_tile_draw_one(GisTile *tile, GisOpenGL *opengl, GList *triangles
 }
 
 /* Draw the tile */
-static void gis_tile_draw_rec(GisTile *tile, GisOpenGL *opengl)
+static void grits_tile_draw_rec(GritsTile *tile, GritsOpenGL *opengl)
 {
 	/* Only draw children if possible */
 	gboolean has_children = FALSE;
-	GisTile *child;
-	gis_tile_foreach(tile, child)
+	GritsTile *child;
+	grits_tile_foreach(tile, child)
 		if (child && child->data)
 			has_children = TRUE;
 
@@ -376,10 +376,10 @@ static void gis_tile_draw_rec(GisTile *tile, GisOpenGL *opengl)
 		const gdouble lat_step = lat_dist / rows;
 		const gdouble lon_step = lon_dist / cols;
 		int row, col;
-		gis_tile_foreach_index(tile, row, col) {
-			GisTile *child = tile->children[row][col];
+		grits_tile_foreach_index(tile, row, col) {
+			GritsTile *child = tile->children[row][col];
 			if (child && child->data) {
-				gis_tile_draw_rec(child, opengl);
+				grits_tile_draw_rec(child, opengl);
 			} else {
 				const gdouble n = tile->edge.n-(lat_step*(row+0));
 				const gdouble s = tile->edge.n-(lat_step*(row+1));
@@ -395,27 +395,27 @@ static void gis_tile_draw_rec(GisTile *tile, GisOpenGL *opengl)
 				tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	}
 	if (triangles)
-		gis_tile_draw_one(tile, opengl, triangles);
+		grits_tile_draw_one(tile, opengl, triangles);
 	g_list_free(triangles);
 }
 
-static void gis_tile_draw(GisObject *tile, GisOpenGL *opengl)
+static void grits_tile_draw(GritsObject *tile, GritsOpenGL *opengl)
 {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	gis_tile_draw_rec(GIS_TILE(tile), opengl);
+	grits_tile_draw_rec(GRITS_TILE(tile), opengl);
 }
 
 
 /* GObject code */
-G_DEFINE_TYPE(GisTile, gis_tile, GIS_TYPE_OBJECT);
-static void gis_tile_init(GisTile *tile)
+G_DEFINE_TYPE(GritsTile, grits_tile, GRITS_TYPE_OBJECT);
+static void grits_tile_init(GritsTile *tile)
 {
 }
 
-static void gis_tile_class_init(GisTileClass *klass)
+static void grits_tile_class_init(GritsTileClass *klass)
 {
-	g_debug("GisTile: class_init");
-	GisObjectClass *object_class = GIS_OBJECT_CLASS(klass);
-	object_class->draw = gis_tile_draw;
+	g_debug("GritsTile: class_init");
+	GritsObjectClass *object_class = GRITS_OBJECT_CLASS(klass);
+	object_class->draw = grits_tile_draw;
 }

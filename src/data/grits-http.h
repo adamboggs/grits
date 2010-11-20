@@ -15,29 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_HTTP_H__
-#define __GIS_HTTP_H__
+#ifndef __GRITS_HTTP_H__
+#define __GRITS_HTTP_H__
 
 #include <glib.h>
 #include <libsoup/soup.h>
 
 #include "grits-data.h"
 
-typedef struct _GisHttp {
+typedef struct _GritsHttp {
 	SoupSession *soup;
 	gchar *prefix;
-} GisHttp;
+} GritsHttp;
 
-GisHttp *gis_http_new(const gchar *prefix);
+GritsHttp *grits_http_new(const gchar *prefix);
 
-void gis_http_free(GisHttp *http);
+void grits_http_free(GritsHttp *http);
 
-gchar *gis_http_fetch(GisHttp *http, const gchar *uri, const gchar *local,
-		GisCacheType mode,
-		GisChunkCallback callback,
+gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const gchar *local,
+		GritsCacheType mode,
+		GritsChunkCallback callback,
 		gpointer user_data);
 
-GList *gis_http_available(GisHttp *http,
+GList *grits_http_available(GritsHttp *http,
 		gchar *filter, gchar *cache,
 		gchar *extract, gchar *index);
 

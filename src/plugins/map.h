@@ -20,34 +20,34 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_MAP            (gis_plugin_map_get_type ())
-#define GIS_PLUGIN_MAP(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_MAP, GisPluginMap))
-#define GIS_IS_PLUGIN_MAP(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_MAP))
-#define GIS_PLUGIN_MAP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_MAP, GisPluginMapClass))
-#define GIS_IS_PLUGIN_MAP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_MAP))
-#define GIS_PLUGIN_MAP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_MAP, GisPluginMapClass))
+#define GRITS_TYPE_PLUGIN_MAP            (grits_plugin_map_get_type ())
+#define GRITS_PLUGIN_MAP(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_MAP, GritsPluginMap))
+#define GRITS_IS_PLUGIN_MAP(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_MAP))
+#define GRITS_PLUGIN_MAP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_MAP, GritsPluginMapClass))
+#define GRITS_IS_PLUGIN_MAP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_MAP))
+#define GRITS_PLUGIN_MAP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_MAP, GritsPluginMapClass))
 
-typedef struct _GisPluginMap      GisPluginMap;
-typedef struct _GisPluginMapClass GisPluginMapClass;
+typedef struct _GritsPluginMap      GritsPluginMap;
+typedef struct _GritsPluginMapClass GritsPluginMapClass;
 
-struct _GisPluginMap {
+struct _GritsPluginMap {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer *viewer;
-	GisTile   *tiles;
-	GisWms    *wms;
-	GMutex    *mutex;
-	gulong     sigid;
+	GritsViewer *viewer;
+	GritsTile   *tiles;
+	GritsWms    *wms;
+	GMutex      *mutex;
+	gulong       sigid;
 };
 
-struct _GisPluginMapClass {
+struct _GritsPluginMapClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_map_get_type();
+GType grits_plugin_map_get_type();
 
 /* Methods */
-GisPluginMap *gis_plugin_map_new(GisViewer *viewer);
+GritsPluginMap *grits_plugin_map_new(GritsViewer *viewer);
 
 #endif

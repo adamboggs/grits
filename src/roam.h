@@ -32,7 +32,7 @@ typedef struct _RoamSphere   RoamSphere;
  * @lon:       the longitude
  * @user_data: user data passed to the function
  *
- * See #GisHeightFunc
+ * See #GritsHeightFunc
  *
  * Returns: the elevation
  */

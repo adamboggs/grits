@@ -16,76 +16,75 @@
  */
 
 /**
- * Hack alert: gis-opengl.h needs to be included before gis-viewer
- *   - GisViewer depends on GisObject for add/remove functions
- *   - GisObject depends on GisOpenGL for load/unload functions
- *   - GisOpenGL depends on GisViewer for inheritance
+ * Hack alert: grits-opengl.h needs to be included before grits-viewer
+ *   - GritsViewer depends on GritsObject for add/remove functions
+ *   - GritsObject depends on GritsOpenGL for load/unload functions
+ *   - GritsOpenGL depends on GritsViewer for inheritance
  *
- * The problem here is that GisOpenGL needs the GisViewer definition
- * but GisViewer only needs the typedefs (through GisObject),
- * so GisViewer needs to be included after the GisOpenGL typedefs but
- * before the GisOpenGL definition. This is handled internally by
- * gis-opengl.h
+ * The problem here is that GritsOpenGL needs the GritsViewer definition but
+ * GritsViewer only needs the typedefs (through GritsObject), so GritsViewer
+ * needs to be included after the GritsOpenGL typedefs but before the
+ * GritsOpenGL definition. This is handled internally by grits-opengl.h
  *
- * This should probably be fixed, but making a GisGLObject interface
- * seems like too much work. Merging GisViewer and GisOpenGL would also work,
- * but I like the separate that that's provided by having two.
+ * This should probably be fixed, but making a GritsGLObject interface seems
+ * like too much work. Merging GritsViewer and GritsOpenGL would also work, but
+ * I like the separate that that's provided by having two.
  */
 #include "grits-opengl.h"
 
-#ifndef __GIS_VIEWER_H__
-#define __GIS_VIEWER_H__
+#ifndef __GRITS_VIEWER_H__
+#define __GRITS_VIEWER_H__
 
 #include <gtk/gtk.h>
 #include <glib-object.h>
 
 /* Rendering levels */
 /**
- * GIS_LEVEL_BACKGROUND: 
+ * GRITS_LEVEL_BACKGROUND: 
  *
  * The level used to draw background objects (stars, atmosphere, etc).
  */
-#define GIS_LEVEL_BACKGROUND -100
+#define GRITS_LEVEL_BACKGROUND -100
 
 /**
- * GIS_LEVEL_WORLD: 
+ * GRITS_LEVEL_WORLD: 
  *
  * The level used to draw world objects. This is for both surface data as well
  * as things in the air or underground. Most objects should use
- * %GIS_LEVEL_WORLD;
+ * %GRITS_LEVEL_WORLD;
  */
-#define GIS_LEVEL_WORLD         0
+#define GRITS_LEVEL_WORLD         0
 
 /**
- * GIS_LEVEL_OVERLAY: 
+ * GRITS_LEVEL_OVERLAY: 
  *
  * The level used to draw screen overlays. These will be drawn in front of most
- * of ther objects. Text and markers should use %GIS_LEVEL_OVERLAY.
+ * of ther objects. Text and markers should use %GRITS_LEVEL_OVERLAY.
  */
-#define GIS_LEVEL_OVERLAY     100
+#define GRITS_LEVEL_OVERLAY     100
 
 /**
- * GIS_LEVEL_HUD: 
+ * GRITS_LEVEL_HUD: 
  *
  * The level used to draw the Heads Up Display. This is for things that are not
  * anchored at all the the world. They should be drawn in front of everything
  * else.
  */
-#define GIS_LEVEL_HUD         200
+#define GRITS_LEVEL_HUD         200
 
 /* Type macros */
-#define GIS_TYPE_VIEWER            (gis_viewer_get_type())
-#define GIS_VIEWER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_VIEWER, GisViewer))
-#define GIS_IS_VIEWER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_VIEWER))
-#define GIS_VIEWER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_VIEWER, GisViewerClass))
-#define GIS_IS_VIEWER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_VIEWER))
-#define GIS_VIEWER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_VIEWER, GisViewerClass))
+#define GRITS_TYPE_VIEWER            (grits_viewer_get_type())
+#define GRITS_VIEWER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_VIEWER, GritsViewer))
+#define GRITS_IS_VIEWER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_VIEWER))
+#define GRITS_VIEWER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_VIEWER, GritsViewerClass))
+#define GRITS_IS_VIEWER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_VIEWER))
+#define GRITS_VIEWER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_VIEWER, GritsViewerClass))
 
-typedef struct _GisViewer      GisViewer;
-typedef struct _GisViewerClass GisViewerClass;
+typedef struct _GritsViewer      GritsViewer;
+typedef struct _GritsViewerClass GritsViewerClass;
 
 /**
- * GisHeightFunc:
+ * GritsHeightFunc:
  * @lat:       the target latitude
  * @lon:       the target longitude
  * @user_data: user data passed to the function
@@ -94,18 +93,18 @@ typedef struct _GisViewerClass GisViewerClass;
  *
  * Returns: the elevation in meters above sea level
  */
-typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
+typedef gdouble (*GritsHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
 #include "grits-plugin.h"
 #include "grits-prefs.h"
 #include "objects/grits-object.h"
 
-struct _GisViewer {
+struct _GritsViewer {
 	GtkDrawingArea parent_instance;
 
 	/* instance members */
-	GisPlugins *plugins;
-	GisPrefs   *prefs;
+	GritsPlugins *plugins;
+	GritsPrefs   *prefs;
 	time_t      time;
 	gdouble     location[3];
 	gdouble     rotation[3];
@@ -116,64 +115,64 @@ struct _GisViewer {
 	gdouble drag_x, drag_y;
 };
 
-struct _GisViewerClass {
+struct _GritsViewerClass {
 	GtkDrawingAreaClass parent_class;
 
 	/* class members */
-	void (*center_position)  (GisViewer *viewer,
+	void (*center_position)  (GritsViewer *viewer,
 	                          gdouble lat, gdouble lon, gdouble elev);
 
-	void (*project)          (GisViewer *viewer,
+	void (*project)          (GritsViewer *viewer,
 	                          gdouble lat, gdouble lon, gdouble elev,
 	                          gdouble *px, gdouble *py, gdouble *pz);
 
-	void (*clear_height_func)(GisViewer *viewer);
-	void (*set_height_func)  (GisViewer *viewer, GisBounds *bounds,
-	                          GisHeightFunc height_func, gpointer user_data,
+	void (*clear_height_func)(GritsViewer *viewer);
+	void (*set_height_func)  (GritsViewer *viewer, GritsBounds *bounds,
+	                          GritsHeightFunc height_func, gpointer user_data,
 	                          gboolean update);
 
-	gpointer (*add)          (GisViewer *viewer, GisObject *object,
+	gpointer (*add)          (GritsViewer *viewer, GritsObject *object,
 	                          gint level, gboolean sort);
-	GisObject *(*remove)     (GisViewer *viewer, gpointer ref);
+	GritsObject *(*remove)     (GritsViewer *viewer, gpointer ref);
 };
 
-GType gis_viewer_get_type(void);
+GType grits_viewer_get_type(void);
 
 /* Methods */
-void gis_viewer_setup(GisViewer *viewer, GisPlugins *plugins, GisPrefs *prefs);
+void grits_viewer_setup(GritsViewer *viewer, GritsPlugins *plugins, GritsPrefs *prefs);
 
-void gis_viewer_set_time(GisViewer *viewer, time_t time);
-time_t gis_viewer_get_time(GisViewer *viewer);
+void grits_viewer_set_time(GritsViewer *viewer, time_t time);
+time_t grits_viewer_get_time(GritsViewer *viewer);
 
-void gis_viewer_set_location(GisViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
-void gis_viewer_get_location(GisViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);
-void gis_viewer_pan(GisViewer *viewer, gdouble forward, gdouble right, gdouble up);
-void gis_viewer_zoom(GisViewer *viewer, gdouble  scale);
+void grits_viewer_set_location(GritsViewer *viewer, gdouble  lat, gdouble  lon, gdouble  elev);
+void grits_viewer_get_location(GritsViewer *viewer, gdouble *lat, gdouble *lon, gdouble *elev);
+void grits_viewer_pan(GritsViewer *viewer, gdouble forward, gdouble right, gdouble up);
+void grits_viewer_zoom(GritsViewer *viewer, gdouble  scale);
 
-void gis_viewer_set_rotation(GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
-void gis_viewer_get_rotation(GisViewer *viewer, gdouble *x, gdouble *y, gdouble *z);
-void gis_viewer_rotate      (GisViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
+void grits_viewer_set_rotation(GritsViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
+void grits_viewer_get_rotation(GritsViewer *viewer, gdouble *x, gdouble *y, gdouble *z);
+void grits_viewer_rotate      (GritsViewer *viewer, gdouble  x, gdouble  y, gdouble  z);
 
-void gis_viewer_refresh(GisViewer *viewer);
+void grits_viewer_refresh(GritsViewer *viewer);
 
-void gis_viewer_set_offline(GisViewer *viewer, gboolean offline);
-gboolean gis_viewer_get_offline(GisViewer *viewer);
+void grits_viewer_set_offline(GritsViewer *viewer, gboolean offline);
+gboolean grits_viewer_get_offline(GritsViewer *viewer);
 
 /* To be implemented by subclasses */
-void gis_viewer_center_position(GisViewer *viewer,
+void grits_viewer_center_position(GritsViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev);
 
-void gis_viewer_project(GisViewer *viewer,
+void grits_viewer_project(GritsViewer *viewer,
 		gdouble lat, gdouble lon, gdouble elev,
 		gdouble *px, gdouble *py, gdouble *pz);
 
-void gis_viewer_clear_height_func(GisViewer *viewer);
-void gis_viewer_set_height_func(GisViewer *viewer, GisBounds *bounds,
-		GisHeightFunc height_func, gpointer user_data,
+void grits_viewer_clear_height_func(GritsViewer *viewer);
+void grits_viewer_set_height_func(GritsViewer *viewer, GritsBounds *bounds,
+		GritsHeightFunc height_func, gpointer user_data,
 		gboolean update);
 
-gpointer gis_viewer_add(GisViewer *viewer, GisObject *object,
+gpointer grits_viewer_add(GritsViewer *viewer, GritsObject *object,
 		gint level, gboolean sort);
-GisObject *gis_viewer_remove(GisViewer *viewer, gpointer ref);
+GritsObject *grits_viewer_remove(GritsViewer *viewer, gpointer ref);
 
 #endif

@@ -21,8 +21,8 @@
  *
  * A spherical version of the Realtime Optimally-Adapting Meshes (ROAM)
  * algorithm is use for drawing the surface of the planet. ROAM provide a
- * continuous level-of-detail mesh of the planet which is used by #GisOpenGL
- * when drawing surface textures for GisTiles.
+ * continuous level-of-detail mesh of the planet which is used by #GritsOpenGL
+ * when drawing surface textures for GritsTiles.
  *
  * This implementation of the ROAM algorithm is based on an octahedron as the
  * base model.

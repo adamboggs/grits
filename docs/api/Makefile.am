@@ -2,7 +2,7 @@ AM_CPPFLAGS = $(SOUP_CFLAGS) $(GLIB_CFLAGS) $(GTK_CFLAGS)
 
 # Gtk docs
 GTKDOC_LIBS        = $(SOUP_LIBS) $(GLIB_LIBS) $(GTK_LIBS) \
-		     $(top_srcdir)/src/grits.la \
+		     $(top_srcdir)/src/libgrits.la \
 		     $(top_srcdir)/src/plugins/*.la
 DOC_MODULE         = grits
 DOC_SOURCE_DIR     = $(top_srcdir)/src/

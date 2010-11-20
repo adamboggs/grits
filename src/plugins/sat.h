@@ -20,34 +20,34 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_SAT            (gis_plugin_sat_get_type ())
-#define GIS_PLUGIN_SAT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_SAT, GisPluginSat))
-#define GIS_IS_PLUGIN_SAT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_SAT))
-#define GIS_PLUGIN_SAT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_SAT, GisPluginSatClass))
-#define GIS_IS_PLUGIN_SAT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_SAT))
-#define GIS_PLUGIN_SAT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_SAT, GisPluginSatClass))
+#define GRITS_TYPE_PLUGIN_SAT            (grits_plugin_sat_get_type ())
+#define GRITS_PLUGIN_SAT(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_SAT, GritsPluginSat))
+#define GRITS_IS_PLUGIN_SAT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_SAT))
+#define GRITS_PLUGIN_SAT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_SAT, GritsPluginSatClass))
+#define GRITS_IS_PLUGIN_SAT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_SAT))
+#define GRITS_PLUGIN_SAT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_SAT, GritsPluginSatClass))
 
-typedef struct _GisPluginSat      GisPluginSat;
-typedef struct _GisPluginSatClass GisPluginSatClass;
+typedef struct _GritsPluginSat      GritsPluginSat;
+typedef struct _GritsPluginSatClass GritsPluginSatClass;
 
-struct _GisPluginSat {
+struct _GritsPluginSat {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer *viewer;
-	GisTile   *tiles;
-	GisWms    *wms;
-	GMutex    *mutex;
-	gulong     sigid;
+	GritsViewer *viewer;
+	GritsTile   *tiles;
+	GritsWms    *wms;
+	GMutex      *mutex;
+	gulong       sigid;
 };
 
-struct _GisPluginSatClass {
+struct _GritsPluginSatClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_sat_get_type();
+GType grits_plugin_sat_get_type();
 
 /* Methods */
-GisPluginSat *gis_plugin_sat_new(GisViewer *viewer);
+GritsPluginSat *grits_plugin_sat_new(GritsViewer *viewer);
 
 #endif

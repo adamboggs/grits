@@ -19,7 +19,7 @@
  * SECTION:sat
  * @short_description: Satellite plugin
  *
- * #GisPluginSat provides overlays using satellite imagery. This is mostly
+ * #GritsPluginSat provides overlays using satellite imagery. This is mostly
  * provided by NASA's Blue Marble Next Generation.
  */
 
@@ -37,23 +37,23 @@
 #define TILE_HEIGHT    512
 
 struct _LoadTileData {
-	GisPluginSat *sat;
-	GisTile      *tile;
-	gchar        *path;
+	GritsPluginSat *sat;
+	GritsTile      *tile;
+	gchar          *path;
 };
 static gboolean _load_tile_cb(gpointer _data)
 {
 	struct _LoadTileData *data = _data;
-	GisPluginSat *sat  = data->sat;
-	GisTile      *tile = data->tile;
-	gchar        *path = data->path;
+	GritsPluginSat *sat  = data->sat;
+	GritsTile      *tile = data->tile;
+	gchar          *path = data->path;
 	g_free(data);
 
 	/* Load pixbuf */
-	g_debug("GisPluginSat: _load_tile_cb start");
+	g_debug("GritsPluginSat: _load_tile_cb start");
 	GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file(path, NULL);
 	if (!pixbuf) {
-		g_warning("GisPluginSat: _load_tile - Error loading pixbuf %s", path);
+		g_warning("GritsPluginSat: _load_tile - Error loading pixbuf %s", path);
 		g_remove(path);
 		g_free(path);
 		return FALSE;
@@ -98,16 +98,16 @@ static gboolean _load_tile_cb(gpointer _data)
 	return FALSE;
 }
 
-static void _load_tile(GisTile *tile, gpointer _sat)
+static void _load_tile(GritsTile *tile, gpointer _sat)
 {
-	GisPluginSat *sat = _sat;
-	g_debug("GisPluginSat: _load_tile start %p", g_thread_self());
+	GritsPluginSat *sat = _sat;
+	g_debug("GritsPluginSat: _load_tile start %p", g_thread_self());
 	struct _LoadTileData *data = g_new0(struct _LoadTileData, 1);
 	data->sat  = sat;
 	data->tile = tile;
-	data->path = gis_wms_fetch(sat->wms, tile, GIS_ONCE, NULL, NULL);
+	data->path = grits_wms_fetch(sat->wms, tile, GRITS_ONCE, NULL, NULL);
 	g_idle_add_full(G_PRIORITY_LOW, _load_tile_cb, data, NULL);
-	g_debug("GisPluginSat: _load_tile end %p", g_thread_self());
+	g_debug("GritsPluginSat: _load_tile end %p", g_thread_self());
 }
 
 static gboolean _free_tile_cb(gpointer data)
@@ -116,25 +116,25 @@ static gboolean _free_tile_cb(gpointer data)
 	g_free(data);
 	return FALSE;
 }
-static void _free_tile(GisTile *tile, gpointer _sat)
+static void _free_tile(GritsTile *tile, gpointer _sat)
 {
-	g_debug("GisPluginSat: _free_tile: %p", tile->data);
+	g_debug("GritsPluginSat: _free_tile: %p", tile->data);
 	if (tile->data)
 		g_idle_add_full(G_PRIORITY_LOW, _free_tile_cb, tile->data, NULL);
 }
 
 static gpointer _update_tiles(gpointer _sat)
 {
-	g_debug("GisPluginSat: _update_tiles");
-	GisPluginSat *sat = _sat;
+	g_debug("GritsPluginSat: _update_tiles");
+	GritsPluginSat *sat = _sat;
 	if (!g_mutex_trylock(sat->mutex))
 		return NULL;
-	GisPoint eye;
-	gis_viewer_get_location(sat->viewer, &eye.lat, &eye.lon, &eye.elev);
-	gis_tile_update(sat->tiles, &eye,
+	GritsPoint eye;
+	grits_viewer_get_location(sat->viewer, &eye.lat, &eye.lon, &eye.elev);
+	grits_tile_update(sat->tiles, &eye,
 			MAX_RESOLUTION, TILE_WIDTH, TILE_WIDTH,
 			_load_tile, sat);
-	gis_tile_gc(sat->tiles, time(NULL)-10,
+	grits_tile_gc(sat->tiles, time(NULL)-10,
 			_free_tile, sat);
 	g_mutex_unlock(sat->mutex);
 	return NULL;
@@ -143,13 +143,13 @@ static gpointer _update_tiles(gpointer _sat)
 /*************
  * Callbacks *
  *************/
-static void _on_location_changed(GisViewer *viewer,
-		gdouble lat, gdouble lon, gdouble elev, GisPluginSat *sat)
+static void _on_location_changed(GritsViewer *viewer,
+		gdouble lat, gdouble lon, gdouble elev, GritsPluginSat *sat)
 {
 	g_thread_create(_update_tiles, sat, FALSE, NULL);
 }
 
-static gpointer _threaded_init(GisPluginSat *sat)
+static gpointer _threaded_init(GritsPluginSat *sat)
 {
 	_load_tile(sat->tiles, sat);
 	_update_tiles(sat);
@@ -160,17 +160,17 @@ static gpointer _threaded_init(GisPluginSat *sat)
  * Methods *
  ***********/
 /**
- * gis_plugin_sat_new:
- * @viewer: the #GisViewer to use for drawing
+ * grits_plugin_sat_new:
+ * @viewer: the #GritsViewer to use for drawing
  *
  * Create a new instance of the satellite plugin.
  *
- * Returns: the new #GisPluginSat
+ * Returns: the new #GritsPluginSat
  */
-GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
+GritsPluginSat *grits_plugin_sat_new(GritsViewer *viewer)
 {
-	g_debug("GisPluginSat: new");
-	GisPluginSat *sat = g_object_new(GIS_TYPE_PLUGIN_SAT, NULL);
+	g_debug("GritsPluginSat: new");
+	GritsPluginSat *sat = g_object_new(GRITS_TYPE_PLUGIN_SAT, NULL);
 	sat->viewer = g_object_ref(viewer);
 
 	/* Load initial tiles */
@@ -181,7 +181,7 @@ GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
 			G_CALLBACK(_on_location_changed), sat);
 
 	/* Add renderers */
-	gis_viewer_add(viewer, GIS_OBJECT(sat->tiles), GIS_LEVEL_WORLD, FALSE);
+	grits_viewer_add(viewer, GRITS_OBJECT(sat->tiles), GRITS_LEVEL_WORLD, FALSE);
 
 	return sat;
 }
@@ -191,53 +191,53 @@ GisPluginSat *gis_plugin_sat_new(GisViewer *viewer)
  * GObject code *
  ****************/
 /* Plugin init */
-static void gis_plugin_sat_plugin_init(GisPluginInterface *iface);
-G_DEFINE_TYPE_WITH_CODE(GisPluginSat, gis_plugin_sat, G_TYPE_OBJECT,
-		G_IMPLEMENT_INTERFACE(GIS_TYPE_PLUGIN,
-			gis_plugin_sat_plugin_init));
-static void gis_plugin_sat_plugin_init(GisPluginInterface *iface)
+static void grits_plugin_sat_plugin_init(GritsPluginInterface *iface);
+G_DEFINE_TYPE_WITH_CODE(GritsPluginSat, grits_plugin_sat, G_TYPE_OBJECT,
+		G_IMPLEMENT_INTERFACE(GRITS_TYPE_PLUGIN,
+			grits_plugin_sat_plugin_init));
+static void grits_plugin_sat_plugin_init(GritsPluginInterface *iface)
 {
-	g_debug("GisPluginSat: plugin_init");
+	g_debug("GritsPluginSat: plugin_init");
 	/* Add methods to the interface */
 }
 /* Class/Object init */
-static void gis_plugin_sat_init(GisPluginSat *sat)
+static void grits_plugin_sat_init(GritsPluginSat *sat)
 {
-	g_debug("GisPluginSat: init");
+	g_debug("GritsPluginSat: init");
 	/* Set defaults */
 	sat->mutex = g_mutex_new();
-	sat->tiles = gis_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
-	sat->wms   = gis_wms_new(
+	sat->tiles = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
+	sat->wms   = grits_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng/", "jpg", TILE_WIDTH, TILE_HEIGHT);
 }
-static void gis_plugin_sat_dispose(GObject *gobject)
+static void grits_plugin_sat_dispose(GObject *gobject)
 {
-	g_debug("GisPluginSat: dispose");
-	GisPluginSat *sat = GIS_PLUGIN_SAT(gobject);
+	g_debug("GritsPluginSat: dispose");
+	GritsPluginSat *sat = GRITS_PLUGIN_SAT(gobject);
 	/* Drop references */
 	if (sat->viewer) {
 		g_signal_handler_disconnect(sat->viewer, sat->sigid);
 		g_object_unref(sat->viewer);
 		sat->viewer = NULL;
 	}
-	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(grits_plugin_sat_parent_class)->dispose(gobject);
 }
-static void gis_plugin_sat_finalize(GObject *gobject)
+static void grits_plugin_sat_finalize(GObject *gobject)
 {
-	g_debug("GisPluginSat: finalize");
-	GisPluginSat *sat = GIS_PLUGIN_SAT(gobject);
+	g_debug("GritsPluginSat: finalize");
+	GritsPluginSat *sat = GRITS_PLUGIN_SAT(gobject);
 	/* Free data */
-	gis_tile_free(sat->tiles, _free_tile, sat);
-	gis_wms_free(sat->wms);
+	grits_tile_free(sat->tiles, _free_tile, sat);
+	grits_wms_free(sat->wms);
 	g_mutex_free(sat->mutex);
-	G_OBJECT_CLASS(gis_plugin_sat_parent_class)->finalize(gobject);
+	G_OBJECT_CLASS(grits_plugin_sat_parent_class)->finalize(gobject);
 
 }
-static void gis_plugin_sat_class_init(GisPluginSatClass *klass)
+static void grits_plugin_sat_class_init(GritsPluginSatClass *klass)
 {
-	g_debug("GisPluginSat: class_init");
+	g_debug("GritsPluginSat: class_init");
 	GObjectClass *gobject_class = (GObjectClass*)klass;
-	gobject_class->dispose  = gis_plugin_sat_dispose;
-	gobject_class->finalize = gis_plugin_sat_finalize;
+	gobject_class->dispose  = grits_plugin_sat_dispose;
+	gobject_class->finalize = grits_plugin_sat_finalize;
 }

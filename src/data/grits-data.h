@@ -15,29 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_DATA_H__
-#define __GIS_DATA_H__
+#ifndef __GRITS_DATA_H__
+#define __GRITS_DATA_H__
 
 #include <glib.h>
 
 /**
- * GisCacheType:
- * @GIS_LOCAL:   Only return local files (for offline mode)
- * @GIS_ONCE:    Download the file only if it does not exist
- * @GIS_UPDATE:  Update the file to be like the server
- * @GIS_REFRESH: Delete the existing file and fetch a new copy
+ * GritsCacheType:
+ * @GRITS_LOCAL:   Only return local files (for offline mode)
+ * @GRITS_ONCE:    Download the file only if it does not exist
+ * @GRITS_UPDATE:  Update the file to be like the server
+ * @GRITS_REFRESH: Delete the existing file and fetch a new copy
  *
  * Various methods for caching data
  */
 typedef enum {
-	GIS_LOCAL,
-	GIS_ONCE,
-	GIS_UPDATE,
-	GIS_REFRESH,
-} GisCacheType;
+	GRITS_LOCAL,
+	GRITS_ONCE,
+	GRITS_UPDATE,
+	GRITS_REFRESH,
+} GritsCacheType;
 
 /**
- * GisChunkCallback:
+ * GritsChunkCallback:
  * @file:      path to the file which is being fetched
  * @cur:       current offset in the file
  * @total:     total size of the file
@@ -46,7 +46,7 @@ typedef enum {
  * Function called when part of a file is fetched
  * Used for updating progress bars, etc
  */
-typedef void (*GisChunkCallback)(gchar *file, goffset cur,
+typedef void (*GritsChunkCallback)(gchar *file, goffset cur,
 		goffset total, gpointer user_data);
 
 FILE *fopen_p(const gchar *path, const gchar *mode);

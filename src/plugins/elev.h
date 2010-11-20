@@ -20,34 +20,34 @@
 
 #include <glib-object.h>
 
-#define GIS_TYPE_PLUGIN_ELEV            (gis_plugin_elev_get_type ())
-#define GIS_PLUGIN_ELEV(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PLUGIN_ELEV, GisPluginElev))
-#define GIS_IS_PLUGIN_ELEV(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PLUGIN_ELEV))
-#define GIS_PLUGIN_ELEV_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PLUGIN_ELEV, GisPluginElevClass))
-#define GIS_IS_PLUGIN_ELEV_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PLUGIN_ELEV))
-#define GIS_PLUGIN_ELEV_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PLUGIN_ELEV, GisPluginElevClass))
+#define GRITS_TYPE_PLUGIN_ELEV            (grits_plugin_elev_get_type ())
+#define GRITS_PLUGIN_ELEV(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PLUGIN_ELEV, GritsPluginElev))
+#define GRITS_IS_PLUGIN_ELEV(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PLUGIN_ELEV))
+#define GRITS_PLUGIN_ELEV_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PLUGIN_ELEV, GritsPluginElevClass))
+#define GRITS_IS_PLUGIN_ELEV_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PLUGIN_ELEV))
+#define GRITS_PLUGIN_ELEV_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PLUGIN_ELEV, GritsPluginElevClass))
 
-typedef struct _GisPluginElev      GisPluginElev;
-typedef struct _GisPluginElevClass GisPluginElevClass;
+typedef struct _GritsPluginElev      GritsPluginElev;
+typedef struct _GritsPluginElevClass GritsPluginElevClass;
 
-struct _GisPluginElev {
+struct _GritsPluginElev {
 	GObject parent_instance;
 
 	/* instance members */
-	GisViewer *viewer;
-	GisTile   *tiles;
-	GisWms    *wms;
-	GMutex    *mutex;
-	gulong     sigid;
+	GritsViewer *viewer;
+	GritsTile   *tiles;
+	GritsWms    *wms;
+	GMutex      *mutex;
+	gulong       sigid;
 };
 
-struct _GisPluginElevClass {
+struct _GritsPluginElevClass {
 	GObjectClass parent_class;
 };
 
-GType gis_plugin_elev_get_type();
+GType grits_plugin_elev_get_type();
 
 /* Methods */
-GisPluginElev *gis_plugin_elev_new(GisViewer *viewer);
+GritsPluginElev *grits_plugin_elev_new(GritsViewer *viewer);
 
 #endif

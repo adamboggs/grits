@@ -1,22 +1,22 @@
-<refentry id="gis-demo">
+<refentry id="grits-demo">
 <refmeta>
-	<refentrytitle>gis-demo</refentrytitle>
+	<refentrytitle>grits-demo</refentrytitle>
 	<manvolnum>1</manvolnum>
 </refmeta>
 
 <refnamediv>
-	<refname>gis-demo</refname>
+	<refname>grits-demo</refname>
 	<refpurpose>Grits demonstration program</refpurpose>
 </refnamediv>
 
 <refsynopsisdiv>
 	<cmdsynopsis>
-		<command>gis-demo [GTK_OPTIONS]</command>
+		<command>grits-demo [GTK_OPTIONS]</command>
 	</cmdsynopsis>
 </refsynopsisdiv>
 
 <refsect1><title>Description</title>
-	<para><command>gis-demo</command> TODO (short description)</para>
+	<para><command>grits-demo</command> TODO (short description)</para>
 	<para>
 		TODO (long description)
 	</para>
@@ -25,7 +25,7 @@
 <refsect1><title>Environment</title>
 	<variablelist>
 		<varlistentry>
-			<term>GIS_PLUGIN_PATH</term>
+			<term>GRITS_PLUGIN_PATH</term>
 			<listitem><para>
 				Secondary path to use when searching for
 				plugins.

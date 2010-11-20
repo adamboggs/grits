@@ -15,23 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GIS_PREFS_H__
-#define __GIS_PREFS_H__
+#ifndef __GRITS_PREFS_H__
+#define __GRITS_PREFS_H__
 
 #include <glib-object.h>
 
 /* Type macros */
-#define GIS_TYPE_PREFS            (gis_prefs_get_type())
-#define GIS_PREFS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_PREFS, GisPrefs))
-#define GIS_IS_PREFS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GIS_TYPE_PREFS))
-#define GIS_PREFS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GIS_TYPE_PREFS, GisPrefsClass))
-#define GIS_IS_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GIS_TYPE_PREFS))
-#define GIS_PREFS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GIS_TYPE_PREFS, GisPrefsClass))
+#define GRITS_TYPE_PREFS            (grits_prefs_get_type())
+#define GRITS_PREFS(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GRITS_TYPE_PREFS, GritsPrefs))
+#define GRITS_IS_PREFS(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),   GRITS_TYPE_PREFS))
+#define GRITS_PREFS_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST   ((klass), GRITS_TYPE_PREFS, GritsPrefsClass))
+#define GRITS_IS_PREFS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_PREFS))
+#define GRITS_PREFS_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_PREFS, GritsPrefsClass))
 
-typedef struct _GisPrefs      GisPrefs;
-typedef struct _GisPrefsClass GisPrefsClass;
+typedef struct _GritsPrefs      GritsPrefs;
+typedef struct _GritsPrefsClass GritsPrefsClass;
 
-struct _GisPrefs {
+struct _GritsPrefs {
 	GObject parent_instance;
 
 	/* instance members */
@@ -39,34 +39,34 @@ struct _GisPrefs {
 	GKeyFile *key_file;
 };
 
-struct _GisPrefsClass {
+struct _GritsPrefsClass {
 	GObjectClass parent_class;
 	
 	/* class members */
 };
 
-GType gis_prefs_get_type(void);
+GType grits_prefs_get_type(void);
 
 /* Methods */
-GisPrefs *gis_prefs_new(const gchar *config, const gchar *defaults);
+GritsPrefs *grits_prefs_new(const gchar *config, const gchar *defaults);
 
-gchar    *gis_prefs_get_string   (GisPrefs *prefs, const gchar *key, GError **error);
-gboolean  gis_prefs_get_boolean  (GisPrefs *prefs, const gchar *key, GError **error);
-gint      gis_prefs_get_integer  (GisPrefs *prefs, const gchar *key, GError **error);
-gdouble   gis_prefs_get_double   (GisPrefs *prefs, const gchar *key, GError **error);
+gchar    *grits_prefs_get_string   (GritsPrefs *prefs, const gchar *key, GError **error);
+gboolean  grits_prefs_get_boolean  (GritsPrefs *prefs, const gchar *key, GError **error);
+gint      grits_prefs_get_integer  (GritsPrefs *prefs, const gchar *key, GError **error);
+gdouble   grits_prefs_get_double   (GritsPrefs *prefs, const gchar *key, GError **error);
 
-gchar    *gis_prefs_get_string_v (GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
-gboolean  gis_prefs_get_boolean_v(GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
-gint      gis_prefs_get_integer_v(GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
-gdouble   gis_prefs_get_double_v (GisPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gchar    *grits_prefs_get_string_v (GritsPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gboolean  grits_prefs_get_boolean_v(GritsPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gint      grits_prefs_get_integer_v(GritsPrefs *prefs, const gchar *group, const gchar *key, GError **error);
+gdouble   grits_prefs_get_double_v (GritsPrefs *prefs, const gchar *group, const gchar *key, GError **error);
 
-void      gis_prefs_set_string   (GisPrefs *prefs, const gchar *key, const gchar *string);
-void      gis_prefs_set_boolean  (GisPrefs *prefs, const gchar *key, gboolean value);
-void      gis_prefs_set_integer  (GisPrefs *prefs, const gchar *key, gint value);
-void      gis_prefs_set_double   (GisPrefs *prefs, const gchar *key, gdouble value);
+void      grits_prefs_set_string   (GritsPrefs *prefs, const gchar *key, const gchar *string);
+void      grits_prefs_set_boolean  (GritsPrefs *prefs, const gchar *key, gboolean value);
+void      grits_prefs_set_integer  (GritsPrefs *prefs, const gchar *key, gint value);
+void      grits_prefs_set_double   (GritsPrefs *prefs, const gchar *key, gdouble value);
 
-void      gis_prefs_set_string_v (GisPrefs *prefs, const gchar *group, const gchar *key, const gchar *string);
-void      gis_prefs_set_boolean_v(GisPrefs *prefs, const gchar *group, const gchar *key, gboolean value);
-void      gis_prefs_set_integer_v(GisPrefs *prefs, const gchar *group, const gchar *key, gint value);
-void      gis_prefs_set_double_v (GisPrefs *prefs, const gchar *group, const gchar *key, gdouble value);
+void      grits_prefs_set_string_v (GritsPrefs *prefs, const gchar *group, const gchar *key, const gchar *string);
+void      grits_prefs_set_boolean_v(GritsPrefs *prefs, const gchar *group, const gchar *key, gboolean value);
+void      grits_prefs_set_integer_v(GritsPrefs *prefs, const gchar *group, const gchar *key, gint value);
+void      grits_prefs_set_double_v (GritsPrefs *prefs, const gchar *group, const gchar *key, gdouble value);
 #endif

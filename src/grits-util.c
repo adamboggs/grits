@@ -16,7 +16,7 @@
  */
 
 /**
- * SECTION:gis-util
+ * SECTION:grits-util
  * @short_description: Geographic utilities
  *
  * Miscellaneous utility functions, these deal mostly with coordinate
@@ -74,10 +74,10 @@
 #include "grits-util.h"
 
 /************
- * GisPoint *
+ * GritsPoint *
  ************/
 /**
- * gis_point_set_lle:
+ * grits_point_set_lle:
  * @point: the point to modify
  * @lat:   the new latitude
  * @lon:   the new longitude
@@ -85,7 +85,7 @@
  *
  * Set the latitude, longitude, and elevation for a point.
  */
-void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
+void grits_point_set_lle(GritsPoint *point, gdouble lat, gdouble lon, gdouble elev)
 {
 	point->lat  = lat;
 	point->lon  = lon;
@@ -93,11 +93,11 @@ void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
 }
 
 
-/*************
- * GisBounds *
- *************/
+/***************
+ * GritsBounds *
+ ***************/
 /**
- * gis_bounds_set_bounds:
+ * grits_bounds_set_bounds:
  * @n: the north edge
  * @s: the south edge
  * @e: the east edge
@@ -105,7 +105,7 @@ void gis_point_set_lle(GisPoint *point, gdouble lat, gdouble lon, gdouble elev)
  *
  * Set the north, south, east, and west edges of the bounding box
  */
-void gis_bounds_set_bounds(GisBounds *bounds,
+void grits_bounds_set_bounds(GritsBounds *bounds,
 		gdouble n, gdouble s, gdouble e, gdouble w)
 {
 	bounds->n = n;

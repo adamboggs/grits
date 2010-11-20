@@ -16,15 +16,15 @@
  */
 
 /**
- * SECTION:gis-opengl
+ * SECTION:grits-opengl
  * @short_description: OpenGL based virtual globe
  *
- * #GisOpenGL is the core rendering engine used by grits. Theoretically other
- * renderers could be writte, but they have not been. GisOpenGL uses the ROAM
- * algorithm for updating surface mesh the planet. The only thing GisOpenGL can
- * actually render on it's own is a wireframe of a sphere.
+ * #GritsOpenGL is the core rendering engine used by grits. Theoretically other
+ * renderers could be writte, but they have not been. GritsOpenGL uses the ROAM
+ * algorithm for updating surface mesh the planet. The only thing GritsOpenGL
+ * can actually render on it's own is a wireframe of a sphere.
  *
- * GisOpenGL relies on #GtkGlExt and requires (at least) OpenGL 2.0.
+ * GritsOpenGL relies on #GtkGlExt and requires (at least) OpenGL 2.0.
  */
 
 #include <config.h>
@@ -49,15 +49,15 @@
 /***********
  * Helpers *
  ***********/
-static void _set_visuals(GisOpenGL *opengl)
+static void _set_visuals(GritsOpenGL *opengl)
 {
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	/* Camera 1 */
 	double lat, lon, elev, rx, ry, rz;
-	gis_viewer_get_location(GIS_VIEWER(opengl), &lat, &lon, &elev);
-	gis_viewer_get_rotation(GIS_VIEWER(opengl), &rx, &ry, &rz);
+	grits_viewer_get_location(GRITS_VIEWER(opengl), &lat, &lon, &elev);
+	grits_viewer_get_rotation(GRITS_VIEWER(opengl), &rx, &ry, &rz);
 	glRotatef(rx, 1, 0, 0);
 	glRotatef(rz, 0, 0, 1);
 
@@ -128,9 +128,9 @@ struct RenderLevel {
 	GList sorted;
 };
 
-static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpointer _)
+static gboolean on_configure(GritsOpenGL *opengl, GdkEventConfigure *event, gpointer _)
 {
-	g_debug("GisOpenGL: on_configure");
+	g_debug("GritsOpenGL: on_configure");
 
 	double width  = GTK_WIDGET(opengl)->allocation.width;
 	double height = GTK_WIDGET(opengl)->allocation.height;
@@ -153,8 +153,8 @@ static gboolean on_configure(GisOpenGL *opengl, GdkEventConfigure *event, gpoint
 
 static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 {
-	g_debug("GisOpenGL: _draw_level - level=%-4d", (int)key);
-	GisOpenGL *opengl = user_data;
+	g_debug("GritsOpenGL: _draw_level - level=%-4d", (int)key);
+	GritsOpenGL *opengl = user_data;
 	struct RenderLevel *level = value;
 	int nsorted = 0, nunsorted = 0;
 	GList *cur = NULL;
@@ -163,25 +163,25 @@ static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 	glDepthMask(TRUE);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	for (cur = level->unsorted.next; cur; cur = cur->next, nunsorted++)
-		gis_object_draw( GIS_OBJECT(cur->data), opengl);
+		grits_object_draw(GRITS_OBJECT(cur->data), opengl);
 
 	/* Freeze depth buffer and draw transparent objects sorted */
 	/* TODO: sorting */
 	//glDepthMask(FALSE);
 	glAlphaFunc(GL_GREATER, 0.1);
 	for (cur = level->sorted.next; cur; cur = cur->next, nsorted++)
-		gis_object_draw(GIS_OBJECT(cur->data), opengl);
+		grits_object_draw(GRITS_OBJECT(cur->data), opengl);
 
 	/* TODO: Prune empty levels */
 
-	g_debug("GisOpenGL: _draw_level - drew %d,%d objects",
+	g_debug("GritsOpenGL: _draw_level - drew %d,%d objects",
 			nunsorted, nsorted);
 	return FALSE;
 }
 
-static gboolean on_expose(GisOpenGL *opengl, GdkEventExpose *event, gpointer _)
+static gboolean on_expose(GritsOpenGL *opengl, GdkEventExpose *event, gpointer _)
 {
-	g_debug("GisOpenGL: on_expose - begin");
+	g_debug("GritsOpenGL: on_expose - begin");
 
 	glClear(GL_COLOR_BUFFER_BIT);
 
@@ -208,13 +208,13 @@ static gboolean on_expose(GisOpenGL *opengl, GdkEventExpose *event, gpointer _)
 	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
 	gdk_gl_drawable_swap_buffers(gldrawable);
 
-	g_debug("GisOpenGL: on_expose - end\n");
+	g_debug("GritsOpenGL: on_expose - end\n");
 	return FALSE;
 }
 
-static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
+static gboolean on_key_press(GritsOpenGL *opengl, GdkEventKey *event, gpointer _)
 {
-	g_debug("GisOpenGL: on_key_press - key=%x, state=%x, plus=%x",
+	g_debug("GritsOpenGL: on_key_press - key=%x, state=%x, plus=%x",
 			event->keyval, event->state, GDK_plus);
 
 	guint kv = event->keyval;
@@ -235,17 +235,17 @@ static gboolean on_key_press(GisOpenGL *opengl, GdkEventKey *event, gpointer _)
 
 static gboolean _update_errors_cb(gpointer _opengl)
 {
-	GisOpenGL *opengl = _opengl;
+	GritsOpenGL *opengl = _opengl;
 	g_mutex_lock(opengl->sphere_lock);
 	roam_sphere_update_errors(opengl->sphere);
 	g_mutex_unlock(opengl->sphere_lock);
 	opengl->ue_source = 0;
 	return FALSE;
 }
-static void on_view_changed(GisOpenGL *opengl,
+static void on_view_changed(GritsOpenGL *opengl,
 		gdouble _1, gdouble _2, gdouble _3)
 {
-	g_debug("GisOpenGL: on_view_changed");
+	g_debug("GritsOpenGL: on_view_changed");
 	_set_visuals(opengl);
 #ifndef ROAM_DEBUG
 	if (!opengl->ue_source)
@@ -257,9 +257,9 @@ static void on_view_changed(GisOpenGL *opengl,
 #endif
 }
 
-static gboolean on_idle(GisOpenGL *opengl)
+static gboolean on_idle(GritsOpenGL *opengl)
 {
-	//g_debug("GisOpenGL: on_idle");
+	//g_debug("GritsOpenGL: on_idle");
 	g_mutex_lock(opengl->sphere_lock);
 	if (roam_sphere_split_merge(opengl->sphere))
 		gtk_widget_queue_draw(GTK_WIDGET(opengl));
@@ -267,9 +267,9 @@ static gboolean on_idle(GisOpenGL *opengl)
 	return TRUE;
 }
 
-static void on_realize(GisOpenGL *opengl, gpointer _)
+static void on_realize(GritsOpenGL *opengl, gpointer _)
 {
-	g_debug("GisOpenGL: on_realize");
+	g_debug("GritsOpenGL: on_realize");
 
 	/* Start OpenGL */
 	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
@@ -300,37 +300,37 @@ static void on_realize(GisOpenGL *opengl, gpointer _)
 }
 
 /*********************
- * GisViewer methods *
+ * GritsViewer methods *
  *********************/
 /**
- * gis_opengl_new:
+ * grits_opengl_new:
  * @plugins: the plugins store to use
  * @prefs:   the preferences object to use
  *
  * Create a new OpenGL renderer.
  *
- * Returns: the new #GisOpenGL
+ * Returns: the new #GritsOpenGL
  */
-GisViewer *gis_opengl_new(GisPlugins *plugins, GisPrefs *prefs)
+GritsViewer *grits_opengl_new(GritsPlugins *plugins, GritsPrefs *prefs)
 {
-	g_debug("GisOpenGL: new");
-	GisViewer *opengl = g_object_new(GIS_TYPE_OPENGL, NULL);
-	gis_viewer_setup(opengl, plugins, prefs);
+	g_debug("GritsOpenGL: new");
+	GritsViewer *opengl = g_object_new(GRITS_TYPE_OPENGL, NULL);
+	grits_viewer_setup(opengl, plugins, prefs);
 	return opengl;
 }
 
-static void gis_opengl_center_position(GisViewer *_opengl, gdouble lat, gdouble lon, gdouble elev)
+static void grits_opengl_center_position(GritsViewer *_opengl, gdouble lat, gdouble lon, gdouble elev)
 {
 	glRotatef(lon, 0, 1, 0);
 	glRotatef(-lat, 1, 0, 0);
 	glTranslatef(0, 0, elev2rad(elev));
 }
 
-static void gis_opengl_project(GisViewer *_opengl,
+static void grits_opengl_project(GritsViewer *_opengl,
 		gdouble lat, gdouble lon, gdouble elev,
 		gdouble *px, gdouble *py, gdouble *pz)
 {
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	gdouble x, y, z;
 	lle2xyz(lat, lon, elev, &x, &y, &z);
 	gluProject(x, y, z,
@@ -340,10 +340,10 @@ static void gis_opengl_project(GisViewer *_opengl,
 		px, py, pz);
 }
 
-static void gis_opengl_set_height_func(GisViewer *_opengl, GisBounds *bounds,
+static void grits_opengl_set_height_func(GritsViewer *_opengl, GritsBounds *bounds,
 		RoamHeightFunc height_func, gpointer user_data, gboolean update)
 {
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	/* TODO: get points? */
 	g_mutex_lock(opengl->sphere_lock);
 	GList *triangles = roam_sphere_get_intersect(opengl->sphere, TRUE,
@@ -364,7 +364,7 @@ static void gis_opengl_set_height_func(GisViewer *_opengl, GisBounds *bounds,
 	g_mutex_unlock(opengl->sphere_lock);
 }
 
-static void _gis_opengl_clear_height_func_rec(RoamTriangle *root)
+static void _grits_opengl_clear_height_func_rec(RoamTriangle *root)
 {
 	if (!root)
 		return;
@@ -374,22 +374,22 @@ static void _gis_opengl_clear_height_func_rec(RoamTriangle *root)
 		points[i]->height_data = NULL;
 		roam_point_update_height(points[i]);
 	}
-	_gis_opengl_clear_height_func_rec(root->kids[0]);
-	_gis_opengl_clear_height_func_rec(root->kids[1]);
+	_grits_opengl_clear_height_func_rec(root->kids[0]);
+	_grits_opengl_clear_height_func_rec(root->kids[1]);
 }
 
-static void gis_opengl_clear_height_func(GisViewer *_opengl)
+static void grits_opengl_clear_height_func(GritsViewer *_opengl)
 {
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	for (int i = 0; i < G_N_ELEMENTS(opengl->sphere->roots); i++)
-		_gis_opengl_clear_height_func_rec(opengl->sphere->roots[i]);
+		_grits_opengl_clear_height_func_rec(opengl->sphere->roots[i]);
 }
 
-static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
+static gpointer grits_opengl_add(GritsViewer *_opengl, GritsObject *object,
 		gint key, gboolean sort)
 {
-	g_assert(GIS_IS_OPENGL(_opengl));
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	g_assert(GRITS_IS_OPENGL(_opengl));
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	g_mutex_lock(opengl->objects_lock);
 	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)key);
 	if (!level) {
@@ -409,13 +409,13 @@ static gpointer gis_opengl_add(GisViewer *_opengl, GisObject *object,
 	return link;
 }
 
-static GisObject *gis_opengl_remove(GisViewer *_opengl, gpointer _link)
+static GritsObject *grits_opengl_remove(GritsViewer *_opengl, gpointer _link)
 {
-	g_assert(GIS_IS_OPENGL(_opengl));
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	g_assert(GRITS_IS_OPENGL(_opengl));
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	g_mutex_lock(opengl->objects_lock);
 	GList *link = _link;
-	GisObject *object = link->data;
+	GritsObject *object = link->data;
 	/* Just unlink and free it, link->prev is assured */
 	link->prev->next = link->next;
 	if (link->next)
@@ -445,10 +445,10 @@ static void _objects_free(gpointer value)
 	g_free(level);
 }
 
-G_DEFINE_TYPE(GisOpenGL, gis_opengl, GIS_TYPE_VIEWER);
-static void gis_opengl_init(GisOpenGL *opengl)
+G_DEFINE_TYPE(GritsOpenGL, grits_opengl, GRITS_TYPE_VIEWER);
+static void grits_opengl_init(GritsOpenGL *opengl)
 {
-	g_debug("GisOpenGL: init");
+	g_debug("GritsOpenGL: init");
 	opengl->objects      = g_tree_new_full(_objects_cmp, NULL, NULL, _objects_free);
 	opengl->objects_lock = g_mutex_new();
 	opengl->sphere       = roam_sphere_new(opengl);
@@ -468,10 +468,10 @@ static void gis_opengl_init(GisOpenGL *opengl)
 	/* Finish OpenGL init after it's realized */
 	g_signal_connect(opengl, "realize", G_CALLBACK(on_realize), NULL);
 }
-static void gis_opengl_dispose(GObject *_opengl)
+static void grits_opengl_dispose(GObject *_opengl)
 {
-	g_debug("GisOpenGL: dispose");
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	g_debug("GritsOpenGL: dispose");
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	if (opengl->sm_source[0]) {
 		g_source_remove(opengl->sm_source[0]);
 		opengl->sm_source[0] = 0;
@@ -484,30 +484,30 @@ static void gis_opengl_dispose(GObject *_opengl)
 		g_source_remove(opengl->ue_source);
 		opengl->ue_source = 0;
 	}
-	G_OBJECT_CLASS(gis_opengl_parent_class)->dispose(_opengl);
+	G_OBJECT_CLASS(grits_opengl_parent_class)->dispose(_opengl);
 }
-static void gis_opengl_finalize(GObject *_opengl)
+static void grits_opengl_finalize(GObject *_opengl)
 {
-	g_debug("GisOpenGL: finalize");
-	GisOpenGL *opengl = GIS_OPENGL(_opengl);
+	g_debug("GritsOpenGL: finalize");
+	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	roam_sphere_free(opengl->sphere);
 	g_tree_destroy(opengl->objects);
 	g_mutex_free(opengl->objects_lock);
 	g_mutex_free(opengl->sphere_lock);
-	G_OBJECT_CLASS(gis_opengl_parent_class)->finalize(_opengl);
+	G_OBJECT_CLASS(grits_opengl_parent_class)->finalize(_opengl);
 }
-static void gis_opengl_class_init(GisOpenGLClass *klass)
+static void grits_opengl_class_init(GritsOpenGLClass *klass)
 {
-	g_debug("GisOpenGL: class_init");
+	g_debug("GritsOpenGL: class_init");
 	GObjectClass *gobject_class = G_OBJECT_CLASS(klass);
-	gobject_class->finalize = gis_opengl_finalize;
-	gobject_class->dispose = gis_opengl_dispose;
+	gobject_class->finalize = grits_opengl_finalize;
+	gobject_class->dispose = grits_opengl_dispose;
 
-	GisViewerClass *viewer_class = GIS_VIEWER_CLASS(klass);
-	viewer_class->center_position   = gis_opengl_center_position;
-	viewer_class->project           = gis_opengl_project;
-	viewer_class->clear_height_func = gis_opengl_clear_height_func;
-	viewer_class->set_height_func   = gis_opengl_set_height_func;
-	viewer_class->add               = gis_opengl_add;
-	viewer_class->remove            = gis_opengl_remove;
+	GritsViewerClass *viewer_class = GRITS_VIEWER_CLASS(klass);
+	viewer_class->center_position   = grits_opengl_center_position;
+	viewer_class->project           = grits_opengl_project;
+	viewer_class->clear_height_func = grits_opengl_clear_height_func;
+	viewer_class->set_height_func   = grits_opengl_set_height_func;
+	viewer_class->add               = grits_opengl_add;
+	viewer_class->remove            = grits_opengl_remove;
 }
