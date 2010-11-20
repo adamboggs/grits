@@ -19,20 +19,24 @@
  * SECTION:gis-plugin
  * @short_description: Plugin support
  *
- * A plugin in libgis is a GObject which implements the GisPlugin interface. Additionally, each
- * plugin is compiled to a separate shared object and loaded conditionally at runtime when the
- * plugin is enabled. Each such shared object should define a GisPluginConstructor() function named
- * gis_plugin_NAME_new which will be called when loading the plugin.
+ * A plugin in grits is a GObject which implements the GisPlugin interface.
+ * Additionally, each plugin is compiled to a separate shared object and loaded
+ * conditionally at runtime when the plugin is enabled. Each such shared object
+ * should define a GisPluginConstructor() function named gis_plugin_NAME_new
+ * which will be called when loading the plugin.
  *
- * Almost all libgis functionality is provided by a set of plugins. Each plugin can how however much
- * it likes. The interface between plugins and the rest of libgis is intentionally very thin. Since
- * libgis is the library, plugins must manually do everything. For instance, to draw something in
- * the world, the plugin must add an object to the viewer. Likewise, plugins need to register
- * callbacks on the viewer in order to receive updates, very little happens automagically.
+ * Almost all grits functionality is provided by a set of plugins. Each plugin
+ * can how however much it likes. The interface between plugins and the rest of
+ * grits is intentionally very thin. Since grits is the library, plugins must
+ * manually do everything. For instance, to draw something in the world, the
+ * plugin must add an object to the viewer. Likewise, plugins need to register
+ * callbacks on the viewer in order to receive updates, very little happens
+ * automagically.
  *
- * That being said, one thing that plugins do do automagically, is provide a configuration area.
- * Since the plugin doesn't know what application is is being loaded form, it is better for the
- * application to ask the plugin for it's confirmation area, not the other way around.
+ * That being said, one thing that plugins do do automagically, is provide a
+ * configuration area.  Since the plugin doesn't know what application is is
+ * being loaded form, it is better for the application to ask the plugin for
+ * it's confirmation area, not the other way around.
  */
 
 #include <glib.h>
@@ -104,7 +108,7 @@ const gchar *gis_plugin_get_description(GisPlugin *plugin)
  * gis_plugin_get_config:
  * @plugin: the plugin
  *
- * Each plugin can provide a configuration area. Applications using libgis
+ * Each plugin can provide a configuration area. Applications using grits
  * should display this configuration area to the user so they can modify the
  * behavior of the plugin.
  *

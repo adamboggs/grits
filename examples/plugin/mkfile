@@ -9,6 +9,6 @@ default:V: $LIB
 clean:V:
 	rm -f *.o *.so
 install:V:
-	cp $LIB /usr/lib/gis/
+	cp $LIB /usr/lib/grits0/
 uninstall:V:
-	rm /usr/lib/gis/$LIB
+	rm /usr/lib/grits0/$LIB

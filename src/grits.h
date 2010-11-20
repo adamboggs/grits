@@ -18,18 +18,18 @@
 #ifndef __GIS_H__
 #define __GIS_H__
 
-/* GIS Core */
+/* Grits Core */
 #include <grits-viewer.h>
 #include <grits-opengl.h>
 #include <grits-prefs.h>
 #include <grits-util.h>
 
-/* GIS data */
+/* Grits data */
 #include <data/grits-data.h>
 #include <data/grits-http.h>
 #include <data/grits-wms.h>
 
-/* GIS objects */
+/* Grits objects */
 #include <objects/grits-object.h>
 #include <objects/grits-tile.h>
 #include <objects/grits-marker.h>

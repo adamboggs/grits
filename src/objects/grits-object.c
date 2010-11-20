@@ -19,12 +19,12 @@
  * SECTION:gis-object
  * @short_description: Base class for drawing operations
  *
- * Objects in libgis are things which can be added to the viewer and will be
+ * Objects in grits are things which can be added to the viewer and will be
  * displayed to the user. Each object has information such as it's location and
  * level of detail which are used by the viewer to determine which objects
  * should be drawn.
  *
- * Each #GisObject is also a #GObject, but not every GObject in libgis is a
+ * Each #GisObject is also a #GObject, but not every GObject in grits is a
  * GisObject. The "Object" part of the name is just coincidence.
  */
 

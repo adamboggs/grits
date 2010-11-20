@@ -3,9 +3,9 @@ exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
 
-Name: libgis
-Description: GIS Library for Gtk+ applications
+Name: Grits
+Description: Grits is a Virtual Globe library
 Version: @VERSION@
 Requires: gmodule-2.0 gtk+-2.0 gtkglext-1.0 libsoup-2.4
-Libs: -L${libdir} -lgis
-Cflags: -I${includedir}/gis
+Libs: -L${libdir} -lgrits
+Cflags: -I${includedir}/grits

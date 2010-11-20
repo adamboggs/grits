@@ -19,7 +19,7 @@
  * SECTION:gis-opengl
  * @short_description: OpenGL based virtual globe
  *
- * #GisOpenGL is the core rendering engine used by libgis. Theoretically other
+ * #GisOpenGL is the core rendering engine used by grits. Theoretically other
  * renderers could be writte, but they have not been. GisOpenGL uses the ROAM
  * algorithm for updating surface mesh the planet. The only thing GisOpenGL can
  * actually render on it's own is a wireframe of a sphere.

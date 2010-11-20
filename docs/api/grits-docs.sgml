@@ -3,7 +3,7 @@
 "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
 <book id="index" xmlns:xi="http://www.w3.org/2001/XInclude">
 	<bookinfo>
-		<title>libgis Reference Manual</title>
+		<title>Grits Reference Manual</title>
 	</bookinfo>
 
 	<chapter>

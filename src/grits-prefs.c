@@ -19,10 +19,10 @@
  * SECTION:gis-prefs
  * @short_description: Persistent preference handing
  *
- * #GisPrefs is used to store and access preferences in libgis. It is mostly a
+ * #GisPrefs is used to store and access preferences in grits. It is mostly a
  * wrapper around a #GKeyFile. Preferences can be stored for the application
- * using libgis, but may also be stored by libgis itself. An example of this are
- * whether libgis is in online or offline mode. Many #GisPlugin<!-- -->s also
+ * using grits, but may also be stored by grits itself. An example of this are
+ * whether grits is in online or offline mode. Many #GisPlugin<!-- -->s also
  * store preferences.
  *
  * There are two variants of preference functions. The normal variant takes
