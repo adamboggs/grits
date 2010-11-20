@@ -20,8 +20,8 @@
 
 #include <glib.h>
 
-#include "data/gis-http.h"
-#include "objects/gis-tile.h"
+#include "data/grits-http.h"
+#include "objects/grits-tile.h"
 
 typedef struct _GisWms {
 	GisHttp *http;

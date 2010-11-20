@@ -19,23 +19,23 @@
 #define __GIS_H__
 
 /* GIS Core */
-#include <gis-viewer.h>
-#include <gis-opengl.h>
-#include <gis-prefs.h>
-#include <gis-util.h>
+#include <grits-viewer.h>
+#include <grits-opengl.h>
+#include <grits-prefs.h>
+#include <grits-util.h>
 
 /* GIS data */
-#include <data/gis-data.h>
-#include <data/gis-http.h>
-#include <data/gis-wms.h>
+#include <data/grits-data.h>
+#include <data/grits-http.h>
+#include <data/grits-wms.h>
 
 /* GIS objects */
-#include <objects/gis-object.h>
-#include <objects/gis-tile.h>
-#include <objects/gis-marker.h>
-#include <objects/gis-callback.h>
+#include <objects/grits-object.h>
+#include <objects/grits-tile.h>
+#include <objects/grits-marker.h>
+#include <objects/grits-callback.h>
 
 /* Plugins */
-#include <gis-plugin.h>
+#include <grits-plugin.h>
 
 #endif

@@ -31,7 +31,7 @@
  * seems like too much work. Merging GisViewer and GisOpenGL would also work,
  * but I like the separate that that's provided by having two.
  */
-#include "gis-opengl.h"
+#include "grits-opengl.h"
 
 #ifndef __GIS_VIEWER_H__
 #define __GIS_VIEWER_H__
@@ -96,9 +96,9 @@ typedef struct _GisViewerClass GisViewerClass;
  */
 typedef gdouble (*GisHeightFunc)(gdouble lat, gdouble lon, gpointer user_data);
 
-#include "gis-plugin.h"
-#include "gis-prefs.h"
-#include "objects/gis-object.h"
+#include "grits-plugin.h"
+#include "grits-prefs.h"
+#include "objects/grits-object.h"
 
 struct _GisViewer {
 	GtkDrawingArea parent_instance;

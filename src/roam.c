@@ -35,7 +35,7 @@
 #include <GL/glu.h>
 
 #include "gpqueue.h"
-#include "gis-util.h"
+#include "grits-util.h"
 #include "roam.h"
 
 /*

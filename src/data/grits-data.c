@@ -28,7 +28,7 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include "gis-data.h"
+#include "grits-data.h"
 
 /**
  * fopen_p:

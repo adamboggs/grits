@@ -20,7 +20,7 @@
 #include <gtk/gtkgl.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "gis.h"
+#include "grits.h"
 
 GisPrefs   *prefs   = NULL;
 GisPlugins *plugins = NULL;

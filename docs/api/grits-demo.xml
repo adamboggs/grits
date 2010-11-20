@@ -37,7 +37,7 @@
 <refsect1><title>Files</title>
 	<variablelist>
 		<varlistentry>
-			<term>$HOME/.config/libgis/config.ini</term>
+			<term>$HOME/.config/grits/config.ini</term>
 			<listitem><para>
 				Configuration file used to store loaded
 				plugins and a few other settings.

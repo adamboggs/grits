@@ -19,7 +19,7 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "gis.h"
+#include "grits.h"
 
 
 static GisPrefs   *prefs;

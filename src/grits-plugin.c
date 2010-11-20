@@ -40,7 +40,7 @@
 
 #include <string.h>
 
-#include "gis-plugin.h"
+#include "grits-plugin.h"
 
 /********************
  * Plugin interface *

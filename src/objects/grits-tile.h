@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "gis-object.h"
+#include "grits-object.h"
 
 #define GIS_TYPE_TILE            (gis_tile_get_type())
 #define GIS_TILE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),   GIS_TYPE_TILE, GisTile))

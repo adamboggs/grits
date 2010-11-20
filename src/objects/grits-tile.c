@@ -34,7 +34,7 @@
 
 #include <config.h>
 #include <GL/gl.h>
-#include "gis-tile.h"
+#include "grits-tile.h"
 
 gchar *gis_tile_path_table[2][2] = {
 	{"00.", "01."},

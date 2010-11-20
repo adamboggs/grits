@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "gis-util.h"
+#include "grits-util.h"
 
 /* GisObject */
 #define GIS_TYPE_OBJECT            (gis_object_get_type())
@@ -40,7 +40,7 @@ struct _GisObject {
 	gdouble  lod;
 };
 
-#include "gis-opengl.h"
+#include "grits-opengl.h"
 struct _GisObjectClass {
 	GObjectClass parent_class;
 

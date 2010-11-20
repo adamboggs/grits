@@ -22,7 +22,7 @@
  * #GisHttp is a small wrapper around libsoup to provide data access using the
  * Hyper Text Transfer Protocol. Each #GisHttp should be associated with a
  * particular server or dataset, all the files downloaded for this dataset will
- * be cached together in $HOME.cache/libgis/
+ * be cached together in $HOME/.cache/grits/
  */
 
 #include <config.h>
@@ -30,7 +30,7 @@
 #include <glib/gstdio.h>
 #include <libsoup/soup.h>
 
-#include "gis-http.h"
+#include "grits-http.h"
 
 gchar *_get_cache_path(GisHttp *http, const gchar *local)
 {

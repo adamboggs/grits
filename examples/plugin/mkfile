@@ -1,5 +1,5 @@
-CFLAGS=`{pkg-config --cflags libgis}
-LDFLAGS=`{pkg-config --libs libgis}
+CFLAGS=`{pkg-config --cflags grits}
+LDFLAGS=`{pkg-config --libs grits}
 LIB=teapot.so
 default:V: $LIB
 %.so: %.o

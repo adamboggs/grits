@@ -4,17 +4,17 @@ if NOTWIN32
 AM_CFLAGS += -fPIC
 endif
 
-gis_data_includedir = $(includedir)/gis/data
-gis_data_include_HEADERS = \
-	gis-data.h \
-	gis-http.h \
-	gis-wms.h
+grits_data_includedir = $(includedir)/grits/data
+grits_data_include_HEADERS = \
+	grits-data.h \
+	grits-http.h \
+	grits-wms.h
 
-noinst_LTLIBRARIES = libgis-data.la
-libgis_data_la_SOURCES = \
-	gis-data.c gis-data.h \
-	gis-http.c gis-http.h \
-	gis-wms.c  gis-wms.h
-libgis_data_la_LDFLAGS = -static
+noinst_LTLIBRARIES = libgrits-data.la
+libgrits_data_la_SOURCES = \
+	grits-data.c grits-data.h \
+	grits-http.c grits-http.h \
+	grits-wms.c  grits-wms.h
+libgrits_data_la_LDFLAGS = -static
 
 MAINTAINERCLEANFILES = Makefile.in

@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <libsoup/soup.h>
 
-#include "gis-data.h"
+#include "grits-data.h"
 
 typedef struct _GisHttp {
 	SoupSession *soup;

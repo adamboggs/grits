@@ -29,7 +29,7 @@
 #include <glib/gstdio.h>
 #include <GL/gl.h>
 
-#include <gis.h>
+#include <grits.h>
 
 #include "elev.h"
 

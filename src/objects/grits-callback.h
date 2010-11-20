@@ -20,7 +20,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include "gis-object.h"
+#include "grits-object.h"
 
 /* GisCallback */
 #define GIS_TYPE_CALLBACK            (gis_callback_get_type())

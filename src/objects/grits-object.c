@@ -32,7 +32,7 @@
 #include <math.h>
 #include <GL/gl.h>
 
-#include "gis-object.h"
+#include "grits-object.h"
 
 
 /*************

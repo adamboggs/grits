@@ -30,10 +30,10 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-#include "gis-marshal.h"
-#include "gis-viewer.h"
+#include "grits-marshal.h"
+#include "grits-viewer.h"
 
-#include "gis-util.h"
+#include "grits-util.h"
 
 
 /* Constants */
@@ -630,7 +630,7 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 			0,
 			NULL,
 			NULL,
-			gis_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE,
+			grits_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE,
 			G_TYPE_NONE,
 			3,
 			G_TYPE_DOUBLE,
@@ -654,7 +654,7 @@ static void gis_viewer_class_init(GisViewerClass *klass)
 			0,
 			NULL,
 			NULL,
-			gis_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE,
+			grits_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE,
 			G_TYPE_NONE,
 			3,
 			G_TYPE_DOUBLE,

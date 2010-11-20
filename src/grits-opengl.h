@@ -31,7 +31,7 @@
 typedef struct _GisOpenGL      GisOpenGL;
 typedef struct _GisOpenGLClass GisOpenGLClass;
 
-#include "gis-viewer.h"
+#include "grits-viewer.h"
 #include "roam.h"
 
 struct _GisOpenGL {

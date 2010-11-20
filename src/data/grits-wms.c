@@ -73,8 +73,8 @@
 #include <stdio.h>
 #include <glib.h>
 
-#include "gis-wms.h"
-#include "gis-http.h"
+#include "grits-wms.h"
+#include "grits-http.h"
 
 static gchar *_make_uri(GisWms *wms, GisTile *tile)
 {

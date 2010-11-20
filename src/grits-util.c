@@ -71,7 +71,7 @@
 #include <glib.h>
 #include <math.h>
 
-#include "gis-util.h"
+#include "grits-util.h"
 
 /************
  * GisPoint *

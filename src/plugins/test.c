@@ -27,7 +27,7 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include <gis.h>
+#include <grits.h>
 
 #include "test.h"
 

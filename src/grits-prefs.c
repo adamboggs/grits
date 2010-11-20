@@ -33,8 +33,8 @@
 #include <config.h>
 
 #include <glib.h>
-#include "gis-marshal.h"
-#include "gis-prefs.h"
+#include "grits-marshal.h"
+#include "grits-prefs.h"
 
 enum {
 	SIG_PREF_CHANGED,
@@ -183,7 +183,7 @@ static void gis_prefs_class_init(GisPrefsClass *klass)
 			0,
 			NULL,
 			NULL,
-			gis_cclosure_marshal_VOID__STRING_UINT_POINTER,
+			grits_cclosure_marshal_VOID__STRING_UINT_POINTER,
 			G_TYPE_NONE,
 			3,
 			G_TYPE_STRING,

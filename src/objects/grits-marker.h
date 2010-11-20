@@ -21,7 +21,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <cairo.h>
-#include "gis-object.h"
+#include "grits-object.h"
 
 /* GisMarker */
 #define GIS_TYPE_MARKER            (gis_marker_get_type())

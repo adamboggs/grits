@@ -32,7 +32,7 @@
 
 #include <config.h>
 #include <GL/gl.h>
-#include "gis-marker.h"
+#include "grits-marker.h"
 
 /**
  * gis_marker_new:

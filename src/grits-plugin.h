@@ -58,8 +58,8 @@ GtkWidget *gis_plugin_get_config(GisPlugin *plugin);
  ***************/
 typedef struct _GisPlugins GisPlugins;
 
-#include "gis-viewer.h"
-#include "gis-prefs.h"
+#include "grits-viewer.h"
+#include "grits-prefs.h"
 
 /**
  * GisPluginConstructor:

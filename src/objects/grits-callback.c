@@ -28,7 +28,7 @@
  */
 
 #include <config.h>
-#include "gis-callback.h"
+#include "grits-callback.h"
 
 /**
  * gis_callback_new:

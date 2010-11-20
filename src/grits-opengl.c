@@ -36,8 +36,8 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-#include "gis-opengl.h"
-#include "gis-util.h"
+#include "grits-opengl.h"
+#include "grits-util.h"
 #include "roam.h"
 
 // #define ROAM_DEBUG

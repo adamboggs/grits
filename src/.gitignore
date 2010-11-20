@@ -8,8 +8,8 @@
 *.so
 .deps
 .libs
-gis-demo
-gis-marshal.[ch]
-gis-test
+grits-demo
+grits-marshal.[ch]
+grits-test
 gmon.*
 tile-test
