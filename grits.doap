@@ -4,9 +4,9 @@
          xmlns:gnome="http://api.gnome.org/doap-extensions#"
          xmlns="http://usefulinc.com/ns/doap#">
 
-  <name xml:lang="en">libgis</name>
+  <name xml:lang="en">Grits</name>
   <shortdesc xml:lang="en">Virtual Globe library</shortdesc>
-  <homepage rdf:resource="http://lug.rose-hulman.edu/code/projects/libgis" />
+  <homepage rdf:resource="http://lug.rose-hulman.edu/code/projects/grits" />
 
   <maintainer>
     <foaf:Person>
