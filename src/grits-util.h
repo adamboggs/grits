@@ -202,6 +202,14 @@ gdouble ll2m(gdouble lon_dist, gdouble lat);
 
 gdouble distd(gdouble *a, gdouble *b);
 
+void crossd(gdouble *a, gdouble *b, gdouble *out);
+
+void crossd3(gdouble *a, gdouble *b, gdouble *c, gdouble *out);
+
+gdouble lengthd(gdouble *a);
+
+void normd(gdouble *a);
+
 gdouble lon_avg(gdouble a, gdouble b);
 
 #endif

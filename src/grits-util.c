@@ -235,3 +235,71 @@ gdouble lon_avg(gdouble a, gdouble b)
 	}
 	return avg;
 }
+
+/**
+ * crossd3:
+ * @a:   the left   point
+ * @b:   the center point
+ * @c:   the right  point
+ * @out: the cross product
+ *
+ * Calculate the cross product of three points
+ */
+void crossd3(gdouble *a, gdouble *b, gdouble *c, gdouble *out)
+{
+	double ba[3], bc[3];
+
+	ba[0] = a[0] - b[0];
+	ba[1] = a[1] - b[1];
+	ba[2] = a[2] - b[2];
+
+	bc[0] = c[0] - b[0];
+	bc[1] = c[1] - b[1];
+	bc[2] = c[2] - b[2];
+
+	crossd(ba, bc, out);
+}
+
+/**
+ * crossd:
+ * @a: the first vector
+ * @b: the second vector
+ * @c: the cross product
+ *
+ * Calculate the cross product of two vectors
+ */
+void crossd(gdouble *a, gdouble *b, gdouble *out)
+{
+	out[0] = a[1] * b[2] - a[2] * b[1];
+	out[1] = a[2] * b[0] - a[0] * b[2];
+	out[2] = a[0] * b[1] - a[1] * b[0];
+}
+
+/**
+ * lengthd:
+ * @a: the vector
+ *
+ * Calculate the length (magnitude) of a vector.
+ *
+ * Returns: the length
+ */
+gdouble lengthd(gdouble *a)
+{
+	return sqrt(a[0] * a[0] +
+	            a[1] * a[1] +
+	            a[2] * a[2]);
+}
+
+/**
+ * normd:
+ * @a: the first longitude
+ *
+ * Normalize a vector to a mangitude of 1
+ */
+void normd(gdouble *a)
+{
+	gdouble total = lengthd(a);
+	a[0] = a[0] / total;
+	a[1] = a[1] / total;
+	a[2] = a[2] / total;
+}
