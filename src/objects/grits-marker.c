@@ -152,6 +152,7 @@ static void grits_marker_finalize(GObject *_marker)
 	cairo_surface_destroy(surface);
 	cairo_destroy(marker->cairo);
 	g_free(marker->label);
+	glDeleteTextures(1, &marker->tex);
 }
 
 static void grits_marker_class_init(GritsMarkerClass *klass)
