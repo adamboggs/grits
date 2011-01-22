@@ -127,8 +127,9 @@ GtkWidget *grits_plugin_get_config(GritsPlugin *plugin)
  * Plugins API *
  ***************/
 typedef struct {
-	gchar *name;
+	gchar       *name;
 	GritsPlugin *plugin;
+	GModule     *module;
 } GritsPluginStore;
 
 /**
@@ -151,6 +152,18 @@ GritsPlugins *grits_plugins_new(const gchar *dir, GritsPrefs *prefs)
 	return plugins;
 }
 
+static void grits_plugins_free_store(GritsPluginStore *store)
+{
+	g_object_unref(store->plugin);
+	/* Flush any possible callbacks before
+	 * unloading the plugin code */
+	while (gtk_events_pending())
+		  gtk_main_iteration();
+	g_module_close(store->module);
+	g_free(store->name);
+	g_free(store);
+}
+
 /**
  * grits_plugins_free:
  * @plugins: the #GritsPlugins to free
@@ -165,9 +178,7 @@ void grits_plugins_free(GritsPlugins *plugins)
 		g_debug("GritsPlugin: freeing %s refs=%d->%d", store->name,
 			G_OBJECT(store->plugin)->ref_count,
 			G_OBJECT(store->plugin)->ref_count-1);
-		g_object_unref(store->plugin);
-		g_free(store->name);
-		g_free(store);
+		grits_plugins_free_store(store);
 	}
 	g_list_free(plugins->plugins);
 	if (plugins->dir)
@@ -270,6 +281,7 @@ GritsPlugin *grits_plugins_load(GritsPlugins *plugins, const char *name,
 	GritsPluginStore *store = g_new0(GritsPluginStore, 1);
 	store->name = g_strdup(name);
 	store->plugin = constructor(viewer, prefs);
+	store->module = module;
 	plugins->plugins = g_list_prepend(plugins->plugins, store);
 	return store->plugin;
 }
@@ -337,9 +349,7 @@ gboolean grits_plugins_unload(GritsPlugins *plugins, const char *name)
 	for (GList *cur = plugins->plugins; cur; cur = cur->next) {
 		GritsPluginStore *store = cur->data;
 		if (g_str_equal(store->name, name)) {
-			g_object_unref(store->plugin);
-			g_free(store->name);
-			g_free(store);
+			grits_plugins_free_store(store);
 			plugins->plugins = g_list_delete_link(plugins->plugins, cur);
 		}
 	}
