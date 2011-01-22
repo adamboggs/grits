@@ -56,6 +56,14 @@ GType grits_object_get_type(void);
 void grits_object_draw(GritsObject *object, GritsOpenGL *opengl);
 
 /**
+ * grits_object_queue_draw:
+ * @object: The #GritsObject that needs drawing
+ * 
+ * Cause the widget to be redrawn on the screen at some later point
+ */
+void grits_object_queue_draw(GritsObject *object);
+
+/**
  * grits_object_center:
  * @object: The #GritsObject to get the center of
  * 

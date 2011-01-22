@@ -92,6 +92,12 @@ void grits_object_draw(GritsObject *object, GritsOpenGL *opengl)
 	g_mutex_unlock(opengl->sphere_lock);
 }
 
+void grits_object_queue_draw(GritsObject *object)
+{
+	if (object->viewer)
+		gtk_widget_queue_draw(GTK_WIDGET(object->viewer));
+}
+
 /* GObject stuff */
 G_DEFINE_ABSTRACT_TYPE(GritsObject, grits_object, G_TYPE_OBJECT);
 static void grits_object_init(GritsObject *object)
