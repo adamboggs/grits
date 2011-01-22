@@ -73,9 +73,9 @@
 
 #include "grits-util.h"
 
-/************
+/**************
  * GritsPoint *
- ************/
+ **************/
 /**
  * grits_point_set_lle:
  * @point: the point to modify

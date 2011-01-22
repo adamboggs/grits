@@ -46,7 +46,7 @@ static gboolean on_delete(GtkWidget *widget, GdkEvent *event, gpointer data)
 	return grits_shutdown(widget);
 }
 static gboolean on_key_press(GtkWidget *widget, GdkEventKey *event,
-		gpointer window)
+		gpointer _)
 {
 	if (event->keyval == GDK_q)
 		return grits_shutdown(widget);
@@ -88,6 +88,7 @@ int main(int argc, char **argv)
 
 	/* Configurable stuff */
 	grits_viewer_set_offline(viewer, TRUE);
+	(void)load_plugin;
 	load_plugin(plugins, "elev",  viewer, prefs, GTK_NOTEBOOK(config));
 	load_plugin(plugins, "env",   viewer, prefs, GTK_NOTEBOOK(config));
 	//load_plugin(plugins, "map",   viewer, prefs, GTK_NOTEBOOK(config));
