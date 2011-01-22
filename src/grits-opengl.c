@@ -67,7 +67,7 @@ static void _set_visuals(GritsOpenGL *opengl)
 	float light_diffuse[]  = {2.0f, 2.0f, 2.0f, 1.0f};
 #else
 	float light_ambient[]  = {0.2f, 0.2f, 0.2f, 1.0f};
-	float light_diffuse[]  = {5.0f, 5.0f, 5.0f, 1.0f};
+	float light_diffuse[]  = {0.8f, 0.8f, 0.8f, 1.0f};
 #endif
 	float light_position[] = {-13*EARTH_R, 1*EARTH_R, 3*EARTH_R, 1.0f};
 	glLightfv(GL_LIGHT0, GL_AMBIENT,  light_ambient);
@@ -76,9 +76,9 @@ static void _set_visuals(GritsOpenGL *opengl)
 	glEnable(GL_LIGHT0);
 	glEnable(GL_LIGHTING);
 
-	float material_ambient[]  = {0.2, 0.2, 0.2, 1.0};
-	float material_diffuse[]  = {0.8, 0.8, 0.8, 1.0};
-	float material_specular[] = {0.1, 0.1, 0.1, 1.0};
+	float material_ambient[]  = {1.0, 1.0, 1.0, 1.0};
+	float material_diffuse[]  = {1.0, 1.0, 1.0, 1.0};
+	float material_specular[] = {0.0, 0.0, 0.0, 1.0};
 	float material_emission[] = {0.0, 0.0, 0.0, 1.0};
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT,  material_ambient);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE,  material_diffuse);
