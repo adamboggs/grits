@@ -57,7 +57,8 @@ static void load_plugin(GritsPlugins *plugins, gchar *name,
 {
 	GritsPlugin *plugin = grits_plugins_load(plugins, name, viewer, prefs);
 	GtkWidget *config = grits_plugin_get_config(plugin);
-	gtk_notebook_append_page(notebook, config, gtk_label_new(name));
+	if (config)
+		gtk_notebook_append_page(notebook, config, gtk_label_new(name));
 }
 
 /***********
@@ -89,12 +90,12 @@ int main(int argc, char **argv)
 	/* Configurable stuff */
 	grits_viewer_set_offline(viewer, TRUE);
 	(void)load_plugin;
-	load_plugin(plugins, "elev",  viewer, prefs, GTK_NOTEBOOK(config));
 	load_plugin(plugins, "env",   viewer, prefs, GTK_NOTEBOOK(config));
-	//load_plugin(plugins, "map",   viewer, prefs, GTK_NOTEBOOK(config));
+	load_plugin(plugins, "elev",  viewer, prefs, GTK_NOTEBOOK(config));
 	load_plugin(plugins, "sat",   viewer, prefs, GTK_NOTEBOOK(config));
-	load_plugin(plugins, "test",  viewer, prefs, GTK_NOTEBOOK(config));
+	//load_plugin(plugins, "map",   viewer, prefs, GTK_NOTEBOOK(config));
 	//load_plugin(plugins, "radar", viewer, prefs, GTK_NOTEBOOK(config));
+	load_plugin(plugins, "test",  viewer, prefs, GTK_NOTEBOOK(config));
 
 	gtk_widget_show_all(config);
 	gtk_main();
