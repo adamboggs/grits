@@ -57,12 +57,19 @@ static void proxy_draw(GritsObject *_cb, GritsOpenGL *opengl)
 
 /* GritsCallback */
 G_DEFINE_TYPE(GritsCallback, grits_callback, GRITS_TYPE_OBJECT);
+static void grits_callback_finalize(GObject *cb)
+{
+	g_debug("GritsCallback: finalize");
+}
 static void grits_callback_init(GritsCallback *cb)
 {
+	g_debug("GritsCallback: init");
 }
 
 static void grits_callback_class_init(GritsCallbackClass *klass)
 {
-	GritsObjectClass *object_class = GRITS_OBJECT_CLASS(klass);
-	object_class->draw = proxy_draw;
+	GritsObjectClass *grits_class  = GRITS_OBJECT_CLASS(klass);
+	GObjectClass     *object_class = G_OBJECT_CLASS(klass);
+	grits_class->draw      = proxy_draw;
+	object_class->finalize = grits_callback_finalize;
 }
