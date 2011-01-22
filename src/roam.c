@@ -206,27 +206,10 @@ RoamTriangle *roam_triangle_new(RoamPoint *l, RoamPoint *m, RoamPoint *r,
 	//		triangle->split->lat, l->lat);
 
 	/* Update normal */
-	double pa[3];
-	double pb[3];
-	pa[0] = triangle->p.l->x - triangle->p.m->x;
-	pa[1] = triangle->p.l->y - triangle->p.m->y;
-	pa[2] = triangle->p.l->z - triangle->p.m->z;
-
-	pb[0] = triangle->p.r->x - triangle->p.m->x;
-	pb[1] = triangle->p.r->y - triangle->p.m->y;
-	pb[2] = triangle->p.r->z - triangle->p.m->z;
-
-	triangle->norm[0] = pa[1] * pb[2] - pa[2] * pb[1];
-	triangle->norm[1] = pa[2] * pb[0] - pa[0] * pb[2];
-	triangle->norm[2] = pa[0] * pb[1] - pa[1] * pb[0];
-
-	double total = sqrt(triangle->norm[0] * triangle->norm[0] +
-	                    triangle->norm[1] * triangle->norm[1] +
-	                    triangle->norm[2] * triangle->norm[2]);
-
-	triangle->norm[0] /= total;
-	triangle->norm[1] /= total;
-	triangle->norm[2] /= total;
+	crossd3((gdouble*)triangle->p.l,
+	        (gdouble*)triangle->p.m,
+	        (gdouble*)triangle->p.r, triangle->norm);
+	normd(triangle->norm);
 
 	/* Store bounding box, for get_intersect */
 	RoamPoint *p[] = {l,m,r};
