@@ -33,14 +33,16 @@
 typedef struct _GritsObject      GritsObject;
 typedef struct _GritsObjectClass GritsObjectClass;
 
+#include "grits-opengl.h"
 struct _GritsObject {
-	GObject    parent_instance;
-	GritsPoint center;
-	gboolean   hidden;
-	gdouble    lod;
+	GObject      parent_instance;
+	GritsViewer *viewer; // The viewer the object was added to
+	gpointer     ref;    // Reference for objects that have been added
+	GritsPoint   center; // Center of the object
+	gboolean     hidden; // If true, the object will not be drawn
+	gdouble      lod;    // Level of detail, used to hide small objects
 };
 
-#include "grits-opengl.h"
 struct _GritsObjectClass {
 	GObjectClass parent_class;
 
