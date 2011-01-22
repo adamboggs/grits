@@ -201,6 +201,7 @@ static gboolean on_expose(GritsOpenGL *opengl, GdkEventExpose *event, gpointer _
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		roam_sphere_draw(opengl->sphere);
+		g_tree_foreach(opengl->objects, _draw_level, opengl);
 	}
 	g_mutex_unlock(opengl->objects_lock);
 #endif
