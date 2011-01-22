@@ -57,38 +57,67 @@ void grits_object_draw(GritsObject *object, GritsOpenGL *opengl)
 	if (object->hidden)
 		return;
 
-	/* Skip out of range objects */
-	if (object->lod > 0) {
+	/* Support GritsTester */
+	if (!GRITS_IS_OPENGL(opengl)) {
+		g_debug("GritsObject: draw - drawing raw object");
+		klass->draw(object, opengl);
+		return;
+	}
+
+	/* Calculae distance for LOD and horizon tests */
+	GritsPoint *center = &object->center;
+	if ((!(object->skip & GRITS_SKIP_LOD) ||
+	     !(object->skip & GRITS_SKIP_HORIZON)) &&
+	    (center->elev != -EARTH_R)) {
 		/* LOD test */
 		gdouble eye[3], obj[3];
-		grits_viewer_get_location(GRITS_VIEWER(opengl), &eye[0], &eye[1], &eye[2]);
+		grits_viewer_get_location(GRITS_VIEWER(opengl),
+				&eye[0], &eye[1], &eye[2]);
 		gdouble elev = eye[2];
-		lle2xyz(eye[0], eye[1], eye[2], &eye[0], &eye[1], &eye[2]);
-		lle2xyz(object->center.lat, object->center.lon, object->center.elev,
-			&obj[0], &obj[1], &obj[2]);
+		lle2xyz(eye[0], eye[1], eye[2],
+				&eye[0], &eye[1], &eye[2]);
+		lle2xyz(center->lat, center->lon, center->elev,
+				&obj[0], &obj[1], &obj[2]);
 		gdouble dist = distd(obj, eye);
-		if (object->lod < dist)
-			return;
 
-		/* Horizon testing */
-		gdouble c = EARTH_R+elev;
-		gdouble a = EARTH_R;
-		gdouble horizon = sqrt(c*c - a*a);
-		if (dist > horizon)
-			return;
+		/* Level of detail test */
+		if (!(object->skip & GRITS_SKIP_LOD)
+				&& object->lod > 0) {
+			if (object->lod < dist)
+				return;
+		}
+
+		/* Horizon test */
+		if (!(object->skip & GRITS_SKIP_HORIZON)) {
+			gdouble c = EARTH_R+elev;
+			gdouble a = EARTH_R;
+			gdouble horizon = sqrt(c*c - a*a);
+			if (dist > horizon)
+				return;
+		}
 	}
 
 	/* Save state, draw, restore state */
 	g_mutex_lock(opengl->sphere_lock);
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	glMatrixMode(GL_PROJECTION); glPushMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+	if (!(object->skip & GRITS_SKIP_STATE)) {
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glMatrixMode(GL_PROJECTION); glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);  glPushMatrix();
+	}
+
+	if (!(object->skip & GRITS_SKIP_CENTER))
+		grits_viewer_center_position(GRITS_VIEWER(opengl),
+				object->center.lat,
+				object->center.lon,
+				object->center.elev);
 
 	klass->draw(object, opengl);
 
-	glPopAttrib();
-	glMatrixMode(GL_PROJECTION); glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+	if (!(object->skip & GRITS_SKIP_STATE)) {
+		glPopAttrib();
+		glMatrixMode(GL_PROJECTION); glPopMatrix();
+		glMatrixMode(GL_MODELVIEW);  glPopMatrix();
+	}
 	g_mutex_unlock(opengl->sphere_lock);
 }
 
@@ -102,6 +131,9 @@ void grits_object_queue_draw(GritsObject *object)
 G_DEFINE_ABSTRACT_TYPE(GritsObject, grits_object, G_TYPE_OBJECT);
 static void grits_object_init(GritsObject *object)
 {
+	object->center.lat  =  0;
+	object->center.lon  =  0;
+	object->center.elev = -EARTH_R;
 }
 
 static void grits_object_class_init(GritsObjectClass *klass)

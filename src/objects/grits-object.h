@@ -30,6 +30,12 @@
 #define GRITS_IS_OBJECT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE   ((klass), GRITS_TYPE_OBJECT))
 #define GRITS_OBJECT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),   GRITS_TYPE_OBJECT, GritsObjectClass))
 
+/* Bitmask of things to skip while drawing the object */
+#define GRITS_SKIP_LOD     (1<<0)
+#define GRITS_SKIP_HORIZON (1<<1)
+#define GRITS_SKIP_CENTER  (1<<2)
+#define GRITS_SKIP_STATE   (1<<3)
+
 typedef struct _GritsObject      GritsObject;
 typedef struct _GritsObjectClass GritsObjectClass;
 
@@ -41,6 +47,7 @@ struct _GritsObject {
 	GritsPoint   center; // Center of the object
 	gboolean     hidden; // If true, the object will not be drawn
 	gdouble      lod;    // Level of detail, used to hide small objects
+	guint32      skip;   // Bit mask of safe operations
 };
 
 struct _GritsObjectClass {
