@@ -1,0 +1,25 @@
+MKSHELL=/usr/lib/plan9/bin/rc
+
+PKG_CONFIG_PATH=../../src/
+LD_LIBRARY_PATH=../../src/.libs/
+PKGS=grits
+
+CFLAGS=-Wall -Wno-unused -Werror -g -p -pg --std=gnu99 -I../
+PROGS=volume
+default:V: volume-run
+
+volume_libs=-lrsl
+volume: volume.o ../tester.o
+
+memcheck: all
+	G_SLICE=always-malloc                               \
+	G_DEBUG=gc-friendly,resident-modules                \
+	valgrind '--track-origins=yes'                      \
+	         '--leak-check=full'                        \
+	         '--leak-resolution=high'                   \
+	         '--num-callers=50'                         \
+	         '--suppressions=../../src/gtk.suppression' \
+	         ./volume                                   \
+	>[2] valgrind.out
+
+<$HOME/lib/mkcommon
