@@ -11,6 +11,7 @@ grits_objects_include_HEADERS = \
 	grits-callback.h \
 	grits-tile.h     \
 	grits-volume.h   \
+	grits-poly.h     \
 	marching.h
 
 noinst_LTLIBRARIES = libgrits-objects.la
@@ -20,6 +21,7 @@ libgrits_objects_la_SOURCES = \
 	grits-callback.c grits-callback.h \
 	grits-tile.c     grits-tile.h     \
 	grits-volume.c   grits-volume.h   \
+	grits-poly.c     grits-poly.h     \
 	marching.c       marching.h
 libgrits_objects_la_LDFLAGS = -static
 
