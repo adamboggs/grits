@@ -34,6 +34,7 @@
 #include <objects/grits-tile.h>
 #include <objects/grits-marker.h>
 #include <objects/grits-callback.h>
+#include <objects/grits-volume.h>
 
 /* Plugins */
 #include <grits-plugin.h>

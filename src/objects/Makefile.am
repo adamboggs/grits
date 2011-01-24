@@ -9,14 +9,18 @@ grits_objects_include_HEADERS = \
 	grits-object.h   \
 	grits-marker.h   \
 	grits-callback.h \
-	grits-tile.h
+	grits-tile.h     \
+	grits-volume.h   \
+	marching.h
 
 noinst_LTLIBRARIES = libgrits-objects.la
 libgrits_objects_la_SOURCES = \
 	grits-object.c   grits-object.h   \
 	grits-marker.c   grits-marker.h   \
 	grits-callback.c grits-callback.h \
-	grits-tile.c     grits-tile.h
+	grits-tile.c     grits-tile.h     \
+	grits-volume.c   grits-volume.h   \
+	marching.c       marching.h
 libgrits_objects_la_LDFLAGS = -static
 
 MAINTAINERCLEANFILES = Makefile.in
