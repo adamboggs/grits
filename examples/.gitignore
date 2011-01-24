@@ -6,5 +6,6 @@ interp/interp
 plugin/teapot
 shader/shader
 sort/sort
+tess/convex
 tess/split
 tex/tex

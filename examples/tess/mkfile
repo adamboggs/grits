@@ -1,5 +1,5 @@
 MKSHELL=/usr/lib/plan9/bin/rc
-PROGS=split
+PROGS=convex split
 PKGS=gtkglext-1.0
-default:V: split-run
+default:V: convex-run
 <$HOME/lib/mkcommon
