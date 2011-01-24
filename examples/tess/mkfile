@@ -1,0 +1,5 @@
+MKSHELL=/usr/lib/plan9/bin/rc
+PROGS=split
+PKGS=gtkglext-1.0
+default:V: split-run
+<$HOME/lib/mkcommon

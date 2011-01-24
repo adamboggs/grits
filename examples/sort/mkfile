@@ -1,5 +1,5 @@
 MKSHELL=/usr/lib/plan9/bin/rc
-PROGS=sort tes
+PROGS=sort
 PKGS=gtkglext-1.0
 
 sort_cflags=-p -pg -O3

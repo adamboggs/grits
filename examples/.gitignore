@@ -1,2 +1,9 @@
 *.o
 *.so
+*.exe
+info/info
+plugin/teapot
+shader/shader
+sort/sort
+tess/split
+tex/tex
