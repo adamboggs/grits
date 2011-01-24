@@ -1,0 +1,5 @@
+MKSHELL=/usr/lib/plan9/bin/rc
+PROGS=interp
+LIBS=-lm
+default:V: interp-run
+<$HOME/lib/mkcommon
