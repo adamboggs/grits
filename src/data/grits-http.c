@@ -179,6 +179,9 @@ gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
 			g_error("message is null, cannot parse uri");
 		g_signal_connect(message, "got-chunk", G_CALLBACK(_chunk_cb), &info);
 		soup_message_headers_set_range(message->request_headers, ftell(fp), -1);
+		if (mode == GRITS_REFRESH)
+			soup_message_headers_replace(message->request_headers,
+					"Cache-Control", "max-age=0");
 		soup_session_send_message(http->soup, message);
 
 		/* Close file */
