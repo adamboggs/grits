@@ -2,12 +2,34 @@
 #
 # Valgrind suppression file for Gtk+ 2.16
 
+# ?????
+{
+	lib_ld_conds
+	Memcheck:Cond
+	obj:/lib/ld-2.11.2.so
+	obj:/lib/ld-2.11.2.so
+	obj:/lib/ld-2.11.2.so
+	obj:/lib/ld-2.11.2.so
+	obj:/lib/ld-2.11.2.so
+}
+{
+	libGL_leaks
+	Memcheck:Leak
+	obj:/usr/lib/opengl/nvidia/lib/libGL.so.*
+}
+
 # GLib
 {
 	g_type_register_static
 	Memcheck:Leak
 	...
 	fun:g_type_register_static
+}
+{
+	g_type_add_interface_static
+	Memcheck:Leak
+	...
+	fun:g_type_add_interface_static 
 }
 {
 	g_param_spec
@@ -17,11 +39,39 @@
 	...
 	fun:g_object_new
 }
+{
+	g_module_open__addr
+	Memcheck:Addr4
+	...
+	fun:dlopen
+	fun:g_module_open
+}
+{
+	g_module_open__leak
+	Memcheck:Leak
+	...
+	fun:dlopen
+	fun:g_module_open
+}
+{
+	g_module_open__sym
+	Memcheck:Addr4
+	...
+	fun:dlsym
+	fun:g_module_symbol
+	fun:g_module_open
+}
 
 # GTK+
 {
 	gtk_init
 	Memcheck:Leak
+	...
+	fun:gtk_init
+}
+{
+	gtk_init
+	Memcheck:Addr4
 	...
 	fun:gtk_init
 }

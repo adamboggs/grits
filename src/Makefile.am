@@ -98,5 +98,6 @@ memcheck: all
 	         --leak-resolution=high         \
 	         --num-callers=50               \
 	         --suppressions=gtk.suppression \
+	         --suppressions=/usr/lib/valgrind/default.supp \
 	         ./grits-test                   \
 	2> valgrind.out
