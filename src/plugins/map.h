@@ -37,8 +37,9 @@ struct _GritsPluginMap {
 	GritsViewer *viewer;
 	GritsTile   *tiles;
 	GritsWms    *wms;
-	GMutex      *mutex;
+	GThreadPool *threads;
 	gulong       sigid;
+	gboolean     aborted;
 };
 
 struct _GritsPluginMapClass {
