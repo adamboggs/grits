@@ -178,7 +178,8 @@ gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
 		if (message == NULL)
 			g_error("message is null, cannot parse uri");
 		g_signal_connect(message, "got-chunk", G_CALLBACK(_chunk_cb), &info);
-		soup_message_headers_set_range(message->request_headers, ftell(fp), -1);
+		//if (ftell(fp) > 0)
+			soup_message_headers_set_range(message->request_headers, ftell(fp), -1);
 		if (mode == GRITS_REFRESH)
 			soup_message_headers_replace(message->request_headers,
 					"Cache-Control", "max-age=0");
@@ -192,7 +193,9 @@ gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
 		}
 
 		/* Finished */
-		if (message->status_code == 416) {
+		if (message->status_code == SOUP_STATUS_CANCELLED) {
+			return NULL;
+		} else if (message->status_code == SOUP_STATUS_REQUESTED_RANGE_NOT_SATISFIABLE) {
 			/* Range unsatisfiable, file already complete */
 		} else if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
 			g_warning("GritsHttp: done_cb - error copying file, status=%d\n"
