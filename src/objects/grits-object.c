@@ -121,6 +121,14 @@ void grits_object_draw(GritsObject *object, GritsOpenGL *opengl)
 	g_mutex_unlock(opengl->sphere_lock);
 }
 
+void grits_object_hide(GritsObject *object, gboolean hidden)
+{
+	GritsObjectClass *klass = GRITS_OBJECT_GET_CLASS(object);
+	object->hidden = hidden;
+	if (klass->hide)
+		klass->hide(object, hidden);
+}
+
 void grits_object_queue_draw(GritsObject *object)
 {
 	if (object->viewer)

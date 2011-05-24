@@ -55,12 +55,15 @@ struct _GritsObjectClass {
 
 	/* Move some of these to GObject? */
 	void (*draw) (GritsObject *object, GritsOpenGL *opengl);
+	void (*hide) (GritsObject *object, gboolean hidden);
 };
 
 GType grits_object_get_type(void);
 
 /* Implemented by sub-classes */
 void grits_object_draw(GritsObject *object, GritsOpenGL *opengl);
+
+void grits_object_hide(GritsObject *object, gboolean hidden);
 
 /**
  * grits_object_queue_draw:
