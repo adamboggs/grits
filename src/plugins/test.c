@@ -56,7 +56,7 @@ GritsPluginTest *grits_plugin_test_new(GritsViewer *viewer)
 	g_debug("GritsPluginTest: new");
 	GritsPluginTest *test = g_object_new(GRITS_TYPE_PLUGIN_TEST, NULL);
 	test->viewer = g_object_ref(viewer);
-	g_idle_add(_load_marker, test);
+	_load_marker(test);
 	return test;
 }
 
@@ -88,7 +88,7 @@ static void grits_plugin_test_dispose(GObject *_test)
 		g_object_unref(test->viewer);
 		test->viewer = NULL;
 	}
-	G_OBJECT_CLASS(grits_plugin_test_parent_class)->finalize(_test);
+	G_OBJECT_CLASS(grits_plugin_test_parent_class)->dispose(_test);
 }
 static void grits_plugin_test_class_init(GritsPluginTestClass *klass)
 {

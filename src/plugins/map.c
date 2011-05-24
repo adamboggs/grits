@@ -220,6 +220,7 @@ static void grits_plugin_map_init(GritsPluginMap *map)
 	map->wms   = grits_wms_new(
 		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
 		"osm/", "png", TILE_WIDTH, TILE_HEIGHT);
+	g_object_ref(map->tiles);
 }
 static void grits_plugin_map_dispose(GObject *gobject)
 {
@@ -228,6 +229,10 @@ static void grits_plugin_map_dispose(GObject *gobject)
 	/* Drop references */
 	if (map->viewer) {
 		g_signal_handler_disconnect(map->viewer, map->sigid);
+		grits_viewer_remove(map->viewer, map->tiles);
+		soup_session_abort(map->wms->http->soup);
+		while (gtk_events_pending())
+			gtk_main_iteration();
 		g_object_unref(map->viewer);
 		map->viewer = NULL;
 	}

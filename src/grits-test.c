@@ -31,13 +31,13 @@ GritsViewer  *viewer  = NULL;
  *************/
 static gboolean grits_shutdown(GtkWidget *window)
 {
+	static gboolean shutdown = FALSE;
+	if (shutdown) return TRUE;
+	shutdown = TRUE;
+
 	grits_plugins_free(plugins);
 	g_object_unref(prefs);
 	gtk_widget_destroy(window);
-
-	while (gtk_events_pending())
-		  gtk_main_iteration();
-
 	gtk_main_quit();
 	return TRUE;
 }

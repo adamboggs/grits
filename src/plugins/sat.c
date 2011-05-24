@@ -210,6 +210,7 @@ static void grits_plugin_sat_init(GritsPluginSat *sat)
 	sat->wms   = grits_wms_new(
 		"http://www.nasa.network.com/wms", "bmng200406", "image/jpeg",
 		"bmng/", "jpg", TILE_WIDTH, TILE_HEIGHT);
+	g_object_ref(sat->tiles);
 }
 static void grits_plugin_sat_dispose(GObject *gobject)
 {
@@ -218,6 +219,10 @@ static void grits_plugin_sat_dispose(GObject *gobject)
 	/* Drop references */
 	if (sat->viewer) {
 		g_signal_handler_disconnect(sat->viewer, sat->sigid);
+		grits_viewer_remove(sat->viewer, sat->tiles);
+		soup_session_abort(sat->wms->http->soup);
+		while (gtk_events_pending())
+			gtk_main_iteration();
 		g_object_unref(sat->viewer);
 		sat->viewer = NULL;
 	}

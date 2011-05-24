@@ -336,9 +336,11 @@ static void grits_plugin_elev_dispose(GObject *gobject)
 	g_debug("GritsPluginElev: dispose");
 	GritsPluginElev *elev = GRITS_PLUGIN_ELEV(gobject);
 	/* Drop references */
-	if (LOAD_BIL)
-		grits_viewer_clear_height_func(elev->viewer);
 	if (elev->viewer) {
+		if (LOAD_BIL)
+			grits_viewer_clear_height_func(elev->viewer);
+		if (LOAD_OPENGL)
+			grits_viewer_remove(elev->viewer, elev->tiles);
 		g_signal_handler_disconnect(elev->viewer, elev->sigid);
 		g_object_unref(elev->viewer);
 		elev->viewer = NULL;
@@ -352,6 +354,8 @@ static void grits_plugin_elev_finalize(GObject *gobject)
 	/* Free data */
 	grits_tile_free(elev->tiles, _free_tile, elev);
 	grits_wms_free(elev->wms);
+	g_mutex_lock(elev->mutex);
+	g_mutex_unlock(elev->mutex);
 	g_mutex_free(elev->mutex);
 	G_OBJECT_CLASS(grits_plugin_elev_parent_class)->finalize(gobject);
 

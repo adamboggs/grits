@@ -592,6 +592,7 @@ static void grits_viewer_finalize(GObject *gobject)
 {
 	g_debug("GritsViewer: finalize");
 	G_OBJECT_CLASS(grits_viewer_parent_class)->finalize(gobject);
+	g_debug("GritsViewer: finalize - done");
 }
 static void grits_viewer_class_init(GritsViewerClass *klass)
 {

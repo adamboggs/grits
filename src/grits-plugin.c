@@ -155,11 +155,7 @@ GritsPlugins *grits_plugins_new(const gchar *dir, GritsPrefs *prefs)
 static void grits_plugins_free_store(GritsPluginStore *store)
 {
 	g_object_unref(store->plugin);
-	/* Flush any possible callbacks before
-	 * unloading the plugin code */
-	while (gtk_events_pending())
-		  gtk_main_iteration();
-	g_module_close(store->module);
+	//g_module_close(store->module);
 	g_free(store->name);
 	g_free(store);
 }
@@ -349,8 +345,8 @@ gboolean grits_plugins_unload(GritsPlugins *plugins, const char *name)
 	for (GList *cur = plugins->plugins; cur; cur = cur->next) {
 		GritsPluginStore *store = cur->data;
 		if (g_str_equal(store->name, name)) {
-			grits_plugins_free_store(store);
 			plugins->plugins = g_list_delete_link(plugins->plugins, cur);
+			grits_plugins_free_store(store);
 		}
 	}
 	return FALSE;
