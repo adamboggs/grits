@@ -1,4 +1,4 @@
-m4_define([grits_release], [0.4.2])
+m4_define([grits_release], [0.5-p0])
 m4_define([grits_version], [0:0:0])
 m4_define([grits_subdir],  [grits0])
 
