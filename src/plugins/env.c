@@ -25,7 +25,6 @@
  */
 
 #include <math.h>
-#include <gtk/gtkgl.h>
 #include <GL/gl.h>
 
 #include <grits.h>

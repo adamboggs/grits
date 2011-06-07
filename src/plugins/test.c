@@ -23,7 +23,6 @@
  * for how to create a plugin.
  */
 
-#include <gtk/gtkgl.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 

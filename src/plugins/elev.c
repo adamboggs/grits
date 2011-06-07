@@ -25,7 +25,6 @@
  * greyscale elevation overlay on the planets surface.
  */
 
-#include <gtk/gtkgl.h>
 #include <glib/gstdio.h>
 #include <GL/gl.h>
 

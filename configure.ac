@@ -25,7 +25,7 @@ GTK_DOC_CHECK(1.9)
 # Check for required packages
 PKG_CHECK_MODULES(GLIB,  glib-2.0 >= 2.14 gobject-2.0 gthread-2.0)
 PKG_CHECK_MODULES(CAIRO, cairo)
-PKG_CHECK_MODULES(GTK,   gtk+-2.0 >= 2.16 gtkglext-1.0)
+PKG_CHECK_MODULES(GTK,   gtk+-2.0 >= 2.16)
 PKG_CHECK_MODULES(SOUP,  libsoup-2.4 >= 2.26)
 
 # Test for Windows vs. Unix
@@ -39,6 +39,17 @@ if test "$WIN32" = yes; then
 fi
 AM_CONDITIONAL([WIN32],    test "$WIN32" = "yes")
 AM_CONDITIONAL([NOTWIN32], test "$WIN32" = "no")
+
+# Configure GL flags
+if test "$WIN32" = yes; then
+	GL_CFLAGS=""
+	GL_LIBS="-lglu32 -lopengl32"
+else
+	GL_CFLAGS=""
+	GL_LIBS="-lGL -lGLU"
+fi
+AC_SUBST([GL_CFLAGS])
+AC_SUBST([GL_LIBS])
 
 # Output 
 AC_CONFIG_FILES([

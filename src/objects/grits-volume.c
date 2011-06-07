@@ -30,7 +30,6 @@
 #include <math.h>
 #include <glib.h>
 #include <GL/gl.h>
-#include <gdk/gdkgl.h>
 #include "grits-volume.h"
 
 /* Drawing */

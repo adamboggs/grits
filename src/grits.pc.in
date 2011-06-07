@@ -6,6 +6,6 @@ includedir=@includedir@
 Name: Grits
 Description: Grits is a Virtual Globe library
 Version: @VERSION@
-Requires: gmodule-2.0 gtk+-2.0 gtkglext-1.0 libsoup-2.4
-Libs: -L${libdir} -lgrits
-Cflags: -I${includedir}/grits
+Requires: gmodule-2.0 gtk+-2.0 libsoup-2.4
+Libs: -L${libdir} -lgrits @GL_LIBS@
+Cflags: -I${includedir}/grits @GL_CFLAGS@

@@ -14,10 +14,12 @@ map_la_SOURCES      = map.c  map.h
 env_la_SOURCES      = env.c  env.h
 test_la_SOURCES     = test.c test.h
 
+if NOTWIN32
 noinst_LTLIBRARIES  = teapot.la
 teapot_la_SOURCES   = \
 	$(top_srcdir)/examples/plugin/teapot.c \
 	$(top_srcdir)/examples/plugin/teapot.h
+endif
 
 test:
 	( cd ../; make test )

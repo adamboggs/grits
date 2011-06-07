@@ -1,8 +1,8 @@
 SUBDIRS = data objects . plugins
 
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
-AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
-AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(SOUP_LIBS)
+AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(GL_CFLAGS) $(SOUP_CFLAGS)
+AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(GL_LIBS) $(SOUP_LIBS)
 AM_LDFLAGS  = --as-needed -no-undefined
 
 BUILT_SOURCES = grits-marshal.c grits-marshal.h
@@ -35,6 +35,7 @@ libgrits_la_SOURCES = grits.h \
 	grits-marshal.c grits-marshal.h \
 	grits-util.c    grits-util.h    \
 	roam.c          roam.h          \
+	gtkgl.c         gtkgl.h         \
 	gpqueue.c       gpqueue.h
 libgrits_la_CPPFLAGS = $(AM_CPPFLAGS) \
 	-DPKGDATADIR="\"$(dots)$(datadir)/$(GRITS_SUBDIR)\"" \
@@ -47,10 +48,12 @@ libgrits_la_LDFLAGS = $(AM_LDFLAGS) \
 
 # Demo program
 if WIN32
-AM_LDFLAGS += -mwindows
-dots        = ..
+AM_CPPFLAGS += -DUSE_WGL
+AM_LDFLAGS  += -mwindows
+dots         = ..
 else
-BINLDFLAGS  = -static
+AM_CPPFLAGS += -DUSE_GLX
+BINLDFLAGS   = -static
 endif
 
 bin_PROGRAMS = grits-demo

@@ -15,8 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <gtk/gtkgl.h>
 #include <GL/gl.h>
+#include <GL/glut.h>
 
 #include <grits.h>
 
@@ -59,7 +59,7 @@ static void expose(GritsCallback *callback, GritsOpenGL *opengl, gpointer _teapo
 	glRotatef(teapot->rotation, 1, 1, 0);
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
-	gdk_gl_draw_teapot(TRUE, 0.25);
+	glutSolidTeapot(2.5);
 }
 
 

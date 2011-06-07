@@ -24,7 +24,7 @@
  * algorithm for updating surface mesh the planet. The only thing GritsOpenGL
  * can actually render on it's own is a wireframe of a sphere.
  *
- * GritsOpenGL relies on #GtkGlExt and requires (at least) OpenGL 2.0.
+ * GritsOpenGL requires (at least) OpenGL 2.0.
  */
 
 #include <config.h>
@@ -32,12 +32,12 @@
 #include <string.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <gtk/gtkgl.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
 
 #include "grits-opengl.h"
 #include "grits-util.h"
+#include "gtkgl.h"
 #include "roam.h"
 
 // #define ROAM_DEBUG
@@ -206,8 +206,7 @@ static gboolean on_expose(GritsOpenGL *opengl, GdkEventExpose *event, gpointer _
 	g_mutex_unlock(opengl->objects_lock);
 #endif
 
-	GdkGLDrawable *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
-	gdk_gl_drawable_swap_buffers(gldrawable);
+	gtk_gl_end(GTK_WIDGET(opengl));
 
 	g_debug("GritsOpenGL: on_expose - end\n");
 	return FALSE;
@@ -271,12 +270,7 @@ static gboolean on_idle(GritsOpenGL *opengl)
 static void on_realize(GritsOpenGL *opengl, gpointer _)
 {
 	g_debug("GritsOpenGL: on_realize");
-
-	/* Start OpenGL */
-	GdkGLContext   *glcontext  = gtk_widget_get_gl_context(GTK_WIDGET(opengl));
-	GdkGLDrawable  *gldrawable = gtk_widget_get_gl_drawable(GTK_WIDGET(opengl));
-	if (!gdk_gl_drawable_gl_begin(gldrawable, glcontext))
-		g_assert_not_reached();
+	gtk_gl_begin(GTK_WIDGET(opengl));
 
 	/* Connect signals and idle functions now that opengl is fully initialized */
 	gtk_widget_add_events(GTK_WIDGET(opengl), GDK_KEY_PRESS_MASK);
@@ -454,19 +448,7 @@ static void grits_opengl_init(GritsOpenGL *opengl)
 	opengl->objects_lock = g_mutex_new();
 	opengl->sphere       = roam_sphere_new(opengl);
 	opengl->sphere_lock  = g_mutex_new();
-
-	/* Set OpenGL before "realize" */
-	GdkGLConfig *glconfig = gdk_gl_config_new_by_mode(
-			GDK_GL_MODE_RGBA   | GDK_GL_MODE_DEPTH |
-			GDK_GL_MODE_DOUBLE | GDK_GL_MODE_ALPHA);
-	if (!glconfig)
-		g_error("Failed to create glconfig");
-	if (!gtk_widget_set_gl_capability(GTK_WIDGET(opengl),
-				glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE))
-		g_error("GL lacks required capabilities");
-	g_object_unref(glconfig);
-
-	/* Finish OpenGL init after it's realized */
+	gtk_gl_enable(GTK_WIDGET(opengl));
 	g_signal_connect(opengl, "realize", G_CALLBACK(on_realize), NULL);
 }
 static void grits_opengl_dispose(GObject *_opengl)
