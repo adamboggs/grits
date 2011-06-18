@@ -1,0 +1,11 @@
+PROGS=gl
+PKGS=gtk+-2.0 gtkglext-1.0
+LIBS=-lm
+
+#default:V: run
+
+ARCH=i686-pc-mingw32-
+EXT=.exe
+default:V: gl.exe
+	wine $prereq
+<$HOME/lib/mkcommon
