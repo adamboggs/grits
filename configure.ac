@@ -1,5 +1,5 @@
-m4_define([grits_release], [0.5-p0])
-m4_define([grits_version], [0:0:0])
+m4_define([grits_release], [0.5])
+m4_define([grits_version], [1:0:1])
 m4_define([grits_subdir],  [grits0])
 
 # Init and options
