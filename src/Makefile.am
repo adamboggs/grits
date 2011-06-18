@@ -53,25 +53,21 @@ AM_LDFLAGS  += -mwindows
 dots         = ..
 else
 AM_CPPFLAGS += -DUSE_GLX
-BINLDFLAGS   = -static
 endif
 
 bin_PROGRAMS = grits-demo
 
 grits_demo_SOURCES = grits-demo.c
 grits_demo_LDADD   = $(AM_LDADD) libgrits.la
-grits_demo_LDFLAGS = $(BINLDFLAGS)
 
 # Test programs
 noinst_PROGRAMS = grits-test tile-test
 
 grits_test_SOURCES = grits-test.c
 grits_test_LDADD   = $(AM_LDADD) libgrits.la
-grits_test_LDFLAGS = $(BINLDFLAGS)
 
 tile_test_SOURCES = tile-test.c
 tile_test_LDADD   = $(AM_LDADD) libgrits.la
-tile_test_LDFLAGS = $(BINLDFLAGS)
 
 
 MAINTAINERCLEANFILES = Makefile.in
