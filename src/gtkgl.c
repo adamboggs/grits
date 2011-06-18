@@ -172,10 +172,42 @@ void gtk_gl_disable(GtkWidget *widget)
  * Mac OSX implementation *
  **************************/
 #elif defined(USE_CGL)
-void gtk_gl_enable(GtkWidget *widget) { }
-void gtk_gl_begin(GtkWidget *widget) { }
-void gtk_gl_end(GtkWidget *widget) { }
-void gtk_gl_disable(GtkWidget *widget) { }
+void gtk_gl_enable(GtkWidget *widget)
+{
+	CGDisplayCapture( kCGDirectMainDisplay );
+	CGLPixelFormatAttribute attribs[] =
+	{
+		kCGLPFANoRecovery,
+		kCGLPFADoubleBuffer,
+		kCGLPFAFullScreen,
+		kCGLPFAStencilSize, ( CGLPixelFormatAttribute ) 8,
+		kCGLPFADisplayMask, ( CGLPixelFormatAttribute ) CGDisplayIDToOpenGLDisplayMask( kCGDirectMainDisplay ),
+		( CGLPixelFormatAttribute ) NULL
+	};
+
+	CGLPixelFormatObj pixelFormatObj;
+	GLint numPixelFormats;
+	CGLChoosePixelFormat( attribs, &pixelFormatObj, &numPixelFormats );
+
+	CGLCreateContext( pixelFormatObj, NULL, &contextObj );
+
+	CGLDestroyPixelFormat( pixelFormatObj );
+
+	CGLSetCurrentContext( contextObj );
+	CGLSetFullScreen( contextObj );
+}
+
+void gtk_gl_begin(GtkWidget *widget)
+{
+}
+
+void gtk_gl_end(GtkWidget *widget)
+{
+}
+
+void gtk_gl_disable(GtkWidget *widget)
+{
+}
 
 
 /****************************
