@@ -31,7 +31,7 @@
 
 #include "map.h"
 
-#define MAX_RESOLUTION 500
+#define MAX_RESOLUTION 100
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 
@@ -220,8 +220,9 @@ static void grits_plugin_map_init(GritsPluginMap *map)
 	map->threads = g_thread_pool_new(_update_tiles, map, 1, FALSE, NULL);
 	map->tiles = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	map->wms   = grits_wms_new(
-		"http://labs.metacarta.com/wms/vmap0", "basic", "image/png",
-		"osm/", "png", TILE_WIDTH, TILE_HEIGHT);
+		"http://vmap0.tiles.osgeo.org/wms/vmap0",
+		"basic,priroad,secroad,depthcontour,clabel,statelabel",
+		 "image/png", "osm/", "png", TILE_WIDTH, TILE_HEIGHT);
 	g_object_ref(map->tiles);
 }
 static void grits_plugin_map_dispose(GObject *gobject)
