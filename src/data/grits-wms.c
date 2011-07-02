@@ -72,13 +72,25 @@
 #include <config.h>
 #include <stdio.h>
 #include <glib.h>
+#include <locale.h>
 
 #include "grits-wms.h"
 #include "grits-http.h"
 
+static gchar *g_strdup_printf_safe(char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	setlocale(LC_ALL, "POSIX.UTF-8");
+	char *str = g_strdup_vprintf(fmt, ap);
+	setlocale(LC_ALL, "");
+	va_end(ap);
+	return str;
+}
+
 static gchar *_make_uri(GritsWms *wms, GritsTile *tile)
 {
-	return g_strdup_printf(
+	return g_strdup_printf_safe(
 		"%s?"
 		"SERVICE=WMS&"
 		"VERSION=1.1.0&"
