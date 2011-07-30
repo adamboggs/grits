@@ -160,9 +160,10 @@ static gboolean on_motion_notify(GritsViewer *viewer, GdkEventMotion *event, gpo
 {
 	gdouble x = viewer->drag_x - event->x;
 	gdouble y = viewer->drag_y - event->y;
-	gdouble lat, lon, elev, scale;
+	gdouble lat, lon, elev, scale, rx, ry, rz;
 	grits_viewer_get_location(GRITS_VIEWER(viewer), &lat, &lon, &elev);
-	scale = elev/EARTH_R/15;
+	grits_viewer_get_rotation(GRITS_VIEWER(viewer), &rx,  &ry,  &rz);
+	scale = (elev/EARTH_R/15) * (sin(deg2rad(ABS(rx)))*4+1);
 	switch (viewer->drag_mode) {
 	case GRITS_DRAG_PAN:  grits_viewer_pan(viewer, -y*scale, x*scale, 0); break;
 	case GRITS_DRAG_ZOOM: grits_viewer_zoom(viewer, pow(2, -y/500)); break;
