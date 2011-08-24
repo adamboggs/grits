@@ -56,6 +56,8 @@ void gtk_gl_enable(GtkWidget *widget)
 	                 GLX_DEPTH_SIZE,  1,
 	                 None};
 	XVisualInfo *xvinfo  = glXChooseVisual(xdisplay, nscreen, attribs);
+	if (!xvinfo)
+		g_error("GtkGl: enable - unable to get valid OpenGL Visual");
 	GLXContext   context = glXCreateContext(xdisplay, xvinfo, NULL, False);
 	g_object_set_data(G_OBJECT(widget), "glcontext", context);
 
