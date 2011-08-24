@@ -376,7 +376,7 @@ void roam_triangle_update_errors(RoamTriangle *triangle, RoamSphere *sphere)
 		if (roam_triangle_backface(triangle->t.l, sphere) ||
 		    roam_triangle_backface(triangle->t.b, sphere) ||
 		    roam_triangle_backface(triangle->t.r, sphere))
-			triangle->error *= 500;
+			triangle->error *= 50;
 	}
 }
 
@@ -760,6 +760,7 @@ void roam_sphere_merge_one(RoamSphere *sphere)
 gint roam_sphere_split_merge(RoamSphere *sphere)
 {
 	gint iters = 0, max_iters = 500;
+	//gint target = 20000;
 	//gint target = 4000;
 	gint target = 2000;
 	//gint target = 500;

@@ -140,7 +140,7 @@ static gboolean on_configure(GritsOpenGL *opengl, GdkEventConfigure *event, gpoi
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	double ang = atan(height/FOV_DIST);
-	gluPerspective(rad2deg(ang)*2, width/height, 1000, 10*EARTH_R);
+	gluPerspective(rad2deg(ang)*2, width/height, 10, 100*EARTH_R);
 
 #ifndef ROAM_DEBUG
 	g_mutex_lock(opengl->sphere_lock);

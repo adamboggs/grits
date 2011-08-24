@@ -32,7 +32,7 @@
 
 #include "elev.h"
 
-#define MAX_RESOLUTION 500
+#define MAX_RESOLUTION 50
 #define TILE_WIDTH     1024
 #define TILE_HEIGHT    512
 #define TILE_SIZE      (TILE_WIDTH*TILE_HEIGHT*sizeof(guint16))
@@ -327,7 +327,7 @@ static void grits_plugin_elev_init(GritsPluginElev *elev)
 	elev->mutex = g_mutex_new();
 	elev->tiles = grits_tile_new(NULL, NORTH, SOUTH, EAST, WEST);
 	elev->wms   = grits_wms_new(
-		"http://www.nasa.network.com/elev", "srtm30", "application/bil",
+		"http://www.nasa.network.com/elev", "mergedSrtm", "application/bil",
 		"srtm/", "bil", TILE_WIDTH, TILE_HEIGHT);
 }
 static void grits_plugin_elev_dispose(GObject *gobject)
