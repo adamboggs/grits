@@ -3,7 +3,7 @@ SUBDIRS = data objects . plugins
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(GL_CFLAGS) $(SOUP_CFLAGS)
 AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(GL_LIBS) $(SOUP_LIBS)
-AM_LDFLAGS  = --as-needed -no-undefined
+AM_LDFLAGS  = -Wl,--as-needed -Wl,--no-undefined
 
 BUILT_SOURCES = grits-marshal.c grits-marshal.h
 

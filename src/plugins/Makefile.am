@@ -2,7 +2,7 @@ MAINTAINERCLEANFILES = Makefile.in
 
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
-AM_LDFLAGS  = -shared -module -avoid-version -no-undefined
+AM_LDFLAGS  = -shared -module -avoid-version -Wl,--as-needed
 LIBS        = $(top_srcdir)/src/libgrits.la
 
 pluginsdir  = "$(libdir)/$(GRITS_SUBDIR)"
