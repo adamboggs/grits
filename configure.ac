@@ -28,6 +28,11 @@ PKG_CHECK_MODULES(CAIRO, cairo)
 PKG_CHECK_MODULES(GTK,   gtk+-2.0 >= 2.16)
 PKG_CHECK_MODULES(SOUP,  libsoup-2.4 >= 2.26)
 
+# Check for glut for example plugin
+AC_CHECK_LIB(glut, glutSolidTeapot, GLUT_LIBS="-lglut")
+AM_CONDITIONAL(HAVE_GLUT, test "$GLUT_LIBS" != "")
+AC_SUBST(GLUT_LIBS)
+
 # Test for Windows vs. Unix
 case "${host}" in
 	*mingw32*) WIN32="yes" ;;
