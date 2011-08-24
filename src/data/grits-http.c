@@ -54,6 +54,7 @@ GritsHttp *grits_http_new(const gchar *prefix)
 	http->soup = soup_session_sync_new();
 	http->prefix = g_strdup(prefix);
 	g_object_set(http->soup, "user-agent", PACKAGE_STRING, NULL);
+	g_object_set(http->soup, "timeout",    10,             NULL);
 	return http;
 }
 
