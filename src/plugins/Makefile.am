@@ -14,6 +14,10 @@ map_la_SOURCES      = map.c  map.h
 env_la_SOURCES      = env.c  env.h
 test_la_SOURCES     = test.c test.h
 
+if WIN32
+AM_LDFLAGS += -no-undefined
+endif
+
 if HAVE_GLUT
 noinst_LTLIBRARIES  = teapot.la
 teapot_la_SOURCES   = \

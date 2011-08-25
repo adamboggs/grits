@@ -49,7 +49,7 @@ libgrits_la_LDFLAGS = $(AM_LDFLAGS) \
 # Demo program
 if WIN32
 AM_CPPFLAGS += -DUSE_WGL
-AM_LDFLAGS  += -mwindows
+AM_LDFLAGS  += -mwindows -no-undefined
 dots         = ..
 else
 AM_CPPFLAGS += -DUSE_GLX
