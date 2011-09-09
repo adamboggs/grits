@@ -34,9 +34,9 @@ static void grits_poly_tess(gdouble (**points)[3])
 
 	/* Tesselate */
 	GLUtesselator *tess = gluNewTess();
-	gluTessCallback(tess, GLU_TESS_BEGIN,  glBegin);
-	gluTessCallback(tess, GLU_TESS_VERTEX, glVertex3dv);
-	gluTessCallback(tess, GLU_TESS_END,    glEnd);
+	gluTessCallback(tess, GLU_TESS_BEGIN,  (_GLUfuncptr)glBegin);
+	gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
+	gluTessCallback(tess, GLU_TESS_END,    (_GLUfuncptr)glEnd);
 	gluTessBeginPolygon(tess, NULL);
 	for (int pi = 0; points[pi]; pi++) {
 		gluTessBeginContour(tess);
