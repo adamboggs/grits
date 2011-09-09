@@ -4,5 +4,4 @@ dir=$(dirname $(readlink -f $0))
 	"--enable-gtk-doc" \
 	"--libdir=$dir/src/.libs" \
 	"--includedir=$dir/include" \
-	CFLAGS="-g -Werror $CFLAGS" \
-	LDFLAGS="-Wl,-z,defs"
+	CFLAGS="-g -Werror $CFLAGS"
