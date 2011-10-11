@@ -164,6 +164,10 @@ gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
 		if (!g_file_test(path, G_FILE_TEST_EXISTS))
 			part = g_strdup_printf("%s.part", path);
 		FILE *fp = fopen_p(part, "ab");
+		if (!fp) {
+			g_warning("GritsHttp: fetch - error opening %s", path);
+			return NULL;
+		}
 		fseek(fp, 0, SEEK_END); // "a" is broken on Windows, twice
 
 		/* Make temp data */

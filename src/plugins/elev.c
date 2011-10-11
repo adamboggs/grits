@@ -204,6 +204,7 @@ static void _load_tile(GritsTile *tile, gpointer _elev)
 
 	struct _LoadTileData *load = g_new0(struct _LoadTileData, 1);
 	load->path = grits_wms_fetch(elev->wms, tile, GRITS_ONCE, NULL, NULL);
+	if (!load->path) return; // Canceled/error
 	g_debug("GritsPluginElev: _load_tile: %s", load->path);
 	load->elev = elev;
 	load->tile = tile;
