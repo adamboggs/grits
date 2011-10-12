@@ -117,6 +117,47 @@ GritsPoly *grits_poly_new(gdouble (**points)[3])
 	return poly;
 }
 
+GritsPoly *grits_poly_parse(gchar *str,
+		gchar *poly_sep, gchar *point_sep, gchar *coord_sep)
+{
+	/* Split and count polygons */
+	gchar **spolys = g_strsplit(str, poly_sep, -1);
+	int     npolys = g_strv_length(spolys);
+
+	GritsPoint center = {0,0,0};
+	gdouble (**polys)[3] = (gpointer)g_new0(double*, npolys+1);
+	for (int pi = 0; pi < npolys; pi++) {
+		/* Split and count coordinates */
+		gchar **scoords = g_strsplit(spolys[pi], point_sep, -1);
+		int     ncoords = g_strv_length(scoords);
+
+		/* Create binary coords */
+		gdouble (*coords)[3] = (gpointer)g_new0(gdouble, 3*(ncoords+1));
+		for (int ci = 0; ci < ncoords; ci++) {
+			gdouble lat, lon;
+			sscanf(scoords[ci], "%lf,%lf", &lat, &lon);
+			if (ci == 0) {
+				center.lat  = lat;
+				center.lon  = lon;
+				center.elev = 0;
+			}
+			lle2xyz(lat, lon, 0,
+					&coords[ci][0],
+					&coords[ci][1],
+					&coords[ci][2]);
+		}
+
+		/* Insert coords into poly array */
+		polys[pi] = coords;
+		g_strfreev(scoords);
+	}
+
+	/* Create GritsPoly */
+	GritsPoly *poly = grits_poly_new(polys);
+	GRITS_OBJECT(poly)->center = center;
+	return poly;
+}
+
 /* GObject code */
 G_DEFINE_TYPE(GritsPoly, grits_poly, GRITS_TYPE_OBJECT);
 static void grits_poly_init(GritsPoly *poly)
