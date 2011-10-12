@@ -31,8 +31,6 @@
 static void grits_poly_tess(gdouble (**points)[3])
 {
 	//g_debug("GritsPoly: tess");
-
-	/* Tesselate */
 	GLUtesselator *tess = gluNewTess();
 	gluTessCallback(tess, GLU_TESS_BEGIN,  (_GLUfuncptr)glBegin);
 	gluTessCallback(tess, GLU_TESS_VERTEX, (_GLUfuncptr)glVertex3dv);
@@ -49,10 +47,12 @@ static void grits_poly_tess(gdouble (**points)[3])
 	}
 	gluTessEndPolygon(tess);
 	gluDeleteTess(tess);
+}
 
-	/* Outline */
+static void grits_poly_outline(gdouble (**points)[3])
+{
+	//g_debug("GritsPoly: outline");
 	for (int pi = 0; points[pi]; pi++) {
-		glColor4d(1,1,1,0.2);
 		glBegin(GL_LINE_LOOP);
 	 	for (int ci = 0; points[pi][ci][0]; ci++)
 			glVertex3dv(points[pi][ci]);
@@ -63,9 +63,12 @@ static gboolean grits_poly_genlist(gpointer _poly)
 {
 	//g_debug("GritsPoly: genlist");
 	GritsPoly *poly = GRITS_POLY(_poly);
-	guint list = glGenLists(1);
-	glNewList(list, GL_COMPILE);
+	guint list = glGenLists(2);
+	glNewList(list+0, GL_COMPILE);
 	grits_poly_tess(poly->points);
+	glEndList();
+	glNewList(list+1, GL_COMPILE);
+	grits_poly_outline(poly->points);
 	glEndList();
 	poly->list = list;
 	return FALSE;
@@ -84,8 +87,15 @@ static void grits_poly_draw(GritsObject *_poly, GritsOpenGL *opengl)
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
-	glColor4dv(poly->color);
-	glCallList(poly->list);
+	if (poly->color[3]) {
+		glColor4dv(poly->color);
+		glCallList(poly->list+0);
+	}
+	if (poly->border[3]) {
+		glLineWidth(poly->width);
+		glColor4dv(poly->border);
+		glCallList(poly->list+1);
+	}
 	glPopAttrib();
 }
 
@@ -111,6 +121,11 @@ GritsPoly *grits_poly_new(gdouble (**points)[3])
 G_DEFINE_TYPE(GritsPoly, grits_poly, GRITS_TYPE_OBJECT);
 static void grits_poly_init(GritsPoly *poly)
 {
+	poly->border[0] = 1;
+	poly->border[1] = 1;
+	poly->border[2] = 1;
+	poly->border[3] = 0.2;
+	poly->width     = 1;
 }
 
 static void grits_poly_finalize(GObject *_poly)

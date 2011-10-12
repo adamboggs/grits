@@ -38,6 +38,8 @@ struct _GritsPoly {
 	GritsObject  parent_instance;
 	gdouble   (**points)[3];
 	gdouble      color[4];
+	gdouble      border[4];
+	gdouble      width;
 	guint        list;
 };
 
