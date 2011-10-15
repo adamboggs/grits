@@ -349,7 +349,7 @@ void grits_viewer_set_rotation(GritsViewer *viewer, gdouble x, gdouble y, gdoubl
 void grits_viewer_get_rotation(GritsViewer *viewer, gdouble *x, gdouble *y, gdouble *z)
 {
 	g_assert(GRITS_IS_VIEWER(viewer));
-	g_debug("GritsViewer: get_rotation");
+	//g_debug("GritsViewer: get_rotation");
 	*x = viewer->rotation[0];
 	*y = viewer->rotation[1];
 	*z = viewer->rotation[2];
