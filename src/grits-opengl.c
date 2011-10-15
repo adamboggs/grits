@@ -46,6 +46,14 @@
 /* http://research.microsoft.com/pubs/70307/tr-2006-81.pdf */
 /* http://www.opengl.org/wiki/Alpha_Blending */
 
+/* The unsorted/sroted GLists are blank head nodes,
+ * This way us we can remove objects from the level just by fixing up links
+ * I.e. we don't need to do a lookup to remove an object if we have its GList */
+struct RenderLevel {
+	GList unsorted;
+	GList sorted;
+};
+
 /***********
  * Helpers *
  ***********/
@@ -116,18 +124,27 @@ static void _set_visuals(GritsOpenGL *opengl)
 	g_mutex_unlock(opengl->sphere_lock);
 }
 
+static gboolean _foreach_object_cb(gpointer key, gpointer value, gpointer pointers)
+{
+	struct RenderLevel *level = value;
+	GFunc    user_func = ((gpointer*)pointers)[0];
+	gpointer user_data = ((gpointer*)pointers)[1];
+	for (GList *cur = level->unsorted.next; cur; cur = cur->next)
+		user_func(cur->data, user_data);
+	for (GList *cur = level->sorted.next;   cur; cur = cur->next)
+		user_func(cur->data, user_data);
+	return FALSE;
+}
+
+static void _foreach_object(GritsOpenGL *opengl, GFunc func, gpointer user_data)
+{
+	gpointer pointers[2] = {func, user_data};
+	g_tree_foreach(opengl->objects, _foreach_object_cb, pointers);
+}
 
 /*************
  * Callbacks *
  *************/
-/* The unsorted/sroted GLists are blank head nodes,
- * This way us we can remove objects from the level just by fixing up links
- * I.e. we don't need to do a lookup to remove an object if we have its GList */
-struct RenderLevel {
-	GList unsorted;
-	GList sorted;
-};
-
 static gboolean on_configure(GritsOpenGL *opengl, GdkEventConfigure *event, gpointer _)
 {
 	g_debug("GritsOpenGL: on_configure");
@@ -212,6 +229,55 @@ static gboolean on_expose(GritsOpenGL *opengl, GdkEventExpose *event, gpointer _
 	return FALSE;
 }
 
+static gboolean on_motion_notify(GritsOpenGL *opengl, GdkEventMotion *event, gpointer _)
+{
+	gdouble height = GTK_WIDGET(opengl)->allocation.height;
+	gdouble gl_x   = event->x;
+	gdouble gl_y   = height - event->y;
+
+	/* Configure view */
+	gint viewport[4];
+	gdouble projection[16];
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_PROJECTION_MATRIX, projection);
+
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluPickMatrix(gl_x, gl_y, 2, 2, viewport);
+	glMultMatrixd(projection);
+
+	/* Prepare for picking */
+	guint buffer[100][4] = {};
+	glSelectBuffer(G_N_ELEMENTS(buffer), (guint*)buffer);
+	glRenderMode(GL_SELECT);
+	glInitNames();
+
+	/* Run picking */
+	g_mutex_lock(opengl->objects_lock);
+	_foreach_object(opengl, (GFunc)grits_object_pick_begin, opengl);
+	int hits = glRenderMode(GL_RENDER);
+	g_debug("GritsOpenGL: on_motion_notify - hits=%d ev=%.0lf,%.0lf",
+			hits, gl_x, gl_y);
+	for (int i = 0; i < hits; i++) {
+		//g_debug("\tHit: %d",     i);
+		//g_debug("\t\tcount: %d", buffer[i][0]);
+		//g_debug("\t\tz1:    %f", (float)buffer[i][1]/0x7fffffff);
+		//g_debug("\t\tz2:    %f", (float)buffer[i][2]/0x7fffffff);
+		//g_debug("\t\tname:  %p", (gpointer)buffer[i][3]);
+		GritsObject *object = GRITS_OBJECT(buffer[i][3]);
+		grits_object_pick_pointer(object, gl_x, gl_y);
+	}
+	_foreach_object(opengl, (GFunc)grits_object_pick_end, NULL);
+	g_mutex_unlock(opengl->objects_lock);
+
+	/* Cleanup */
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+
+	return FALSE;
+}
+
 static gboolean on_key_press(GritsOpenGL *opengl, GdkEventKey *event, gpointer _)
 {
 	g_debug("GritsOpenGL: on_key_press - key=%x, state=%x, plus=%x",
@@ -282,6 +348,7 @@ static void on_realize(GritsOpenGL *opengl, gpointer _)
 	g_signal_connect(opengl, "location-changed", G_CALLBACK(on_view_changed), NULL);
 	g_signal_connect(opengl, "rotation-changed", G_CALLBACK(on_view_changed), NULL);
 
+	g_signal_connect(opengl, "motion-notify-event", G_CALLBACK(on_motion_notify), NULL);
 #ifndef ROAM_DEBUG
 	opengl->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, opengl, NULL);
 	opengl->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, opengl, NULL);

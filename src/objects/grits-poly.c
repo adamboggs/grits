@@ -110,6 +110,18 @@ static void grits_poly_draw(GritsObject *_poly, GritsOpenGL *opengl)
 	glPopAttrib();
 }
 
+static void grits_poly_pick(GritsObject *_poly, GritsOpenGL *opengl)
+{
+	//g_debug("GritsPoly: pick");
+	GritsPoly *poly = GRITS_POLY(_poly);
+	if (!poly->list)
+		return;
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_CULL_FACE);
+	glCallList(poly->list+0);
+	glPopAttrib();
+}
+
 /**
  * grits_poly_new:
  * @points:  TODO
@@ -198,4 +210,5 @@ static void grits_poly_class_init(GritsPolyClass *klass)
 
 	GritsObjectClass *object_class = GRITS_OBJECT_CLASS(klass);
 	object_class->draw = grits_poly_draw;
+	object_class->pick = grits_poly_pick;
 }

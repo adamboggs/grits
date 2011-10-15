@@ -36,6 +36,12 @@
 #define GRITS_SKIP_CENTER  (1<<2)
 #define GRITS_SKIP_STATE   (1<<3)
 
+/* Picking states */
+typedef struct {
+	guint picked   : 1;
+	guint selected : 1;
+} GritsState;
+
 typedef struct _GritsObject      GritsObject;
 typedef struct _GritsObjectClass GritsObjectClass;
 
@@ -48,6 +54,8 @@ struct _GritsObject {
 	gboolean     hidden; // If true, the object will not be drawn
 	gdouble      lod;    // Level of detail, used to hide small objects
 	guint32      skip;   // Bit mask of safe operations
+
+	GritsState   state;  // Internal, used for picking
 };
 
 struct _GritsObjectClass {
@@ -55,6 +63,7 @@ struct _GritsObjectClass {
 
 	/* Move some of these to GObject? */
 	void (*draw) (GritsObject *object, GritsOpenGL *opengl);
+	void (*pick) (GritsObject *object, GritsOpenGL *opengl);
 	void (*hide) (GritsObject *object, gboolean hidden);
 };
 
@@ -64,6 +73,11 @@ GType grits_object_get_type(void);
 void grits_object_draw(GritsObject *object, GritsOpenGL *opengl);
 
 void grits_object_hide(GritsObject *object, gboolean hidden);
+
+/* Interal, used by grits_opengl */
+void grits_object_pick_begin(GritsObject *object, GritsOpenGL *opengl);
+void grits_object_pick_pointer(GritsObject *object, double x, double y);
+void grits_object_pick_end(GritsObject *object);
 
 /**
  * grits_object_queue_draw:
