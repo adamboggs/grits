@@ -35,7 +35,8 @@ struct _GritsPluginTest {
 
 	/* instance members */
 	GritsViewer *viewer;
-	gpointer     marker;
+	GritsMarker *marker;
+	GritsPoly   *poly;
 };
 
 struct _GritsPluginTestClass {

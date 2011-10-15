@@ -23,25 +23,116 @@
  * for how to create a plugin.
  */
 
+#include <string.h>
+
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include <gdk/gdkkeysyms.h>
 #include <grits.h>
 
 #include "test.h"
 
+static void on_poly_enter(GritsPoly *poly)
+{
+	g_debug("on_poly_enter");
+	poly->color[3] = 0.50;
+	grits_object_queue_draw(GRITS_OBJECT(poly));
+}
+
+static void on_poly_leave(GritsPoly *poly)
+{
+	g_debug("on_poly_leave");
+	poly->color[3] = 0.2;
+	grits_object_queue_draw(GRITS_OBJECT(poly));
+}
+
+static void on_poly_button(GritsPoly *poly, GdkEventButton *event)
+{
+	g_debug("on_poly_button");
+	static int i = 0;
+	gdouble colors[][3] = {
+		{1, 0, 0}, {1, 1, 0},
+		{0, 1, 0}, {0, 1, 1},
+		{0, 0, 1}, {1, 0, 1},
+	};
+	int idx = i++ % G_N_ELEMENTS(colors);
+	memcpy(poly->color, colors[idx], sizeof(gdouble)*3);
+	grits_object_queue_draw(GRITS_OBJECT(poly));
+}
+
+static void on_poly_key(GritsPoly *poly, GdkEventKey *event)
+{
+	g_debug("on_poly_key");
+	gdouble colors[0xff][3] = {
+		[GDK_r] {1, 0, 0},
+		[GDK_g] {0, 1, 0},
+		[GDK_b] {0, 0, 1},
+	};
+	int key = event->keyval;
+	memcpy(poly->color, colors[key], sizeof(gdouble)*3);
+	grits_object_queue_draw(GRITS_OBJECT(poly));
+}
+
+static void on_marker_enter(GritsMarker *marker, GritsViewer *viewer)
+{
+	g_debug("on_marker_enter");
+	GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(viewer));
+	GdkCursor *cursor = gdk_cursor_new(GDK_HAND1);
+	gdk_window_set_cursor(window, cursor);
+}
+
+static void on_marker_leave(GritsMarker *marker, GritsViewer *viewer)
+{
+	g_debug("on_marker_leave");
+	GdkWindow *window = gtk_widget_get_window(GTK_WIDGET(viewer));
+	gdk_window_set_cursor(window, NULL);
+}
+
+static void on_marker_button(GritsMarker *marker, GdkEventButton *event)
+{
+	g_debug("on_marker_button");
+	GtkWidget *dialog = gtk_dialog_new_with_buttons(
+			"St. Charles!", NULL, 0, GTK_STOCK_OK, GTK_RESPONSE_OK, NULL);
+	gtk_dialog_run(GTK_DIALOG(dialog));
+}
+
 /***********
  * Methods *
  ***********/
-gboolean _load_marker(gpointer _test)
+void _load_marker(GritsPluginTest *test)
 {
-	GritsPluginTest *test = _test;
-	GritsMarker *marker = grits_marker_new("St. Charles");
-	grits_point_set_lle(grits_object_center(marker), 38.841847, -90.491982, 0);
-	GRITS_OBJECT(marker)->lod = EARTH_R;
-	test->marker = grits_viewer_add(test->viewer, GRITS_OBJECT(marker), GRITS_LEVEL_OVERLAY, 0);
-	return FALSE;
+	test->marker = grits_marker_new("St. Charles");
+	GRITS_OBJECT(test->marker)->center.lat  =  38.841847;
+	GRITS_OBJECT(test->marker)->center.lon  = -90.491982;
+	GRITS_OBJECT(test->marker)->center.elev =   0.0;
+	GRITS_OBJECT(test->marker)->lod         = EARTH_R;
+	grits_viewer_add(test->viewer, GRITS_OBJECT(test->marker), GRITS_LEVEL_OVERLAY, FALSE);
+	/* These do not work on marker yet */
+	//g_signal_connect(test->marker, "enter",        G_CALLBACK(on_marker_enter),  NULL);
+	//g_signal_connect(test->marker, "leave",        G_CALLBACK(on_marker_leave),  NULL);
+	//g_signal_connect(test->marker, "button-press", G_CALLBACK(on_marker_button), NULL);
+	(void)on_marker_enter;
+	(void)on_marker_leave;
+	(void)on_marker_button;
 }
+
+void _load_poly(GritsPluginTest *test)
+{
+	test->poly = grits_poly_parse("35,-90 35,-110 45,-110 45,-90", "\t", " ", ",");
+	test->poly->color[0]  = test->poly->border[0] = 1;
+	test->poly->color[1]  = test->poly->border[1] = 0;
+	test->poly->color[2]  = test->poly->border[2] = 0;
+	test->poly->color[3]  = 0.2;
+	test->poly->border[3] = 1;
+	test->poly->width     = 10;
+	grits_viewer_add(test->viewer, GRITS_OBJECT(test->poly),  GRITS_LEVEL_OVERLAY, TRUE);
+	g_signal_connect(test->poly, "enter",        G_CALLBACK(on_poly_enter),  NULL);
+	g_signal_connect(test->poly, "leave",        G_CALLBACK(on_poly_leave),  NULL);
+	g_signal_connect(test->poly, "button-press", G_CALLBACK(on_poly_button), NULL);
+	g_signal_connect(test->poly, "key-press",    G_CALLBACK(on_poly_key),    NULL);
+}
+
 /**
  * grits_plugin_test_new:
  * @viewer: the #GritsViewer to use for drawing
@@ -56,6 +147,7 @@ GritsPluginTest *grits_plugin_test_new(GritsViewer *viewer)
 	GritsPluginTest *test = g_object_new(GRITS_TYPE_PLUGIN_TEST, NULL);
 	test->viewer = g_object_ref(viewer);
 	_load_marker(test);
+	_load_poly(test);
 	return test;
 }
 
