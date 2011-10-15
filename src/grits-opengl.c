@@ -299,6 +299,12 @@ static gboolean on_key_press(GritsOpenGL *opengl, GdkEventKey *event, gpointer _
 	return FALSE;
 }
 
+static gboolean on_chained_event(GritsOpenGL *opengl, GdkEvent *event, gpointer _)
+{
+	_foreach_object(opengl, (GFunc)grits_object_event, event);
+	return FALSE;
+}
+
 static gboolean _update_errors_cb(gpointer _opengl)
 {
 	GritsOpenGL *opengl = _opengl;
@@ -349,6 +355,12 @@ static void on_realize(GritsOpenGL *opengl, gpointer _)
 	g_signal_connect(opengl, "rotation-changed", G_CALLBACK(on_view_changed), NULL);
 
 	g_signal_connect(opengl, "motion-notify-event", G_CALLBACK(on_motion_notify), NULL);
+	g_signal_connect_after(opengl, "key-press-event",      G_CALLBACK(on_chained_event), NULL);
+	g_signal_connect_after(opengl, "key-release-event",    G_CALLBACK(on_chained_event), NULL);
+	g_signal_connect_after(opengl, "button-press-event",   G_CALLBACK(on_chained_event), NULL);
+	g_signal_connect_after(opengl, "button-release-event", G_CALLBACK(on_chained_event), NULL);
+	g_signal_connect_after(opengl, "motion-notify-event",  G_CALLBACK(on_chained_event), NULL);
+
 #ifndef ROAM_DEBUG
 	opengl->sm_source[0] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+30, 33,  (GSourceFunc)on_idle, opengl, NULL);
 	opengl->sm_source[1] = g_timeout_add_full(G_PRIORITY_HIGH_IDLE+10, 500, (GSourceFunc)on_idle, opengl, NULL);

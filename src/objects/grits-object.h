@@ -78,6 +78,7 @@ void grits_object_hide(GritsObject *object, gboolean hidden);
 void grits_object_pick_begin(GritsObject *object, GritsOpenGL *opengl);
 void grits_object_pick_pointer(GritsObject *object, double x, double y);
 void grits_object_pick_end(GritsObject *object);
+void grits_object_event(GritsObject *object, GdkEvent *event);
 
 /**
  * grits_object_queue_draw:

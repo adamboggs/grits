@@ -38,6 +38,11 @@
 enum {
 	SIG_ENTER,
 	SIG_LEAVE,
+	SIG_BUTTON_PRESS,
+	SIG_BUTTON_RELEASE,
+	SIG_KEY_PRESS,
+	SIG_KEY_RELEASE,
+	SIG_MOTION,
 	NUM_SIGNALS,
 };
 static guint signals[NUM_SIGNALS];
@@ -185,6 +190,25 @@ void grits_object_pick_end(GritsObject *object)
 	}
 }
 
+void grits_object_event(GritsObject *object, GdkEvent *event)
+{
+	const int map[GDK_EVENT_LAST] = {
+		[GDK_BUTTON_PRESS  ] SIG_BUTTON_PRESS,
+		[GDK_2BUTTON_PRESS ] SIG_BUTTON_PRESS,
+		[GDK_3BUTTON_PRESS ] SIG_BUTTON_PRESS,
+		[GDK_BUTTON_RELEASE] SIG_BUTTON_RELEASE,
+		[GDK_KEY_PRESS     ] SIG_KEY_PRESS,
+		[GDK_KEY_RELEASE   ] SIG_KEY_RELEASE,
+		[GDK_MOTION_NOTIFY ] SIG_MOTION,
+	};
+	if (!object->state.selected)
+		return;
+	guint sig = signals[map[event->type]];
+	if (!g_signal_has_handler_pending(object, sig, 0, FALSE))
+		return;
+	g_signal_emit(object, sig, 0, event);
+}
+
 /* GObject stuff */
 G_DEFINE_ABSTRACT_TYPE(GritsObject, grits_object, G_TYPE_OBJECT);
 static void grits_object_init(GritsObject *object)
@@ -232,4 +256,101 @@ static void grits_object_class_init(GritsObjectClass *klass)
 			g_cclosure_marshal_VOID__VOID,
 			G_TYPE_NONE,
 			0);
+
+	/**
+	 * GritsViewer::button-press:
+	 * @object: the object.
+	 * @event:  the GdkEventButton which triggered this signal
+	 *
+	 * The ::button-press signal is emitted when a button (typically from a
+	 * mouse) is pressed.
+	 */
+	signals[SIG_BUTTON_PRESS] = g_signal_new(
+			"button-press",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__POINTER,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_POINTER);
+
+	/**
+	 * GritsViewer::button-release:
+	 * @object: the object.
+	 * @event:  the GdkEventButton which triggered this signal
+	 *
+	 * The ::button-release signal is emitted when a button (typically from
+	 * a mouse) is released.
+	 */
+	signals[SIG_BUTTON_RELEASE] = g_signal_new(
+			"button-release",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__POINTER,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_POINTER);
+
+	/**
+	 * GritsViewer::key-press:
+	 * @object: the object.
+	 * @event:  the GdkEventKey which triggered this signal
+	 *
+	 * The ::key-press signal is emitted when a key is pressed.
+	 */
+	signals[SIG_KEY_PRESS] = g_signal_new(
+			"key-press",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__POINTER,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_POINTER);
+
+	/**
+	 * GritsViewer::key-release:
+	 * @object: the object.
+	 * @event:  the GdkEventKey which triggered this signal
+	 *
+	 * The ::key-release signal is emitted when a key is released.
+	 */
+	signals[SIG_KEY_RELEASE] = g_signal_new(
+			"key-release",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__POINTER,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_POINTER);
+
+	/**
+	 * GritsViewer::motion:
+	 * @object: the object.
+	 * @event:  the GdkEventMotion which triggered this signal
+	 *
+	 * The ::motion signal is emitted the pointer moves over the object
+	 */
+	signals[SIG_MOTION] = g_signal_new(
+			"motion",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__POINTER,
+			G_TYPE_NONE,
+			1,
+			G_TYPE_POINTER);
 }
