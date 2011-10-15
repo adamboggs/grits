@@ -40,6 +40,7 @@
 typedef struct {
 	guint picked   : 1;
 	guint selected : 1;
+	guint clicking : 1;
 } GritsState;
 
 typedef struct _GritsObject      GritsObject;

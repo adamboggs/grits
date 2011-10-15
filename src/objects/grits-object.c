@@ -38,6 +38,7 @@
 enum {
 	SIG_ENTER,
 	SIG_LEAVE,
+	SIG_CLICKED,
 	SIG_BUTTON_PRESS,
 	SIG_BUTTON_RELEASE,
 	SIG_KEY_PRESS,
@@ -203,10 +204,20 @@ void grits_object_event(GritsObject *object, GdkEvent *event)
 	};
 	if (!object->state.selected)
 		return;
-	guint sig = signals[map[event->type]];
-	if (!g_signal_has_handler_pending(object, sig, 0, FALSE))
+	guint sig = map[event->type];
+
+	/* Handle button click */
+	if (sig == SIG_BUTTON_PRESS)
+		object->state.clicking = TRUE;
+	if (sig == SIG_BUTTON_RELEASE && object->state.clicking)
+		g_signal_emit(object, signals[SIG_CLICKED], 0, event);
+	if (sig == SIG_BUTTON_RELEASE || sig == SIG_MOTION)
+		object->state.clicking = FALSE;
+
+	/* Emit this signal */
+	if (!g_signal_has_handler_pending(object, signals[sig], 0, FALSE))
 		return;
-	g_signal_emit(object, sig, 0, event);
+	g_signal_emit(object, signals[sig], 0, event);
 }
 
 /* GObject stuff */
@@ -248,6 +259,23 @@ static void grits_object_class_init(GritsObjectClass *klass)
 	 */
 	signals[SIG_LEAVE] = g_signal_new(
 			"leave",
+			G_TYPE_FROM_CLASS(gobject_class),
+			G_SIGNAL_RUN_LAST,
+			0,
+			NULL,
+			NULL,
+			g_cclosure_marshal_VOID__VOID,
+			G_TYPE_NONE,
+			0);
+
+	/**
+	 * GritsViewer::clicked:
+	 * @object: the object.
+	 *
+	 * The ::clicked signal is emitted when the user clicks on the object
+	 */
+	signals[SIG_CLICKED] = g_signal_new(
+			"clicked",
 			G_TYPE_FROM_CLASS(gobject_class),
 			G_SIGNAL_RUN_LAST,
 			0,
