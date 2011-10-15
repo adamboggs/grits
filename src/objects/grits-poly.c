@@ -54,7 +54,15 @@ static void grits_poly_outline(gdouble (**points)[3])
 	//g_debug("GritsPoly: outline");
 	for (int pi = 0; points[pi]; pi++) {
 		glBegin(GL_LINE_LOOP);
-	 	for (int ci = 0; points[pi][ci][0]; ci++)
+	 	for (int ci = 0; points[pi][ci][0] &&
+	 	                 points[pi][ci][1] &&
+	 	                 points[pi][ci][2]; ci++)
+			glVertex3dv(points[pi][ci]);
+		glEnd();
+		glBegin(GL_POINTS);
+	 	for (int ci = 0; points[pi][ci][0] &&
+	 	                 points[pi][ci][1] &&
+	 	                 points[pi][ci][2]; ci++)
 			glVertex3dv(points[pi][ci]);
 		glEnd();
 	}
@@ -87,11 +95,14 @@ static void grits_poly_draw(GritsObject *_poly, GritsOpenGL *opengl)
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(1, 1);
 	if (poly->color[3]) {
 		glColor4dv(poly->color);
 		glCallList(poly->list+0);
 	}
 	if (poly->border[3]) {
+		glPointSize(poly->width);
 		glLineWidth(poly->width);
 		glColor4dv(poly->border);
 		glCallList(poly->list+1);
@@ -117,14 +128,14 @@ GritsPoly *grits_poly_new(gdouble (**points)[3])
 	return poly;
 }
 
-GritsPoly *grits_poly_parse(gchar *str,
-		gchar *poly_sep, gchar *point_sep, gchar *coord_sep)
+GritsPoly *grits_poly_parse(const gchar *str,
+		const gchar *poly_sep, const gchar *point_sep, const gchar *coord_sep)
 {
 	/* Split and count polygons */
 	gchar **spolys = g_strsplit(str, poly_sep, -1);
 	int     npolys = g_strv_length(spolys);
 
-	GritsPoint center = {0,0,0};
+	GritsBounds bounds = {-90, 90, -180, 180};
 	gdouble (**polys)[3] = (gpointer)g_new0(double*, npolys+1);
 	for (int pi = 0; pi < npolys; pi++) {
 		/* Split and count coordinates */
@@ -136,11 +147,10 @@ GritsPoly *grits_poly_parse(gchar *str,
 		for (int ci = 0; ci < ncoords; ci++) {
 			gdouble lat, lon;
 			sscanf(scoords[ci], "%lf,%lf", &lat, &lon);
-			if (ci == 0) {
-				center.lat  = lat;
-				center.lon  = lon;
-				center.elev = 0;
-			}
+			if (lat > bounds.n) bounds.n = lat;
+			if (lat < bounds.s) bounds.s = lat;
+			if (lon > bounds.e) bounds.e = lon;
+			if (lon < bounds.w) bounds.w = lon;
 			lle2xyz(lat, lon, 0,
 					&coords[ci][0],
 					&coords[ci][1],
@@ -154,7 +164,10 @@ GritsPoly *grits_poly_parse(gchar *str,
 
 	/* Create GritsPoly */
 	GritsPoly *poly = grits_poly_new(polys);
-	GRITS_OBJECT(poly)->center = center;
+	GRITS_OBJECT(poly)->center.lat  = (bounds.n + bounds.s)/2;
+	GRITS_OBJECT(poly)->center.lon  = lon_avg(bounds.e, bounds.w);
+	GRITS_OBJECT(poly)->center.elev = 0;
+	GRITS_OBJECT(poly)->skip        = GRITS_SKIP_CENTER;
 	return poly;
 }
 

@@ -51,7 +51,7 @@ GType grits_poly_get_type(void);
 
 GritsPoly *grits_poly_new(gdouble (**points)[3]);
 
-GritsPoly *grits_poly_parse(gchar *str,
-		gchar *poly_sep, gchar *point_sep, gchar *coord_sep);
+GritsPoly *grits_poly_parse(const gchar *str,
+		const gchar *poly_sep, const gchar *point_sep, const gchar *coord_sep);
 
 #endif
