@@ -67,7 +67,7 @@ void grits_object_pickdraw(GritsObject *object, GritsOpenGL *opengl, gboolean pi
 		return;
 	}
 
-	/* Calculae distance for LOD and horizon tests */
+	/* Calculate distance for LOD and horizon tests */
 	GritsPoint *center = &object->center;
 	if ((!(object->skip & GRITS_SKIP_LOD) ||
 	     !(object->skip & GRITS_SKIP_HORIZON)) &&
