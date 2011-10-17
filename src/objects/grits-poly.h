@@ -40,7 +40,7 @@ struct _GritsPoly {
 	gdouble      color[4];
 	gdouble      border[4];
 	gdouble      width;
-	guint        list;
+	guint        list[2];
 };
 
 struct _GritsPolyClass {
