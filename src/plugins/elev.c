@@ -340,7 +340,7 @@ static void grits_plugin_elev_dispose(GObject *gobject)
 		if (LOAD_BIL)
 			grits_viewer_clear_height_func(elev->viewer);
 		if (LOAD_OPENGL)
-			grits_viewer_remove(elev->viewer, elev->tiles);
+			grits_viewer_remove(elev->viewer, GRITS_OBJECT(elev->tiles));
 		g_signal_handler_disconnect(elev->viewer, elev->sigid);
 		g_object_unref(elev->viewer);
 		elev->viewer = NULL;

@@ -133,7 +133,7 @@ struct _GritsViewerClass {
 
 	gpointer (*add)          (GritsViewer *viewer, GritsObject *object,
 	                          gint level, gboolean sort);
-	GritsObject *(*remove)   (GritsViewer *viewer, gpointer ref);
+	GritsObject *(*remove)   (GritsViewer *viewer, GritsObject *object);
 };
 
 GType grits_viewer_get_type(void);
@@ -173,6 +173,6 @@ void grits_viewer_set_height_func(GritsViewer *viewer, GritsBounds *bounds,
 
 gpointer grits_viewer_add(GritsViewer *viewer, GritsObject *object,
 		gint level, gboolean sort);
-GritsObject *grits_viewer_remove(GritsViewer *viewer, gpointer ref);
+GritsObject *grits_viewer_remove(GritsViewer *viewer, GritsObject *object);
 
 #endif

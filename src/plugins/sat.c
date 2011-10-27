@@ -221,7 +221,7 @@ static void grits_plugin_sat_dispose(GObject *gobject)
 	/* Drop references */
 	if (sat->viewer) {
 		g_signal_handler_disconnect(sat->viewer, sat->sigid);
-		grits_viewer_remove(sat->viewer, sat->tiles);
+		grits_viewer_remove(sat->viewer, GRITS_OBJECT(sat->tiles));
 		soup_session_abort(sat->wms->http->soup);
 		g_thread_pool_free(sat->threads, TRUE, TRUE);
 		while (gtk_events_pending())

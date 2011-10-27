@@ -175,7 +175,7 @@ static void grits_plugin_test_dispose(GObject *_test)
 	g_debug("GritsPluginTest: dispose");
 	GritsPluginTest *test = GRITS_PLUGIN_TEST(_test);
 	if (test->viewer) {
-		grits_viewer_remove(test->viewer, test->marker);
+		grits_viewer_remove(test->viewer, GRITS_OBJECT(test->marker));
 		g_object_unref(test->viewer);
 		test->viewer = NULL;
 	}

@@ -542,15 +542,12 @@ gpointer grits_viewer_add(GritsViewer *viewer, GritsObject *object,
  *
  * Returns: the #GritsObject referenced by the handle
  */
-GritsObject *grits_viewer_remove(GritsViewer *viewer, gpointer _object)
+GritsObject *grits_viewer_remove(GritsViewer *viewer, GritsObject *object)
 {
-	GritsObject *object = _object;
 	GritsViewerClass *klass = GRITS_VIEWER_GET_CLASS(viewer);
 	if (!klass->remove)
 		g_warning("GritsViewer: remove - Unimplemented");
-	klass->remove(viewer, object->ref);
-	object->ref    = NULL;
-	object->viewer = NULL;
+	klass->remove(viewer, object);
 	return object;
 }
 
