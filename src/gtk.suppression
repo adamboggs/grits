@@ -61,6 +61,15 @@
 	fun:g_module_symbol
 	fun:g_module_open
 }
+{
+	g_class_ref__leak
+	Memcheck:Leak
+	fun:malloc
+	fun:g_malloc
+	fun:g_memdup
+	fun:type_iface_vtable_base_init_Wm
+	fun:g_type_class_ref
+}
 
 # GTK+
 {

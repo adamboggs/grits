@@ -100,5 +100,10 @@ int main(int argc, char **argv)
 	gdk_threads_leave();
 
 	gdk_display_close(gdk_display_get_default());
+
+	prefs   = NULL;
+	plugins = NULL;
+	viewer  = NULL;
+	window  = vbox = config = NULL;
 	return 0;
 }

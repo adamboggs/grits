@@ -192,25 +192,27 @@ gchar *grits_http_fetch(GritsHttp *http, const gchar *uri, const char *local,
 
 		/* Close file */
 		fclose(fp);
-		if (path != part && SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
-			g_rename(part, path);
+		if (path != part) {
+			if (SOUP_STATUS_IS_SUCCESSFUL(message->status_code))
+				g_rename(part, path);
 			g_free(part);
 		}
 
 		/* Finished */
-		if (message->status_code == SOUP_STATUS_CANCELLED) {
+		guint status = message->status_code;
+		g_object_unref(message);
+		if (status == SOUP_STATUS_CANCELLED) {
 			return NULL;
-		} else if (message->status_code == SOUP_STATUS_REQUESTED_RANGE_NOT_SATISFIABLE) {
+		} else if (status == SOUP_STATUS_REQUESTED_RANGE_NOT_SATISFIABLE) {
 			/* Range unsatisfiable, file already complete */
-		} else if (!SOUP_STATUS_IS_SUCCESSFUL(message->status_code)) {
+		} else if (!SOUP_STATUS_IS_SUCCESSFUL(status)) {
 			g_warning("GritsHttp: done_cb - error copying file, status=%d\n"
 					"\tsrc=%s\n"
 					"\tdst=%s",
-					message->status_code, uri, path);
+					status, uri, path);
 			return NULL;
 		}
 	}
-
 
 	/* TODO: free everything.. */
 	return path;

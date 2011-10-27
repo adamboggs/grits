@@ -114,6 +114,12 @@ static void grits_poly_pick(GritsObject *_poly, GritsOpenGL *opengl)
 	glPopAttrib();
 }
 
+static gboolean grits_poly_delete(gpointer list)
+{
+	glDeleteLists((guint)list, 1);
+	return FALSE;
+}
+
 /**
  * grits_poly_new:
  * @points:  TODO
@@ -129,6 +135,13 @@ GritsPoly *grits_poly_new(gdouble (**points)[3])
 	GritsPoly *poly = g_object_new(GRITS_TYPE_POLY, NULL);
 	poly->points    = points;
 	return poly;
+}
+
+static void _free_points(gdouble (**points)[3])
+{
+	for (int i = 0; points[i]; i++)
+		g_free(points[i]);
+	g_free(points);
 }
 
 GritsPoly *grits_poly_parse(const gchar *str,
@@ -164,6 +177,7 @@ GritsPoly *grits_poly_parse(const gchar *str,
 		polys[pi] = coords;
 		g_strfreev(scoords);
 	}
+	g_strfreev(spolys);
 
 	/* Create GritsPoly */
 	GritsPoly *poly = grits_poly_new(polys);
@@ -171,6 +185,7 @@ GritsPoly *grits_poly_parse(const gchar *str,
 	GRITS_OBJECT(poly)->center.lon  = lon_avg(bounds.e, bounds.w);
 	GRITS_OBJECT(poly)->center.elev = 0;
 	GRITS_OBJECT(poly)->skip        = GRITS_SKIP_CENTER;
+	g_object_weak_ref(G_OBJECT(poly), (GWeakNotify)_free_points, polys);
 	return poly;
 }
 
@@ -188,10 +203,10 @@ static void grits_poly_init(GritsPoly *poly)
 
 static void grits_poly_finalize(GObject *_poly)
 {
-	g_debug("GritsPoly: finalize");
+	//g_debug("GritsPoly: finalize");
 	GritsPoly *poly = GRITS_POLY(_poly);
-	(void)poly;
-	// TODO: free points
+	if (poly->list[0]) g_idle_add(grits_poly_delete, (gpointer)poly->list[0]);
+	if (poly->list[1]) g_idle_add(grits_poly_delete, (gpointer)poly->list[1]);
 }
 
 static void grits_poly_class_init(GritsPolyClass *klass)
