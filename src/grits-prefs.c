@@ -42,6 +42,19 @@ enum {
 };
 static guint signals[NUM_SIGNALS];
 
+/* Helper functions */
+static void grits_prefs_save(GritsPrefs *prefs)
+{
+	gsize length;
+	gchar *dir = g_path_get_dirname(prefs->key_path);
+	if (!g_file_test(dir, G_FILE_TEST_EXISTS))
+		g_mkdir_with_parents(dir, 0755);
+	gchar *data = g_key_file_to_data(prefs->key_file, &length, NULL);
+	g_file_set_contents(prefs->key_path, data, length, NULL);
+	g_free(dir);
+	g_free(data);
+}
+
 /***********
  * Methods *
  ***********/
@@ -118,6 +131,7 @@ void grits_prefs_set_##name##_v(GritsPrefs *prefs,                              
 	gchar *all = g_strconcat(group, "/", key, NULL);                             \
 	g_signal_emit(prefs, signals[SIG_PREF_CHANGED], 0,                           \
 			all, g_type, &value);                                        \
+	grits_prefs_save(prefs);                                                     \
 	g_free(all);                                                                 \
 }                                                                                    \
 void grits_prefs_set_##name(GritsPrefs *prefs, const gchar *key, const c_type value) \
@@ -147,15 +161,9 @@ static void grits_prefs_dispose(GObject *_prefs)
 	g_debug("GritsPrefs: dispose");
 	GritsPrefs *prefs = GRITS_PREFS(_prefs);
 	if (prefs->key_file) {
-		gsize length;
-		gchar *dir = g_path_get_dirname(prefs->key_path);
-		g_mkdir_with_parents(dir, 0755);
-		gchar *data = g_key_file_to_data(prefs->key_file, &length, NULL);
-		g_file_set_contents(prefs->key_path, data, length, NULL);
+		grits_prefs_save(prefs);
 		g_key_file_free(prefs->key_file);
 		g_free(prefs->key_path);
-		g_free(dir);
-		g_free(data);
 		prefs->key_file = NULL;
 	}
 	G_OBJECT_CLASS(grits_prefs_parent_class)->dispose(_prefs);
