@@ -125,7 +125,7 @@ void _load_poly(GritsPluginTest *test)
 	test->poly->color[2]  = test->poly->border[2] = 0;
 	test->poly->color[3]  = 0.2;
 	test->poly->border[3] = 1;
-	test->poly->width     = 10;
+	test->poly->width     = 6;
 	grits_viewer_add(test->viewer, GRITS_OBJECT(test->poly),  GRITS_LEVEL_OVERLAY, TRUE);
 	g_signal_connect(test->poly, "enter",        G_CALLBACK(on_poly_enter),  NULL);
 	g_signal_connect(test->poly, "leave",        G_CALLBACK(on_poly_leave),  NULL);

@@ -88,18 +88,54 @@ static void grits_poly_draw(GritsObject *_poly, GritsOpenGL *opengl)
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
+
 	glEnable(GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset(1, 1);
+	glEnable(GL_POLYGON_OFFSET_LINE);
+	glEnable(GL_POLYGON_OFFSET_POINT);
+
 	if (poly->color[3]) {
+		/* Draw background farthest back */
+		glPolygonOffset(3, 3);
 		glColor4dv(poly->color);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		grits_poly_runlist(poly, 0, grits_poly_tess);
 	}
-	glLineWidth(poly->width);
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	if (poly->border[3]) {
-		glColor4dv(poly->border);
+
+	glEnable(GL_POLYGON_SMOOTH);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
+
+	if (!poly->color[3] && poly->border[3] && poly->width > 1) {
+		/* Draw line border in the middle */
+		glColor4d(0,0,0,1);
+
+		glPointSize(poly->width*2);
+		glLineWidth(poly->width*2);
+
+		glPolygonOffset(2, 2);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+		grits_poly_runlist(poly, 1, grits_poly_outline);
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		grits_poly_runlist(poly, 1, grits_poly_outline);
 	}
+
+	if (poly->border[3]) {
+		/* Draw border front-most */
+		glColor4dv(poly->border);
+
+		glPointSize(poly->width);
+		glLineWidth(poly->width);
+
+		glPolygonOffset(1, 1);
+		if (poly->width > 1) {
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+			grits_poly_runlist(poly, 1, grits_poly_outline);
+		}
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		grits_poly_runlist(poly, 1, grits_poly_outline);
+	}
+
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 	glPopAttrib();
 }
