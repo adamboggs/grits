@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2002 Jamie Zawinski <jwz@jwz.org>
- * Copyright (C) 2009-2010 Andy Spencer <andy753421@gmail.com>
+ * Copyright (C) 2009-2011 Andy Spencer <andy753421@gmail.com>
  *
  * Utility functions to create "marching cubes" meshes from 3d fields.
  *
