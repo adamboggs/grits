@@ -1,5 +1,22 @@
 See the Git log for detailed information
 http://lug.rose-hulman.edu/git/
 
+v0.6 (2011/10/31):
+  * Update polygon plugin
+  * Improve mouse support (picking)
+
+v0.5.2 (2011/09/12):
+  * Bug fixes
+
+v0.5.1 (2011/08/25):
+  * Updated sat/map/elev to provide better data
+
+v0.5 (2011/06/19):
+  * Add volume rendering
+  * Add polygons
+
+v0.4 (2010/05/14):
+  * Add support for MS Windows among other things
+
 v0.3 (2009/10/24):
   * Split out of AWeather
