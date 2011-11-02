@@ -249,7 +249,7 @@ GList *grits_http_available(GritsHttp *http,
 		const gchar *file;
 		gchar *path = _get_cache_path(http, cache);
 		GDir  *dir  = g_dir_open(path, 0, NULL);
-		while ((file = g_dir_read_name(dir)))
+		while (dir && (file = g_dir_read_name(dir)))
 			if (g_regex_match(filter_re, file, 0, NULL))
 				files = g_list_prepend(files, g_strdup(file));
 		g_free(path);
