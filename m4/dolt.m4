@@ -1,5 +1,5 @@
 dnl dolt, a replacement for libtool
-dnl Copyright © 2007-2008 Josh Triplett <josh@freedesktop.org>
+dnl Copyright © 2007-2010 Josh Triplett <josh@joshtriplett.org>
 dnl Copying and distribution of this file, with or without modification,
 dnl are permitted in any medium without royalty provided the copyright
 dnl notice and this notice are preserved.
@@ -22,7 +22,7 @@ if test x$GCC != xyes; then
     dolt_supported=no
 fi
 case $host in
-i?86-*-linux*|x86_64-*-linux*|powerpc-*-linux* \
+*-*-linux* \
 |amd64-*-freebsd*|i?86-*-freebsd*|ia64-*-freebsd*)
     pic_options='-fPIC'
     ;;
