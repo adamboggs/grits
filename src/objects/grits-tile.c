@@ -164,14 +164,15 @@ void grits_tile_update(GritsTile *root, GritsPoint *eye,
 	const gdouble lon_step = lon_dist / cols;
 	int row, col;
 	grits_tile_foreach_index(root, row, col) {
-		GritsTile **child = &root->children[row][col];
 		GritsBounds edge;
 		edge.n = root->edge.n-(lat_step*(row+0));
 		edge.s = root->edge.n-(lat_step*(row+1));
 		edge.e = root->edge.w+(lon_step*(col+1));
 		edge.w = root->edge.w+(lon_step*(col+0));
+
+		GritsTile **child = &root->children[row][col];
 		if (!_grits_tile_precise(eye, &edge, res,
-					width/cols, height/rows)) {
+				width/cols, height/rows)) {
 			if (!*child) {
 				*child = grits_tile_new(root, edge.n, edge.s,
 						edge.e, edge.w);
@@ -180,6 +181,9 @@ void grits_tile_update(GritsTile *root, GritsPoint *eye,
 			grits_tile_update(*child, eye,
 					res, width, height,
 					load_func, user_data);
+			GRITS_OBJECT(*child)->hidden = FALSE;
+		} else if (*child) {
+			GRITS_OBJECT(*child)->hidden = TRUE;
 		}
 	}
 }
@@ -291,6 +295,8 @@ static void grits_tile_draw_one(GritsTile *tile, GritsOpenGL *opengl, GList *tri
 			tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
 	//g_message("drawing %4d triangles for tile edges=%7.2f,%7.2f,%7.2f,%7.2f",
 	//		g_list_length(triangles), tile->edge.n, tile->edge.s, tile->edge.e, tile->edge.w);
+	tile->atime = time(NULL);
+
 	gdouble n = tile->edge.n;
 	gdouble s = tile->edge.s;
 	gdouble e = tile->edge.e;
@@ -367,7 +373,7 @@ static void grits_tile_draw_rec(GritsTile *tile, GritsOpenGL *opengl)
 			has_children = TRUE;
 
 	GList *triangles = NULL;
-	if (has_children) {
+	if (has_children && !GRITS_OBJECT(tile)->hidden) {
 		/* TODO: simplify this */
 		const gdouble rows = G_N_ELEMENTS(tile->children);
 		const gdouble cols = G_N_ELEMENTS(tile->children[0]);
