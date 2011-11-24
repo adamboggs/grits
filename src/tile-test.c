@@ -32,7 +32,7 @@ struct CacheState {
 void chunk_callback(gsize cur, gsize total, gpointer _state)
 {
 	struct CacheState *state = _state;
-	g_message("chunk_callback: %d/%d", cur, total);
+	g_message("chunk_callback: %ld/%ld", cur, total);
 
 	if (state->progress == NULL) {
 		state->progress = gtk_progress_bar_new();

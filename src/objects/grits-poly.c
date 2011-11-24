@@ -153,7 +153,7 @@ static void grits_poly_pick(GritsObject *_poly, GritsOpenGL *opengl)
 
 static gboolean grits_poly_delete(gpointer list)
 {
-	glDeleteLists((guint)list, 1);
+	glDeleteLists((guintptr)list, 1);
 	return FALSE;
 }
 
@@ -242,8 +242,8 @@ static void grits_poly_finalize(GObject *_poly)
 {
 	//g_debug("GritsPoly: finalize");
 	GritsPoly *poly = GRITS_POLY(_poly);
-	if (poly->list[0]) g_idle_add(grits_poly_delete, (gpointer)poly->list[0]);
-	if (poly->list[1]) g_idle_add(grits_poly_delete, (gpointer)poly->list[1]);
+	if (poly->list[0]) g_idle_add(grits_poly_delete, (gpointer)(guintptr)poly->list[0]);
+	if (poly->list[1]) g_idle_add(grits_poly_delete, (gpointer)(guintptr)poly->list[1]);
 }
 
 static void grits_poly_class_init(GritsPolyClass *klass)

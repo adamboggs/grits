@@ -182,7 +182,7 @@ static gboolean on_configure(GritsOpenGL *opengl, GdkEventConfigure *event, gpoi
 
 static gboolean _draw_level(gpointer key, gpointer value, gpointer user_data)
 {
-	g_debug("GritsOpenGL: _draw_level - level=%-4d", (int)key);
+	g_debug("GritsOpenGL: _draw_level - level=%-4ld", (glong)key);
 	GritsOpenGL *opengl = user_data;
 	struct RenderLevel *level = value;
 	int nsorted = 0, nunsorted = 0;
@@ -489,10 +489,10 @@ static gpointer grits_opengl_add(GritsViewer *_opengl, GritsObject *object,
 	g_assert(GRITS_IS_OPENGL(_opengl));
 	GritsOpenGL *opengl = GRITS_OPENGL(_opengl);
 	g_mutex_lock(opengl->objects_lock);
-	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)key);
+	struct RenderLevel *level = g_tree_lookup(opengl->objects, (gpointer)(gintptr)key);
 	if (!level) {
 		level = g_new0(struct RenderLevel, 1);
-		g_tree_insert(opengl->objects, (gpointer)key, level);
+		g_tree_insert(opengl->objects, (gpointer)(gintptr)key, level);
 	}
 	GList *list = sort ? &level->sorted : &level->unsorted;
 	/* Put the link in the list */
@@ -530,7 +530,7 @@ static GritsObject *grits_opengl_remove(GritsViewer *_opengl, GritsObject *objec
  ****************/
 static int _objects_cmp(gconstpointer _a, gconstpointer _b, gpointer _)
 {
-	gint a = (int)_a, b = (int)_b;
+	gintptr a = (gintptr)_a, b = (gintptr)_b;
 	return a < b ? -1 :
 	       a > b ?  1 : 0;
 }

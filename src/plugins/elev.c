@@ -113,7 +113,7 @@ static guint16 *_load_bil(gchar *path)
 	g_file_get_contents(path, &data, &len, NULL);
 	g_debug("GritsPluginElev: load_bil %p", data);
 	if (len != TILE_SIZE) {
-		g_warning("GritsPluginElev: _load_bil - unexpected tile size %d, != %d",
+		g_warning("GritsPluginElev: _load_bil - unexpected tile size %ld, != %ld",
 				len, TILE_SIZE);
 		g_free(data);
 		return NULL;
