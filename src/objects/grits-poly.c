@@ -83,7 +83,8 @@ static void grits_poly_draw(GritsObject *_poly, GritsOpenGL *opengl)
 	//g_debug("GritsPoly: draw");
 	GritsPoly *poly = GRITS_POLY(_poly);
 
-	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT);
+	glPushAttrib(GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT | GL_CURRENT_BIT |
+			GL_POINT_BIT | GL_LINE_BIT | GL_POLYGON_BIT);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_ALPHA_TEST);
 	glDisable(GL_CULL_FACE);
