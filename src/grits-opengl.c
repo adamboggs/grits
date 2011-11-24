@@ -142,6 +142,18 @@ static void _foreach_object(GritsOpenGL *opengl, GFunc func, gpointer user_data)
 	g_tree_foreach(opengl->objects, _foreach_object_cb, pointers);
 }
 
+static void _add_object(GritsObject *object, GPtrArray *array)
+{
+	g_ptr_array_add(array, object);
+}
+
+static GPtrArray *_objects_to_array(GritsOpenGL *opengl)
+{
+	GPtrArray *array = g_ptr_array_new();
+	_foreach_object(opengl, (GFunc)_add_object, array);
+	return array;
+}
+
 /*************
  * Callbacks *
  *************/
@@ -255,7 +267,14 @@ static gboolean on_motion_notify(GritsOpenGL *opengl, GdkEventMotion *event, gpo
 
 	/* Run picking */
 	g_mutex_lock(opengl->objects_lock);
-	_foreach_object(opengl, (GFunc)grits_object_pick_begin, opengl);
+	GPtrArray *objects = _objects_to_array(opengl);
+	for (guint i = 0; i < objects->len; i++) {
+		glPushName(i);
+		GritsObject *object = objects->pdata[i];
+		object->state.picked = FALSE;
+		grits_object_pick(object, opengl);
+		glPopName();
+	}
 	int hits = glRenderMode(GL_RENDER);
 	g_debug("GritsOpenGL: on_motion_notify - hits=%d ev=%.0lf,%.0lf",
 			hits, gl_x, gl_y);
@@ -265,10 +284,15 @@ static gboolean on_motion_notify(GritsOpenGL *opengl, GdkEventMotion *event, gpo
 		//g_debug("\t\tz1:    %f", (float)buffer[i][1]/0x7fffffff);
 		//g_debug("\t\tz2:    %f", (float)buffer[i][2]/0x7fffffff);
 		//g_debug("\t\tname:  %p", (gpointer)buffer[i][3]);
-		GritsObject *object = GRITS_OBJECT(buffer[i][3]);
-		grits_object_pick_pointer(object, gl_x, gl_y);
+		guint        index  = buffer[i][3];
+		GritsObject *object = objects->pdata[index];
+		object->state.picked = TRUE;
 	}
-	_foreach_object(opengl, (GFunc)grits_object_pick_end, NULL);
+	for (guint i = 0; i < objects->len; i++) {
+		GritsObject *object = objects->pdata[i];
+		grits_object_set_pointer(object, object->state.picked);
+	}
+	g_ptr_array_free(objects, TRUE);
 	g_mutex_unlock(opengl->objects_lock);
 
 	/* Cleanup */

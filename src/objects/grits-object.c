@@ -51,6 +51,7 @@ static guint signals[NUM_SIGNALS];
 void grits_object_pickdraw(GritsObject *object, GritsOpenGL *opengl, gboolean pick)
 {
 	GritsObjectClass *klass = GRITS_OBJECT_GET_CLASS(object);
+
 	if (!klass->draw) {
 		g_warning("GritsObject: draw - Unimplemented");
 		return;
@@ -59,6 +60,14 @@ void grits_object_pickdraw(GritsObject *object, GritsOpenGL *opengl, gboolean pi
 	/* Skip hidden objects */
 	if (object->hidden)
 		return;
+
+	/* Skip object with no signals when picking */
+	for (int i = 0; pick; i++) {
+		if (g_signal_has_handler_pending(object, signals[i], 0, FALSE))
+			break;
+		if (i == NUM_SIGNALS)
+			return;
+	}
 
 	/* Support GritsTester */
 	if (!GRITS_IS_OPENGL(opengl)) {
@@ -157,30 +166,14 @@ void grits_object_queue_draw(GritsObject *object)
 }
 
 /* Event handling */
-void grits_object_pick_begin(GritsObject *object, GritsOpenGL *opengl)
+void grits_object_pick(GritsObject *object, GritsOpenGL *opengl)
 {
-	object->state.picked = FALSE;
-
-	/* Check for connected signals */
-	for (int i = 0; i < NUM_SIGNALS; i++) {
-		if (g_signal_has_handler_pending(object, signals[i], 0, FALSE)) {
-			/* Someone is watching, render the object _once_ */
-			glPushName((guint)object);
-			grits_object_pickdraw(object, opengl, TRUE);
-			glPopName();
-			return;
-		}
-	}
+	grits_object_pickdraw(object, opengl, TRUE);
 }
 
-void grits_object_pick_pointer(GritsObject *object, double x, double y)
+void grits_object_set_pointer(GritsObject *object, gboolean selected)
 {
-	object->state.picked = TRUE;
-}
-
-void grits_object_pick_end(GritsObject *object)
-{
-	if (object->state.picked) {
+	if (selected) {
 		if (!object->state.selected)
 			g_signal_emit(object, signals[SIG_ENTER], 0);
 		object->state.selected = TRUE;

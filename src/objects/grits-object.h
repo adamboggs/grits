@@ -76,9 +76,8 @@ void grits_object_draw(GritsObject *object, GritsOpenGL *opengl);
 void grits_object_hide(GritsObject *object, gboolean hidden);
 
 /* Interal, used by grits_opengl */
-void grits_object_pick_begin(GritsObject *object, GritsOpenGL *opengl);
-void grits_object_pick_pointer(GritsObject *object, double x, double y);
-void grits_object_pick_end(GritsObject *object);
+void grits_object_pick(GritsObject *object, GritsOpenGL *opengl);
+void grits_object_set_pointer(GritsObject *object, gboolean selected);
 void grits_object_event(GritsObject *object, GdkEvent *event);
 
 /**
