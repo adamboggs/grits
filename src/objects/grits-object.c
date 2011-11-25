@@ -63,10 +63,10 @@ void grits_object_pickdraw(GritsObject *object, GritsOpenGL *opengl, gboolean pi
 
 	/* Skip object with no signals when picking */
 	for (int i = 0; pick; i++) {
-		if (g_signal_has_handler_pending(object, signals[i], 0, FALSE))
-			break;
 		if (i == NUM_SIGNALS)
 			return;
+		if (g_signal_has_handler_pending(object, signals[i], 0, FALSE))
+			break;
 	}
 
 	/* Support GritsTester */
