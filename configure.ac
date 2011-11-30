@@ -15,6 +15,9 @@ GRITS_SUBDIR=grits_subdir
 AC_SUBST(LIB_VERSION)
 AC_SUBST(GRITS_SUBDIR)
 
+# Fix broken libtool
+lt_cv_sys_lib_dlsearch_path_spec="/lib /lib32 /lib64 /usr/lib /usr/lib32 /usr/lib64"
+
 # Check for required programs
 AC_PROG_CC
 AC_PROG_LIBTOOL
