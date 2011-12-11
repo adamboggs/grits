@@ -59,7 +59,7 @@ static void expose(GritsCallback *callback, GritsOpenGL *opengl, gpointer _teapo
 	glRotatef(teapot->rotation, 1, 1, 0);
 	glColor4f(0.9, 0.9, 0.7, 1.0);
 	glDisable(GL_CULL_FACE);
-	glutSolidTeapot(2.5);
+	glutSolidTeapot(0.5);
 }
 
 
@@ -120,6 +120,8 @@ static void grits_plugin_teapot_dispose(GObject *gobject)
 static void grits_plugin_teapot_class_init(GritsPluginTeapotClass *klass)
 {
 	g_debug("GritsPluginTeapot: class_init");
+	int argc = 1; char *argv[] = {"", NULL};
+	glutInit(&argc, argv);
 	GObjectClass *gobject_class = (GObjectClass*)klass;
 	gobject_class->dispose  = grits_plugin_teapot_dispose;
 }

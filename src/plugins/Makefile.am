@@ -23,6 +23,7 @@ noinst_LTLIBRARIES  = teapot.la
 teapot_la_SOURCES   = \
 	$(top_srcdir)/examples/plugin/teapot.c \
 	$(top_srcdir)/examples/plugin/teapot.h
+teapot_la_LDFLAGS   = $(AM_LDFLAGS) -lglut -rpath $(libdir) # I hate you libtool
 endif
 
 test:
