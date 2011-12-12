@@ -210,6 +210,8 @@ static gboolean on_expose(GritsOpenGL *opengl, GdkEventExpose *event, gpointer _
 {
 	g_debug("GritsOpenGL: on_expose - begin");
 
+	gtk_gl_begin(GTK_WIDGET(opengl));
+
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	_set_visuals(opengl);
@@ -551,7 +553,8 @@ static void grits_opengl_init(GritsOpenGL *opengl)
 	opengl->sphere       = roam_sphere_new(opengl);
 	opengl->sphere_lock  = g_mutex_new();
 	gtk_gl_enable(GTK_WIDGET(opengl));
-	g_signal_connect(opengl, "realize", G_CALLBACK(on_realize), NULL);
+	gtk_widget_add_events(GTK_WIDGET(opengl), GDK_KEY_PRESS_MASK);
+	g_signal_connect(opengl, "map", G_CALLBACK(on_realize), NULL);
 }
 static void grits_opengl_dispose(GObject *_opengl)
 {

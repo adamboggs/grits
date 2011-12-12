@@ -191,41 +191,57 @@ void gtk_gl_disable(GtkWidget *widget)
  * Mac OSX implementation *
  **************************/
 #elif defined(SYS_MAC)
+#include <gdk/gdkquartz.h>
 void gtk_gl_enable(GtkWidget *widget)
 {
-	CGDisplayCapture( kCGDirectMainDisplay );
-	CGLPixelFormatAttribute attribs[] =
-	{
-		kCGLPFANoRecovery,
-		kCGLPFADoubleBuffer,
-		kCGLPFAFullScreen,
-		kCGLPFAStencilSize, ( CGLPixelFormatAttribute ) 8,
-		kCGLPFADisplayMask, ( CGLPixelFormatAttribute ) CGDisplayIDToOpenGLDisplayMask( kCGDirectMainDisplay ),
-		( CGLPixelFormatAttribute ) NULL
+	g_debug("GtkGl: enable");
+
+	/* Create context */
+	NSOpenGLPixelFormatAttribute attribs[] = {
+		NSOpenGLPFAColorSize, 24,
+		NSOpenGLPFAAlphaSize, 8,
+		NSOpenGLPFADepthSize, 1,
+		NSOpenGLPFADoubleBuffer,
+		0
 	};
+	NSOpenGLPixelFormat *pix = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+	NSOpenGLContext     *ctx = [[NSOpenGLContext     alloc] initWithFormat:pix shareContext:nil];
 
-	CGLPixelFormatObj pixelFormatObj;
-	GLint numPixelFormats;
-	CGLChoosePixelFormat( attribs, &pixelFormatObj, &numPixelFormats );
+	/* Attach to widget */
+	gtk_widget_set_double_buffered(widget, FALSE);
 
-	CGLCreateContext( pixelFormatObj, NULL, &contextObj );
-
-	CGLDestroyPixelFormat( pixelFormatObj );
-
-	CGLSetCurrentContext( contextObj );
-	CGLSetFullScreen( contextObj );
+	/* Save context */
+	g_object_set_data(G_OBJECT(widget), "glcontext", ctx);
 }
 
 void gtk_gl_begin(GtkWidget *widget)
 {
+	g_debug("GtkGl: begin");
+	GtkAllocation alloc;
+	gdk_window_ensure_native(gtk_widget_get_window(widget));
+	gtk_widget_get_allocation(widget, &alloc);
+
+	NSOpenGLContext *ctx  = g_object_get_data(G_OBJECT(widget), "glcontext");
+	GdkWindow       *win  = gtk_widget_get_window(widget);
+	NSView          *view = gdk_quartz_window_get_nsview(win);
+	NSRect           rect = NSMakeRect(alloc.x, alloc.y, alloc.width, alloc.height);
+
+	[ctx  setView:view];
+	[ctx  makeCurrentContext];
+	[ctx  update];
+	[view setFrame:rect];
 }
 
 void gtk_gl_end(GtkWidget *widget)
 {
+	g_debug("GtkGl: end");
+	NSOpenGLContext *ctx = g_object_get_data(G_OBJECT(widget), "glcontext");
+	[ctx flushBuffer];
 }
 
 void gtk_gl_disable(GtkWidget *widget)
 {
+	g_debug("GtkGl: disable");
 }
 
 

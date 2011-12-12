@@ -79,6 +79,7 @@ int main(int argc, char **argv)
 	GtkWidget *config = gtk_notebook_new();
 	g_signal_connect(window, "delete-event",    G_CALLBACK(on_delete),    NULL);
 	g_signal_connect(window, "key-press-event", G_CALLBACK(on_key_press), NULL);
+	gtk_widget_set_size_request(GTK_WIDGET(viewer), 300, 300);
 	gtk_notebook_set_tab_pos(GTK_NOTEBOOK(config), GTK_POS_BOTTOM);
 	gtk_container_add(GTK_CONTAINER(window), vbox);
 	gtk_box_pack_start(GTK_BOX(vbox), GTK_WIDGET(viewer), TRUE,  TRUE,  0);
