@@ -2,27 +2,25 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 
-//#define USE_CAIRO
-#define USE_GTKGLEXT
-//#define USE_GLX
-//#define USE_WGL
-//#define USE_CGL
+//#define SYS_CAIRO
+//#define SYS_GTKGLEXT
+//#define SYS_X11
+//#define SYS_WIN
+//#define SYS_MAC
 
 /************************
  * Cairo implementation *
  ************************/
-#if defined(USE_CAIRO)
-#include <gdk/gdkwin32.h>
-gpointer expose_setup(GtkWidget *widget) { return NULL; }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+#if defined(SYS_CAIRO)
+gpointer setup(GtkWidget *widget) { return NULL; }
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(widget, &alloc);
 	cairo_t *cairo = gdk_cairo_create(gtk_widget_get_window(widget));
 	cairo_set_source_rgb(cairo, 1, 1, 1);
 	cairo_arc(cairo,
-		alloc.x + alloc.width/2,
-		alloc.y + alloc.height/2,
+		alloc.width/2, alloc.height/2,
 		MIN(alloc.width/2,alloc.height/2),
 		0, 2*G_PI);
 	cairo_fill(cairo);
@@ -33,15 +31,14 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 /***************************
  * GtkGlExt implementation *
  ***************************/
-#elif defined(USE_GTKGLEXT)
+#elif defined(SYS_GTKGLEXT)
 #include <gtk/gtkgl.h>
 #include <GL/gl.h>
-#include <gdk/gdkwin32.h>
 void realize(GtkWidget *widget, gpointer user_data)
 {
 	gdk_window_ensure_native(gtk_widget_get_window(widget));
 }
-gpointer expose_setup(GtkWidget *widget)
+gpointer setup(GtkWidget *widget)
 {
 	//GdkGLConfig *glconfig = gdk_gl_config_new_by_mode(
 	//		GDK_GL_MODE_RGBA   | GDK_GL_MODE_DEPTH |
@@ -53,13 +50,8 @@ gpointer expose_setup(GtkWidget *widget)
 			glconfig, NULL, TRUE, GDK_GL_RGBA_TYPE);
 	return NULL;
 }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
-	GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
-	g_message("window: w=%x tl=%x",
-		(guint)GDK_WINDOW_HWND(gtk_widget_get_window(widget)),
-		(guint)GDK_WINDOW_HWND(gtk_widget_get_window(toplevel)));
-
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(widget, &alloc);
 	GdkGLContext  *glcontext  = gtk_widget_get_gl_context(widget);
@@ -82,7 +74,7 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 /**********************
  * X11 implementation *
  **********************/
-#elif defined(USE_GLX)
+#elif defined(SYS_X11)
 #include <GL/gl.h>
 #include <GL/glx.h>
 #include <gdk/gdkx.h>
@@ -90,7 +82,7 @@ void realize(GtkWidget *widget, gpointer user_data)
 {
       gdk_window_ensure_native(gtk_widget_get_window(widget));
 }
-gpointer expose_setup(GtkWidget *widget)
+gpointer setup(GtkWidget *widget)
 {
 	GdkScreen *screen    = gdk_screen_get_default();
 	Display   *xdisplay  = GDK_SCREEN_XDISPLAY(screen);
@@ -118,7 +110,7 @@ gpointer expose_setup(GtkWidget *widget)
 
 	return context;
 }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, GLXContext context)
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, GLXContext context)
 {
 	/* Make current */
 	Display     *xdisplay = GDK_SCREEN_XDISPLAY(gdk_screen_get_default());
@@ -151,7 +143,7 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, GLXContext conte
 /************************
  * Win32 implementation *
  ************************/
-#elif defined(USE_WGL)
+#elif defined(SYS_WIN)
 #include <GL/gl.h>
 #include <windows.h>
 #include <gdk/gdkwin32.h>
@@ -159,7 +151,7 @@ void realize(GtkWidget *widget, gpointer user_data)
 {
 	gdk_window_ensure_native(gtk_widget_get_window(widget));
 }
-gpointer expose_setup(GtkWidget *widget)
+gpointer setup(GtkWidget *widget)
 {
 	/* Create context */
 	//HWND  hwnd = GDK_WINDOW_HWND(gtk_widget_get_window(widget));
@@ -176,7 +168,7 @@ gpointer expose_setup(GtkWidget *widget)
 	gtk_widget_set_double_buffered(widget, FALSE);
 	return FALSE;
 }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
 	GtkWidget *toplevel = gtk_widget_get_toplevel(widget);
 	GdkWindow *window   = gtk_widget_get_window(widget);
@@ -243,14 +235,51 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 /**************************
  * Mac OSX implementation *
  **************************/
-#elif defined(USE_CGL)
-#include <GL/gl.h>
-gpointer expose_setup(GtkWidget *widget)
+#elif defined(SYS_MAC)
+#include <gdk/gdkquartz.h>
+gpointer setup(GtkWidget *widget)
 {
+	/* Create context */
+	NSOpenGLPixelFormatAttribute attribs[] = {
+		NSOpenGLPFAColorSize, 24,
+		NSOpenGLPFAAlphaSize, 8,
+		NSOpenGLPFADepthSize, 1,
+		NSOpenGLPFADoubleBuffer,
+		0
+	};
+	NSOpenGLPixelFormat *pix  = [[NSOpenGLPixelFormat alloc] initWithAttributes:attribs];
+	NSOpenGLContext     *ctx  = [[NSOpenGLContext     alloc] initWithFormat:pix shareContext:nil];
+
+	/* Disable GTK double buffering */
+	gtk_widget_set_double_buffered(widget, FALSE);
+
+	return ctx;
+}
+gboolean configure(GtkWidget *widget, GdkEventConfigure *event, NSOpenGLContext *ctx)
+{
+	GtkAllocation alloc;
+	gtk_widget_get_allocation(widget, &alloc);
+
+	GdkWindow *win  = gtk_widget_get_window(widget);
+	NSView    *view = gdk_quartz_window_get_nsview(win);
+	NSRect     rect = NSMakeRect(alloc.x, alloc.y, alloc.width, alloc.height);
+
+	[view setFrame:rect];
+	[ctx  update];
 	return FALSE;
 }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, NSOpenGLContext *ctx)
 {
+	gdk_window_ensure_native(gtk_widget_get_window(widget));
+
+	GdkWindow *win  = gtk_widget_get_window(widget);
+	NSView    *view = gdk_quartz_window_get_nsview(win);
+
+	configure(widget, NULL, ctx);
+
+	[ctx setView:view];
+	[ctx makeCurrentContext];
+
 	/* Drawing */
 	GtkAllocation alloc;
 	gtk_widget_get_allocation(widget, &alloc);
@@ -262,6 +291,8 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 	for (double i = 0; i < 2*G_PI; i+=(2*G_PI)/100)
 		glVertex2d(sin(i), cos(i));
 	glEnd();
+
+	[ctx flushBuffer];
 	return FALSE;
 }
 
@@ -270,8 +301,8 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
  * Undefined implementation *
  ****************************/
 #else
-gpointer expose_setup(GtkWidget *widget) { return NULL; }
-gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
+gpointer setup(GtkWidget *widget) { return NULL; }
+gboolean expose(GtkWidget *widget, GdkEventExpose *event, gpointer user_data)
 {
 	g_message("unimplemented");
 	return FALSE;
@@ -283,7 +314,7 @@ gboolean expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer user_da
 /***************
  * Common code *
  ***************/
-gboolean key_press_event(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
+gboolean key_press(GtkWidget *widget, GdkEventKey *event, gpointer user_data)
 {
 	if (event->keyval == GDK_q)
 		gtk_main_quit();
@@ -295,13 +326,16 @@ int main(int argc, char **argv)
 	GtkWidget *window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	GtkWidget *box    = gtk_vbox_new(FALSE, 5);
 	GtkWidget *draw   = gtk_drawing_area_new();
+	GtkWidget *label  = gtk_label_new("Hello, World");
 	GtkWidget *button = gtk_button_new_with_label("Hello, World");
-	gpointer   data   = expose_setup(draw);
-	g_signal_connect(window, "destroy",         G_CALLBACK(gtk_main_quit),    NULL);
-	g_signal_connect(window, "key-press-event", G_CALLBACK(key_press_event),  NULL);
-	g_signal_connect(draw,   "expose-event",    G_CALLBACK(expose_event),     data);
+	gpointer   data   = setup(draw);
+	g_signal_connect(window, "destroy",         G_CALLBACK(gtk_main_quit), NULL);
+	g_signal_connect(window, "key-press-event", G_CALLBACK(key_press),     NULL);
+	//g_signal_connect(draw,   "configure-event", G_CALLBACK(configure),     data);
+	g_signal_connect(draw,   "expose-event",    G_CALLBACK(expose),        data);
 	gtk_widget_set_size_request(draw,   300, 300);
 	gtk_widget_set_size_request(button, -1,  50);
+	gtk_box_pack_start(GTK_BOX(box), label,  FALSE, TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(box), draw,   TRUE,  TRUE, 0);
 	gtk_box_pack_start(GTK_BOX(box), button, FALSE, TRUE, 0);
 	gtk_container_add(GTK_CONTAINER(window), box);

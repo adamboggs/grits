@@ -1,11 +1,33 @@
+PKGS=gtk+-2.0
 PROGS=gl
-PKGS=gtk+-2.0 gtkglext-1.0
-LIBS=-lm
 
+# Cairo
+CPPFLAGS=-DSYS_CAIRO
+default:V: run
+
+# GtkGLExt
+#CPPFLAGS=-DSYS_GTKGLEXT
+#CFLAGS=`{pkg-config --cflags gtkglext-1.0} --std=c99
+#LIBS=-`{pkg-config --libs gtkglext-1.0}
 #default:V: run
 
-ARCH=i686-pc-mingw32-
-EXT=.exe
-default:V: gl.exe
-	wine $prereq
+# X11
+#CPPFLAGS=-DSYS_X11
+#LIBS=-lGL
+#default:V: run
+
+# Mac OSX
+#CPPFLAGS=-DSYS_MAC
+#CFLAGS=-ObjC --std=c99
+#LIBS=-framework OpenGL -framework AppKit
+#default:V: run
+
+# Win32
+#CPPFLAGS=-DSYS_WIN
+#ARCH=i686-pc-mingw32-
+#EXT=.exe
+#LIBS=-lopengl32
+#default:V: gl.exe
+#	wine $prereq
+
 <$HOME/lib/mkcommon
