@@ -17,6 +17,7 @@ grits_include_HEADERS = \
 	grits-opengl.h  \
 	grits-plugin.h  \
 	grits-util.h    \
+	gtkgl.h         \
 	gpqueue.h       \
 	roam.h
 

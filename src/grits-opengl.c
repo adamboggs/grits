@@ -32,8 +32,6 @@
 #include <string.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
 
 #include "grits-opengl.h"
 #include "grits-util.h"

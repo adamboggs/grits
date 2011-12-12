@@ -40,4 +40,7 @@
 /* Plugins */
 #include <grits-plugin.h>
 
+/* Misc */
+#include <gtkgl.h>
+
 #endif

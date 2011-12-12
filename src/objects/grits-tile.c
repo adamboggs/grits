@@ -33,7 +33,7 @@
  */
 
 #include <config.h>
-#include <GL/gl.h>
+#include "gtkgl.h"
 #include "grits-tile.h"
 
 gchar *grits_tile_path_table[2][2] = {

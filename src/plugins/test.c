@@ -25,9 +25,6 @@
 
 #include <string.h>
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-
 #include <gdk/gdkkeysyms.h>
 #include <grits.h>
 

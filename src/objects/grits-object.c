@@ -30,8 +30,8 @@
 
 #include <config.h>
 #include <math.h>
-#include <GL/gl.h>
 
+#include "gtkgl.h"
 #include "grits-object.h"
 
 /* Constants */

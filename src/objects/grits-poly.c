@@ -23,8 +23,7 @@
  */
 
 #include <config.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+#include "gtkgl.h"
 #include "grits-poly.h"
 
 /* Drawing */

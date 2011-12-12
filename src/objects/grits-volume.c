@@ -29,7 +29,7 @@
 #include <config.h>
 #include <math.h>
 #include <glib.h>
-#include <GL/gl.h>
+#include "gtkgl.h"
 #include "grits-volume.h"
 
 /* Drawing */

@@ -25,7 +25,6 @@
 
 #include <time.h>
 #include <glib/gstdio.h>
-#include <GL/gl.h>
 
 #include <grits.h>
 

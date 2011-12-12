@@ -31,7 +31,7 @@
  */
 
 #include <config.h>
-#include <GL/gl.h>
+#include "gtkgl.h"
 #include "grits-marker.h"
 
 /**

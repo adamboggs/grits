@@ -31,9 +31,8 @@
 #include <glib.h>
 #include <math.h>
 #include <string.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
 
+#include "gtkgl.h"
 #include "gpqueue.h"
 #include "grits-util.h"
 #include "roam.h"

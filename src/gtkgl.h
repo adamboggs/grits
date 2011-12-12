@@ -18,6 +18,17 @@
 #ifndef __GTK_GL_H__
 #define __GTK_GL_H__
 
+#include <gtk/gtk.h>
+
+/* Platform dependant OpenGL includes */
+#ifdef USE_MAC
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#include <GL/glu.h>
+#endif
+
 /* Call before widget is realized */
 void gtk_gl_enable(GtkWidget *widget);
 
