@@ -36,26 +36,27 @@ AC_CHECK_LIB(glut, glutSolidTeapot, GLUT_LIBS="-lglut")
 AM_CONDITIONAL(HAVE_GLUT, test "$GLUT_LIBS" != "")
 AC_SUBST(GLUT_LIBS)
 
-# Test for Windows vs. Unix
+# Test for windowing system
 case "${host}" in
-	*mingw32*) WIN32="yes" ;;
-	*cygwin*)  WIN32="yes" ;;
-	*)         WIN32="no"  ;;
+	*mingw32*) SYS="WIN" ;;
+	*cygwin*)  SYS="WIN" ;;
+	*apple*)   SYS="MAC" ;;
+	*)         SYS="X11" ;;
 esac
+AM_CONDITIONAL([SYS_WIN], test "$SYS" = "WIN")
+AM_CONDITIONAL([SYS_MAC], test "$SYS" = "MAC")
+AM_CONDITIONAL([SYS_X11], test "$SYS" = "X11")
 if test "$WIN32" = yes; then
 	ac_default_prefix="/"
 fi
-AM_CONDITIONAL([WIN32],    test "$WIN32" = "yes")
-AM_CONDITIONAL([NOTWIN32], test "$WIN32" = "no")
 
-# Configure GL flags
-if test "$WIN32" = yes; then
-	GL_CFLAGS=""
-	GL_LIBS="-lglu32 -lopengl32"
-else
-	GL_CFLAGS=""
-	GL_LIBS="-lGL -lGLU"
-fi
+# OpenGL flags
+GL_CFLAGS="-DSYS_$SYS"
+case "$SYS" in
+	"WIN") GL_LIBS="-lglu32 -lopengl32" ;;
+	"MAC") GL_LIBS="-framework OpenGL" ;;
+	"X11") GL_LIBS="-lGL -lGLU" ;;
+esac
 AC_SUBST([GL_CFLAGS])
 AC_SUBST([GL_LIBS])
 

@@ -20,7 +20,7 @@
 /***************************
  * GtkGlExt implementation *
  ***************************/
-#if defined(USE_GTKGLEXT)
+#if defined(SYS_GTKGLEXT)
 #include <gtk/gtkgl.h>
 void gtk_gl_enable(GtkWidget *widget)
 {
@@ -53,7 +53,7 @@ void gtk_gl_disable(GtkWidget *widget)
 /**********************
  * X11 implementation *
  **********************/
-#elif defined(USE_GLX)
+#elif defined(SYS_X11)
 #include <GL/glx.h>
 #include <gdk/gdkx.h>
 void gtk_gl_enable(GtkWidget *widget)
@@ -116,7 +116,7 @@ void gtk_gl_disable(GtkWidget *widget)
 /************************
  * Win32 implementation *
  ************************/
-#elif defined(USE_WGL)
+#elif defined(SYS_WIN)
 #include <windows.h>
 #include <gdk/gdkwin32.h>
 static void on_realize(GtkWidget *widget, gpointer _)
@@ -190,7 +190,7 @@ void gtk_gl_disable(GtkWidget *widget)
 /**************************
  * Mac OSX implementation *
  **************************/
-#elif defined(USE_CGL)
+#elif defined(SYS_MAC)
 void gtk_gl_enable(GtkWidget *widget)
 {
 	CGDisplayCapture( kCGDirectMainDisplay );

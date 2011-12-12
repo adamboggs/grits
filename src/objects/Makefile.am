@@ -1,6 +1,7 @@
 AM_CFLAGS  = -Wall --std=gnu99 -I$(top_srcdir)/src
-AM_CFLAGS += $(GLIB_CFLAGS) $(GTK_CFLAGS) $(CAIRO_CFLAGS)
-if NOTWIN32
+AM_CFLAGS += $(GLIB_CFLAGS) $(GTK_CFLAGS) $(GL_CFLAGS) $(CAIRO_CFLAGS)
+
+if !SYS_WIN
 AM_CFLAGS += -fPIC
 endif
 

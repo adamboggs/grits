@@ -21,7 +21,7 @@
 #include <gtk/gtk.h>
 
 /* Platform dependant OpenGL includes */
-#ifdef USE_MAC
+#ifdef SYS_MAC
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
 #else

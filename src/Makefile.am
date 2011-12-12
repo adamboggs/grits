@@ -3,10 +3,18 @@ SUBDIRS = data objects . plugins
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
 AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(GL_CFLAGS) $(SOUP_CFLAGS)
 AM_LDADD    = $(GLIB_LIBS) $(GTK_LIBS) $(GL_LIBS) $(SOUP_LIBS)
-AM_LDFLAGS  = -Wl,--as-needed -Wl,--no-undefined
+AM_LDFLAGS  = 
 
-BUILT_SOURCES = grits-marshal.c grits-marshal.h
-
+# System dependant flags
+if SYS_WIN
+AM_LDFLAGS += -mwindows -no-undefined
+endif
+if SYS_MAC
+AM_CFLAGS  += -ObjC
+AM_LDFLAGS += -framework AppKit
+else
+AM_LDFLAGS += -Wl,--as-needed -Wl,--no-undefined
+endif
 
 # Headers
 grits_includedir = $(includedir)/grits
@@ -48,14 +56,6 @@ libgrits_la_LDFLAGS = $(AM_LDFLAGS) \
 	-version-info $(LIB_VERSION)
 
 # Demo program
-if WIN32
-AM_CPPFLAGS += -DUSE_WGL
-AM_LDFLAGS  += -mwindows -no-undefined
-dots         = ..
-else
-AM_CPPFLAGS += -DUSE_GLX
-endif
-
 bin_PROGRAMS = grits-demo
 
 grits_demo_SOURCES = grits-demo.c
@@ -70,14 +70,18 @@ grits_test_LDADD   = $(AM_LDADD) libgrits.la
 tile_test_SOURCES = tile-test.c
 tile_test_LDADD   = $(AM_LDADD) libgrits.la
 
-
+# Clean
 MAINTAINERCLEANFILES = Makefile.in
+
+# Generated code 
+BUILT_SOURCES = grits-marshal.c grits-marshal.h
 
 .list.c:
 	glib-genmarshal --prefix=grits_cclosure_marshal --body   $< > $@
 .list.h:
 	glib-genmarshal --prefix=grits_cclosure_marshal --header $< > $@
 
+# Debugging rules
 test: all .libs/$(GRITS_SUBDIR)
 	./grits-test
 

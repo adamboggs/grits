@@ -1,9 +1,16 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 AM_CFLAGS   = -Wall --std=gnu99 -I$(top_srcdir)/src
-AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(SOUP_CFLAGS)
-AM_LDFLAGS  = -shared -module -avoid-version -Wl,--as-needed
+AM_CPPFLAGS = $(GLIB_CFLAGS) $(GTK_CFLAGS) $(GL_CFLAGS) $(SOUP_CFLAGS)
+AM_LDFLAGS  = -shared -module -avoid-version
 LIBS        = $(top_srcdir)/src/libgrits.la
+
+if SYS_WIN
+AM_LDFLAGS += -no-undefined
+endif
+if !SYS_MAC
+AM_LDFLAGS += -Wl,--as-needed
+endif
 
 pluginsdir  = "$(libdir)/$(GRITS_SUBDIR)"
 
@@ -13,10 +20,6 @@ elev_la_SOURCES     = elev.c elev.h
 map_la_SOURCES      = map.c  map.h
 env_la_SOURCES      = env.c  env.h
 test_la_SOURCES     = test.c test.h
-
-if WIN32
-AM_LDFLAGS += -no-undefined
-endif
 
 if HAVE_GLUT
 noinst_LTLIBRARIES  = teapot.la
