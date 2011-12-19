@@ -46,9 +46,6 @@ esac
 AM_CONDITIONAL([SYS_WIN], test "$SYS" = "WIN")
 AM_CONDITIONAL([SYS_MAC], test "$SYS" = "MAC")
 AM_CONDITIONAL([SYS_X11], test "$SYS" = "X11")
-if test "$WIN32" = yes; then
-	ac_default_prefix="/"
-fi
 
 # OpenGL flags
 GL_CFLAGS="-DSYS_$SYS"
@@ -59,6 +56,12 @@ case "$SYS" in
 esac
 AC_SUBST([GL_CFLAGS])
 AC_SUBST([GL_LIBS])
+
+# Check for relative build
+AC_ARG_ENABLE(relative, [AS_HELP_STRING([--enable-relative],
+	[enable runtime search paths @<:@default=no@:>@])],
+	[DOTS=".."; ac_default_prefix="/"])
+AC_SUBST([DOTS])
 
 # Output 
 AC_CONFIG_FILES([

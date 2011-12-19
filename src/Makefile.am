@@ -47,8 +47,8 @@ libgrits_la_SOURCES = grits.h \
 	gtkgl.c         gtkgl.h         \
 	gpqueue.c       gpqueue.h
 libgrits_la_CPPFLAGS = $(AM_CPPFLAGS) \
-	-DPKGDATADIR="\"$(dots)$(datadir)/$(GRITS_SUBDIR)\"" \
-	-DPLUGINSDIR="\"$(dots)$(libdir)/$(GRITS_SUBDIR)\""
+	-DPKGDATADIR="\"$(DOTS)$(datadir)/$(GRITS_SUBDIR)\"" \
+	-DPLUGINSDIR="\"$(DOTS)$(libdir)/$(GRITS_SUBDIR)\""
 libgrits_la_LIBADD  = $(AM_LDADD) -lm \
 	objects/libgrits-objects.la \
 	data/libgrits-data.la
