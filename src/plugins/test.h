@@ -37,6 +37,7 @@ struct _GritsPluginTest {
 	GritsViewer *viewer;
 	GritsMarker *marker;
 	GritsPoly   *poly;
+	GritsLine   *line;
 };
 
 struct _GritsPluginTestClass {

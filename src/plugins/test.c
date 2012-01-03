@@ -130,6 +130,21 @@ void _load_poly(GritsPluginTest *test)
 	g_signal_connect(test->poly, "key-press",    G_CALLBACK(on_poly_key),    NULL);
 }
 
+void _load_line(GritsPluginTest *test)
+{
+	test->line = grits_line_parse("30,-80 30,-120 50,-120 50,-80", "\t", " ", ",");
+	test->line->color[0]  = 1;
+	test->line->color[1]  = 0;
+	test->line->color[2]  = 0;
+	test->line->color[3]  = 1;
+	test->line->width     = 8;
+	grits_viewer_add(test->viewer, GRITS_OBJECT(test->line),  GRITS_LEVEL_OVERLAY, TRUE);
+	g_signal_connect(test->line, "enter",        G_CALLBACK(on_poly_enter),  NULL);
+	g_signal_connect(test->line, "leave",        G_CALLBACK(on_poly_leave),  NULL);
+	g_signal_connect(test->line, "button-press", G_CALLBACK(on_poly_button), NULL);
+	g_signal_connect(test->line, "key-press",    G_CALLBACK(on_poly_key),    NULL);
+}
+
 /**
  * grits_plugin_test_new:
  * @viewer: the #GritsViewer to use for drawing
@@ -145,6 +160,7 @@ GritsPluginTest *grits_plugin_test_new(GritsViewer *viewer)
 	test->viewer = g_object_ref(viewer);
 	_load_marker(test);
 	_load_poly(test);
+	_load_line(test);
 	return test;
 }
 

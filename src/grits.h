@@ -36,6 +36,7 @@
 #include <objects/grits-callback.h>
 #include <objects/grits-volume.h>
 #include <objects/grits-poly.h>
+#include <objects/grits-line.h>
 
 /* Plugins */
 #include <grits-plugin.h>
