@@ -173,55 +173,17 @@ GritsPoly *grits_poly_new(gdouble (**points)[3])
 	return poly;
 }
 
-static void _free_points(gdouble (**points)[3])
-{
-	for (int i = 0; points[i]; i++)
-		g_free(points[i]);
-	g_free(points);
-}
-
 GritsPoly *grits_poly_parse(const gchar *str,
 		const gchar *poly_sep, const gchar *point_sep, const gchar *coord_sep)
 {
-	/* Split and count polygons */
-	gchar **spolys = g_strsplit(str, poly_sep, -1);
-	int     npolys = g_strv_length(spolys);
+	GritsPoint center;
+	gdouble (**polys)[3] = parse_points(str,
+			poly_sep, point_sep, coord_sep, NULL, &center);
 
-	GritsBounds bounds = {-90, 90, -180, 180};
-	gdouble (**polys)[3] = (gpointer)g_new0(double*, npolys+1);
-	for (int pi = 0; pi < npolys; pi++) {
-		/* Split and count coordinates */
-		gchar **scoords = g_strsplit(spolys[pi], point_sep, -1);
-		int     ncoords = g_strv_length(scoords);
-
-		/* Create binary coords */
-		gdouble (*coords)[3] = (gpointer)g_new0(gdouble, 3*(ncoords+1));
-		for (int ci = 0; ci < ncoords; ci++) {
-			gdouble lat, lon;
-			sscanf(scoords[ci], "%lf,%lf", &lat, &lon);
-			if (lat > bounds.n) bounds.n = lat;
-			if (lat < bounds.s) bounds.s = lat;
-			if (lon > bounds.e) bounds.e = lon;
-			if (lon < bounds.w) bounds.w = lon;
-			lle2xyz(lat, lon, 0,
-					&coords[ci][0],
-					&coords[ci][1],
-					&coords[ci][2]);
-		}
-
-		/* Insert coords into poly array */
-		polys[pi] = coords;
-		g_strfreev(scoords);
-	}
-	g_strfreev(spolys);
-
-	/* Create GritsPoly */
 	GritsPoly *poly = grits_poly_new(polys);
-	GRITS_OBJECT(poly)->center.lat  = (bounds.n + bounds.s)/2;
-	GRITS_OBJECT(poly)->center.lon  = lon_avg(bounds.e, bounds.w);
-	GRITS_OBJECT(poly)->center.elev = 0;
-	GRITS_OBJECT(poly)->skip        = GRITS_SKIP_CENTER;
-	g_object_weak_ref(G_OBJECT(poly), (GWeakNotify)_free_points, polys);
+	GRITS_OBJECT(poly)->center = center;
+	GRITS_OBJECT(poly)->skip   = GRITS_SKIP_CENTER;
+	g_object_weak_ref(G_OBJECT(poly), (GWeakNotify)free_points, polys);
 	return poly;
 }
 

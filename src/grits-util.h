@@ -159,6 +159,9 @@ struct _GritsPoint {
 void grits_point_set_lle(GritsPoint *point,
 		gdouble lat, gdouble lon, gdouble elev);
 
+/* GritsPoints */
+typedef gdouble (*GritsPoints)[3];
+
 /* GritsBounds */
 typedef struct _GritsBounds GritsBounds;
 struct _GritsBounds {
@@ -211,5 +214,11 @@ gdouble lengthd(gdouble *a);
 void normd(gdouble *a);
 
 gdouble lon_avg(gdouble a, gdouble b);
+
+GritsPoints *parse_points(const gchar *string,
+		const gchar *group_sep, const gchar *point_sep, const gchar *coord_sep,
+		GritsBounds *bounds, GritsPoint *center);
+
+void free_points(GritsPoints *points);
 
 #endif

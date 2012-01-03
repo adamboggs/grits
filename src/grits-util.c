@@ -70,6 +70,7 @@
 
 #include <glib.h>
 #include <math.h>
+#include <stdio.h>
 
 #include "grits-util.h"
 
@@ -302,4 +303,86 @@ void normd(gdouble *a)
 	a[0] = a[0] / total;
 	a[1] = a[1] / total;
 	a[2] = a[2] / total;
+}
+
+/**
+ * parse_points:
+ * @string:    String representation of the points
+ * @group_sep: Group separator
+ * @point_sep: Point separator
+ * @coord_sep: Coordinate separator
+ * @bounds:    The bounding box of all the points, or NULL
+ * @center:    The center of the @bounds, or NULL
+ *
+ * Parse a string of the form:
+ *   string -> group [@group_sep group] ...
+ *   group  -> point [@point_sep point] ...
+ *   point  -> latitude @coord_sep longitude [@coord_sep elevation]
+ *
+ * For example
+ *   parse_points("30,-80 30,-120 50,-120 50,-80", "\t", " ", ",");
+ *
+ * Returns: zero-terminated array of groups of points
+ */
+GritsPoints *parse_points(const gchar *string,
+		const gchar *group_sep, const gchar *point_sep, const gchar *coord_sep,
+		GritsBounds *bounds, GritsPoint *center)
+{
+	/* Split and count groups */
+	gchar **sgroups = g_strsplit(string, group_sep, -1);
+	int     ngroups = g_strv_length(sgroups);
+
+	GritsBounds _bounds = {-90, 90, -180, 180};
+	gdouble (**groups)[3] = (gpointer)g_new0(double*, ngroups+1);
+	for (int pi = 0; pi < ngroups; pi++) {
+		/* Split and count coordinates */
+		gchar **scoords = g_strsplit(sgroups[pi], point_sep, -1);
+		int     ncoords = g_strv_length(scoords);
+
+		/* Create binary coords */
+		gdouble (*coords)[3] = (gpointer)g_new0(gdouble, 3*(ncoords+1));
+		for (int ci = 0; ci < ncoords; ci++) {
+			gdouble lat, lon;
+			sscanf(scoords[ci], "%lf,%lf", &lat, &lon);
+			if (bounds || center) {
+				if (lat > _bounds.n) _bounds.n = lat;
+				if (lat < _bounds.s) _bounds.s = lat;
+				if (lon > _bounds.e) _bounds.e = lon;
+				if (lon < _bounds.w) _bounds.w = lon;
+			}
+			lle2xyz(lat, lon, 0,
+					&coords[ci][0],
+					&coords[ci][1],
+					&coords[ci][2]);
+		}
+
+		/* Insert coords into line array */
+		groups[pi] = coords;
+		g_strfreev(scoords);
+	}
+	g_strfreev(sgroups);
+
+	/* Output */
+	if (bounds)
+		*bounds = _bounds;
+	if (center) {
+		center->lat  = (_bounds.n + _bounds.s)/2;
+		center->lon  = lon_avg(_bounds.e, _bounds.w);
+		center->elev = 0;
+	}
+	return groups;
+}
+
+/**
+ * free_points:
+ * @points: Array of points allocated by parse_points()
+ *
+ * Frees all data allocated by parse_points
+ */
+void free_points(GritsPoints *points)
+{
+	gdouble (**_points)[3] = points;
+	for (int i = 0; _points[i]; i++)
+		g_free(_points[i]);
+	g_free(_points);
 }
