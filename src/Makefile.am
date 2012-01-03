@@ -82,17 +82,19 @@ BUILT_SOURCES = grits-marshal.c grits-marshal.h
 	glib-genmarshal --prefix=grits_cclosure_marshal --header $< > $@
 
 # Debugging rules
-test: all .libs/$(GRITS_SUBDIR)
-	./grits-test
-
-gdb: all .libs/$(GRITS_SUBDIR)
-	gdb ./grits-test
-
-ddd: all .libs/$(GRITS_SUBDIR)
-	ddd ./grits-test
+BUILT_SOURCES += .libs/$(GRITS_SUBDIR)
 
 .libs/$(GRITS_SUBDIR): plugins/.libs
-	ln -sf ../plugins/.libs .libs/$(GRITS_SUBDIR)
+	ln -sf ../$< $@
+
+test: all
+	./grits-test
+
+gdb: all
+	gdb ./grits-test
+
+ddd: all
+	ddd ./grits-test
 
 memcheck: all
 	G_SLICE=always-malloc                   \
