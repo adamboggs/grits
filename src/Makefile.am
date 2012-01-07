@@ -84,8 +84,9 @@ BUILT_SOURCES = grits-marshal.c grits-marshal.h
 # Debugging rules
 BUILT_SOURCES += .libs/$(GRITS_SUBDIR)
 
-.libs/$(GRITS_SUBDIR): plugins/.libs
-	ln -sf ../$< $@
+.libs/$(GRITS_SUBDIR):
+	mkdir -p .libs
+	ln -sf ../plugins/.libs $@
 
 test: all
 	./grits-test
