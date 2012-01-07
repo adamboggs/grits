@@ -57,13 +57,30 @@ struct RenderLevel {
  ***********/
 static void _set_visuals(GritsOpenGL *opengl)
 {
+	double lat, lon, elev, rx, ry, rz;
+	grits_viewer_get_location(GRITS_VIEWER(opengl), &lat, &lon, &elev);
+	grits_viewer_get_rotation(GRITS_VIEWER(opengl), &rx, &ry, &rz);
+
+	/* Set projection and clipping planes */
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	double width  = GTK_WIDGET(opengl)->allocation.width;
+	double height = GTK_WIDGET(opengl)->allocation.height;
+	double ang    = atan(height/FOV_DIST);
+	double atmos  = 100000;
+	double near   = MAX(elev - atmos, 10);    // View 100km of atmosphere
+	double far    = elev + 2*EARTH_R + atmos; // on both sides of the earth
+
+	grits_viewer_get_location(GRITS_VIEWER(opengl), &lat, &lon, &elev);
+	glViewport(0, 0, width, height);
+	gluPerspective(rad2deg(ang)*2, width/height, near, far);
+
+	/* Setup camera and lighting */
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	/* Camera 1 */
-	double lat, lon, elev, rx, ry, rz;
-	grits_viewer_get_location(GRITS_VIEWER(opengl), &lat, &lon, &elev);
-	grits_viewer_get_rotation(GRITS_VIEWER(opengl), &rx, &ry, &rz);
 	glRotatef(rx, 1, 0, 0);
 	glRotatef(rz, 0, 0, 1);
 
@@ -159,16 +176,7 @@ static gboolean on_configure(GritsOpenGL *opengl, GdkEventConfigure *event, gpoi
 {
 	g_debug("GritsOpenGL: on_configure");
 
-	double width  = GTK_WIDGET(opengl)->allocation.width;
-	double height = GTK_WIDGET(opengl)->allocation.height;
-
-	/* Setup OpenGL Window */
-	glViewport(0, 0, width, height);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	double ang = atan(height/FOV_DIST);
-	gluPerspective(rad2deg(ang)*2, width/height, 10, 100*EARTH_R);
-
+	_set_visuals(opengl);
 #ifndef ROAM_DEBUG
 	g_mutex_lock(opengl->sphere_lock);
 	roam_sphere_update_errors(opengl->sphere);
