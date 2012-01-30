@@ -34,12 +34,32 @@
 typedef struct _GritsMarker      GritsMarker;
 typedef struct _GritsMarkerClass GritsMarkerClass;
 
+#define MARKER_DMASK_NONE         (0x0001)
+#define MARKER_DMASK_LABEL        (0x0002)
+#define MARKER_DMASK_POINT        (0x0004)
+#define MARKER_DMASK_ICON         (0x0008)
+#define MARKER_DMASK_DIRECTIONAL  (0x0010)
+#define MARKER_DMASK_ALL          (0xffff)
+
 struct _GritsMarker {
 	GritsObject  parent_instance;
 	gint       xoff, yoff;
 	gchar     *label;
 	cairo_t   *cairo;
 	guint      tex;
+
+	/* What object to display */
+	guint      display_mask;
+
+	/* icon data */
+	gint     angle;         /* rotation angle */
+	gboolean flip;	        /* keep icon "rightside-up" after rotating? */
+	char     *filename;	/* file name of image */
+
+	gdouble outline;
+	gdouble radius;
+	gdouble width;
+	gdouble height;
 };
 
 struct _GritsMarkerClass {
@@ -49,5 +69,7 @@ struct _GritsMarkerClass {
 GType grits_marker_get_type(void);
 
 GritsMarker *grits_marker_new(const gchar *label);
+GritsMarker *grits_marker_icon_new(const gchar *label, const gchar *filename,
+    guint angle, gboolean flip);
 
 #endif
